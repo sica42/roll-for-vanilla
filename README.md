@@ -19,6 +19,10 @@ It's ulitmately your decision who you'll assign the loot to and how you do it
  * upgrades Master Loot window
 
 
+## See it in action
+https://youtu.be/vZdafun0nYo
+
+
 ## Usage
 
 ### In the loot window
