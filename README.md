@@ -9,7 +9,7 @@ It's ulitmately your decision who you'll assign the loot to and how you do it
  * detects if someone rolls too many times and ignores extra rolls
  * if multiple players roll the same number, it automatically shows it and
    waits for these players to re-roll 
- * integrates with raidres.fly.dev
+ * integrates with https://raidres.fly.dev
  * tries to fix typos or special characters in players' names when importing
    from raidres.fly.dev
  * supports "two top rolls win" rolling
@@ -23,7 +23,7 @@ It's ulitmately your decision who you'll assign the loot to and how you do it
 
 ### In the loot window
 
-Shift + left click for `/rf`.
+Shift + left click for `/rf`.  
 Alt + left click for `/rr`.
 
 
