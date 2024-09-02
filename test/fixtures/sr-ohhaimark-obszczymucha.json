@@ -1,0 +1,44 @@
+{
+  "hardreserves": [],
+  "metadata": {
+    "createdAt": 1694249012,
+    "discordUrl": "",
+    "hidden": false,
+    "id": "t5uf54",
+    "instance": "kara",
+    "lockedAt": null,
+    "note": "",
+    "raidStartsAt": null,
+    "updatedAt": 1694252406
+  },
+  "softreserves": [
+    {
+      "class": "warrior",
+      "items": [
+        {
+          "id": 28749,
+          "note": "",
+          "order": 0
+        }
+      ],
+      "name": "Ohhaimark",
+      "note": "",
+      "plusOnes": 0,
+      "rollBonus": 0
+    },
+    {
+      "class": "druid",
+      "items": [
+        {
+          "id": 28747,
+          "note": "",
+          "order": 0
+        }
+      ],
+      "name": "Obszczymucha",
+      "note": "",
+      "plusOnes": 0,
+      "rollBonus": 0
+    }
+  ]
+}

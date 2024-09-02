@@ -1,0 +1,69 @@
+{
+  "metadata": {
+    "id": "a3krfv",
+    "instance": "wotlknaxx25",
+    "hidden": false,
+    "createdAt": 1672644846,
+    "updatedAt": 1672645483,
+    "raidStartsAt": null,
+    "discordUrl": "",
+    "note": ""
+  },
+  "softreserves": [
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Psikutas",
+      "class": "warrior",
+      "note": "",
+      "items": [
+        {
+          "id": 40400,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40400,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40402,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Obszczymucha",
+      "class": "druid",
+      "note": "",
+      "items": [
+        {
+          "id": 40400,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40395,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40627,
+          "note": "",
+          "order": 2
+        }
+      ]
+    }
+  ],
+  "hardreserves": [
+    {
+      "id": 40632,
+      "for": "Rur",
+      "note": ""
+    }
+  ]
+}

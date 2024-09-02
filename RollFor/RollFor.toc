@@ -1,0 +1,45 @@
+## Interface: 11200
+## Title: RollFor
+## Author: Obszczymucha
+## Version: 2.101
+## Notes: An automated item roller with soft ressing support via raidres.fly.dev.
+## SavedVariables: RollForDb
+
+Libs\LibStub\LibStub.lua
+Libs\Libs.xml
+src\Backport.lua
+settings.lua
+src\modules.lua
+src\Api.lua
+src\ItemUtils.lua
+src\RollingLogicUtils.lua
+src\DroppedLoot.lua
+src\DroppedLootAnnounce.lua
+src\TradeTracker.lua
+src\SoftRes.lua
+src\SoftResAwardedLootDecorator.lua
+src\SoftResAbsentPlayersDecorator.lua
+src\SoftResPresentPlayersDecorator.lua
+src\SoftResMatchedNameDecorator.lua
+src\Json.lua
+src\AwardedLoot.lua
+src\GroupRoster.lua
+src\NameAutoMatcher.lua
+src\NameManualMatcher.lua
+src\NameMatchReport.lua
+src\EventHandler.lua
+src\SoftResGui.lua
+src\VersionBroadcast.lua
+src\MasterLoot.lua
+src\MasterLootFrame.lua
+src\SoftResCheck.lua
+src\SoftResRollingLogic.lua
+src\NonSoftResRollingLogic.lua
+src\TieRollingLogic.lua
+src\RaidRollRollingLogic.lua
+src\MasterLootTracker.lua
+src\UsagePrinter.lua
+src\MinimapButton.lua
+#src\MasterLootWarning.lua
+src\AutoLoot.lua
+main.lua

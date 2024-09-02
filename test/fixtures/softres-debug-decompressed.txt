@@ -1,0 +1,615 @@
+{
+  "metadata": {
+    "id": "qwkosg",
+    "instance": "wotlknaxx25",
+    "hidden": false,
+    "createdAt": 1672901938,
+    "updatedAt": 1672904184,
+    "raidStartsAt": null,
+    "discordUrl": "",
+    "note": ""
+  },
+  "softreserves": [
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Hexzon",
+      "class": "paladin",
+      "note": "",
+      "items": [
+        {
+          "id": 40345,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40345,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40345,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Bumder",
+      "class": "warrior",
+      "note": "",
+      "items": [
+        {
+          "id": 40384,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40256,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40343,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Hyzar",
+      "class": "deathknight",
+      "note": "",
+      "items": [
+        {
+          "id": 40189,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40330,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40065,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Trolleygirl",
+      "class": "priest",
+      "note": "",
+      "items": [
+        {
+          "id": 40395,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40395,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40631,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Abyssion",
+      "class": "deathknight",
+      "note": "",
+      "items": [
+        {
+          "id": 40256,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40330,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40278,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Holiboii",
+      "class": "paladin",
+      "note": "",
+      "items": [
+        {
+          "id": 40384,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40384,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 44577,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Loosestgoose",
+      "class": "paladin",
+      "note": "",
+      "items": [
+        {
+          "id": 39764,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40297,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40402,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Moothafaka",
+      "class": "druid",
+      "note": "",
+      "items": [
+        {
+          "id": 40395,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 39766,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40192,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Unshakable",
+      "class": "paladin",
+      "note": "",
+      "items": [
+        {
+          "id": 40396,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40401,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40324,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Ahloy",
+      "class": "hunter",
+      "note": "",
+      "items": [
+        {
+          "id": 40385,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40388,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40256,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Lawhand",
+      "class": "deathknight",
+      "note": "",
+      "items": [
+        {
+          "id": 40403,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40207,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40075,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Unki",
+      "class": "druid",
+      "note": "",
+      "items": [
+        {
+          "id": 40280,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40639,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40633,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Hannibal",
+      "class": "warlock",
+      "note": "",
+      "items": [
+        {
+          "id": 40287,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40625,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40255,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Darkvaler",
+      "class": "warlock",
+      "note": "",
+      "items": [
+        {
+          "id": 39766,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40398,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40399,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Salvatrucha",
+      "class": "hunter",
+      "note": "",
+      "items": [
+        {
+          "id": 44577,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40262,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40074,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Morgzz",
+      "class": "rogue",
+      "note": "",
+      "items": [
+        {
+          "id": 39714,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 39765,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40074,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Babbywaw",
+      "class": "mage",
+      "note": "",
+      "items": [
+        {
+          "id": 40246,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 44577,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40396,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Overiide",
+      "class": "mage",
+      "note": "",
+      "items": [
+        {
+          "id": 40255,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 39712,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40301,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Obszczymucha",
+      "class": "druid",
+      "note": "",
+      "items": [
+        {
+          "id": 39766,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 39766,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40375,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Silxsham",
+      "class": "shaman",
+      "note": "",
+      "items": [
+        {
+          "id": 40367,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 44577,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 44577,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Beerxoxo",
+      "class": "paladin",
+      "note": "",
+      "items": [
+        {
+          "id": 40384,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 44577,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40403,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Allindre",
+      "class": "paladin",
+      "note": "",
+      "items": [
+        {
+          "id": 39703,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 39725,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40378,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Exyle",
+      "class": "priest",
+      "note": "",
+      "items": [
+        {
+          "id": 40395,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40350,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40271,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Flaenh",
+      "class": "hunter",
+      "note": "",
+      "items": [
+        {
+          "id": 40385,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40385,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 44577,
+          "note": "",
+          "order": 2
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Chairitty",
+      "class": "druid",
+      "note": "",
+      "items": [
+        {
+          "id": 40395,
+          "note": "",
+          "order": 0
+        },
+        {
+          "id": 40633,
+          "note": "",
+          "order": 1
+        },
+        {
+          "id": 40627,
+          "note": "",
+          "order": 2
+        }
+      ]
+    }
+  ],
+  "hardreserves": []
+}

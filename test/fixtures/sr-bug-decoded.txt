@@ -1,0 +1,147 @@
+{
+  "metadata": {
+    "id": "ezdrpk",
+    "instance": "eyeofeternity10p2",
+    "hidden": false,
+    "createdAt": 1674975694,
+    "updatedAt": 1674976681,
+    "raidStartsAt": null,
+    "discordUrl": "",
+    "note": ""
+  },
+  "softreserves": [
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Chonkyo",
+      "class": "deathknight",
+      "note": "",
+      "items": [
+        {
+          "id": 40591,
+          "note": "",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Memberbeary",
+      "class": "druid",
+      "note": "",
+      "items": [
+        {
+          "id": 40541,
+          "note": "",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Boogashuga",
+      "class": "priest",
+      "note": "",
+      "items": [
+        {
+          "id": 40558,
+          "note": "",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Armalock",
+      "class": "warlock",
+      "note": "",
+      "items": [
+        {
+          "id": 40561,
+          "note": "",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Ipsilateral",
+      "class": "mage",
+      "note": "",
+      "items": [
+        {
+          "id": 40560,
+          "note": "",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Rocketskatez",
+      "class": "warlock",
+      "note": "",
+      "items": [
+        {
+          "id": 40558,
+          "note": "",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Merlinous",
+      "class": "mage",
+      "note": "",
+      "items": [
+        {
+          "id": 40560,
+          "note": "",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Stolls",
+      "class": "priest",
+      "note": "",
+      "items": [
+        {
+          "id": 40194,
+          "note": "",
+          "order": 0
+        }
+      ]
+    },
+    {
+      "rollBonus": 0,
+      "plusOnes": 0,
+      "name": "Tempri",
+      "class": "druid",
+      "note": "",
+      "items": [
+        {
+          "id": 40561,
+          "note": "",
+          "order": 0
+        }
+      ]
+    }
+  ],
+  "hardreserves": [
+    {
+      "id": 43952,
+      "for": "",
+      "note": ""
+    }
+  ]
+}

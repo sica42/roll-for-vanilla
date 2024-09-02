@@ -1,0 +1,17 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "Lua.diagnostics.globals": [
+    "vim",
+    "utf8",
+    "_"
+  ],
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.workspace.ignoreDir": [
+    "Libs",
+    "libs"
+  ],
+  "workspace.library": [],
+    "diagnostics.disable": [
+        "undefined-global"
+    ]
+}
