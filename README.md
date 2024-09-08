@@ -1,9 +1,10 @@
 # RollFor
 A World of Warcraft (1.12.1) addon that automates rolling for items.  
 
-The addon doesn't distribute loot, it only announces rolls.  
-It's ulitmately your decision who you'll assign the loot to and how you do it
-(trade or master loot).
+The addon **does NOT** distribute loot, it only automates rolling and announces
+winners.  
+It's ulitmately your decision who you'll assign the loot to and how
+you do it (trade or master loot).
 
 ## Features
 ### Shows the loot that dropped (and who soft reserved)
