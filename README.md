@@ -39,6 +39,7 @@ you do it (trade or master loot).
 ### And more
  * Supports "**two top rolls win**" rolling.
  * Supports **raid rolls**.
+ * Supports offspec rolls (`/roll 99`).
 
 <img src="docs/raid-roll.gif" alt="Raid roll" style="width:720px;height:350">
 
@@ -88,29 +89,6 @@ You can also type the above yourself if you want to roll an item from your bags.
 ### Roll for 2 items (two top rolls win)
 ```
 /rf 2x<item link>
-```
-
----
-
-#### Basic item roll with custom rolling time
-```
-/rf <item link> <seconds>
-```
-
----
-
-
-#### Basic item roll with a message
-```
-/rf <item link> <message...>
-```
-
----
-
-
-### Basic item roll with custom rolling time and a message
-```
-/rf <item link> <seconds> <message...>
 ```
 
 ---
