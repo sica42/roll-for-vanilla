@@ -55,8 +55,21 @@ https://youtu.be/vZdafun0nYo
 Shift + left click for normal roll.  
 Alt + left click for raid-roll.
 
+When you click, the addon will insert into the edit box either  
+```
+/rf <item link>
+```
 
-### You can also type in the chat
+or
+
+```
+/rr <item link>
+```
+
+Press Enter to start rolling.  
+You can also type the above yourself if you want to roll an item from your bags.
+
+
 #### Normal roll
 ```
 /rf <item link>
@@ -64,6 +77,20 @@ Alt + left click for raid-roll.
 
 ---
 
+#### Raid roll
+```
+/rr <item link>
+```
+
+---
+
+
+### Roll for 2 items (two top rolls win)
+```
+/rf 2x<item link>
+```
+
+---
 
 #### Basic item roll with custom rolling time
 ```
@@ -84,14 +111,6 @@ Alt + left click for raid-roll.
 ### Basic item roll with custom rolling time and a message
 ```
 /rf <item link> <seconds> <message...>
-```
-
----
-
-
-### Roll for 2 items (two top rolls win)
-```
-/rf 2x<item link>
 ```
 
 ---
