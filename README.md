@@ -15,6 +15,7 @@ you do it (trade or master loot).
 ### Makes Master Loot window pretty and safe
 * one window with players sorted by class
 * adds confirmation window
+
 <img src="docs/master-loot-window.gif" alt="Pretty Master Loot window" style="width:720px;height:350">
 
 ---
@@ -23,6 +24,7 @@ you do it (trade or master loot).
  * Detects if someone rolls too many times and ignores extra rolls.
  * If multiple players roll the same number, it automatically shows it and
    waits for these players to re-roll.
+
 <img src="docs/tie-winners.gif" alt="Tie winners" style="width:720px;height:350">
 
 ---
@@ -38,6 +40,8 @@ you do it (trade or master loot).
  * Supports "**two top rolls win**" rolling.
  * Supports **raid rolls**.
 
+<img src="docs/raid-roll.gif" alt="Raid roll" style="width:720px;height:350">
+
 ---
 
 ### See it in action
@@ -48,29 +52,30 @@ https://youtu.be/vZdafun0nYo
 
 ### In the loot window
 
-Shift + left click for `/rf`.  
-Alt + left click for `/rr`.
+Shift + left click for normal roll.  
+Alt + left click for raid-roll.
 
 
-### Basic item roll
+### You can also type in the chat
+#### Normal roll
 ```
-/rf <item>
-```
-
----
-
-
-### Basic item roll with custom rolling time
-```
-/rf <item> <seconds>
+/rf <item link>
 ```
 
 ---
 
 
-### Basic item roll with a message
+#### Basic item roll with custom rolling time
 ```
-/rf <item> <message...>
+/rf <item link> <seconds>
+```
+
+---
+
+
+#### Basic item roll with a message
+```
+/rf <item link> <message...>
 ```
 
 ---
@@ -78,7 +83,7 @@ Alt + left click for `/rr`.
 
 ### Basic item roll with custom rolling time and a message
 ```
-/rf <item> <seconds> <message...>
+/rf <item link> <seconds> <message...>
 ```
 
 ---
@@ -86,7 +91,7 @@ Alt + left click for `/rr`.
 
 ### Roll for 2 items (two top rolls win)
 ```
-/rf 2x<item>
+/rf 2x<item link>
 ```
 
 ---
@@ -166,7 +171,7 @@ player's name - you have to fix it manually.
 
 
 ### Clearing SR data
-Do this if you're starting a new raid.
+Click on the minimap icon and click **Clear** or type:  
 ```
 /sr init
 ```
