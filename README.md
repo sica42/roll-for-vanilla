@@ -9,20 +9,37 @@ It's ulitmately your decision who you'll assign the loot to and how you do it
 ### Shows the loot that dropped (and who soft reserved)
 ![](docs/dropped-loot.gif)
 
+---
 
-### And much more
+### Makes Master Loot window pretty and safe
+* one window with players sorted by class
+* adds confirmation window
+
+![](docs/master-loot-window.gif)
+
+---
+
+### Fully automated
  * Detects if someone rolls too many times and ignores extra rolls.
  * If multiple players roll the same number, it automatically shows it and
    waits for these players to re-roll.
+
+---
+
+### Soft res integration
  * Integrates with https://raidres.fly.dev.
+ * Minimap icon shows soft res status and who did not soft res.
+ * Fully automated (shows who soft ressed, only accepts rolls from players who SR).
+
+---
+
+### And more
  * Supports "**two top rolls win**" rolling.
  * Supports **raid rolls**.
- * Fully automated.
- * Makes Master Loot window pretty.
- * Adds confirmation window for Master Loot.
 
+---
 
-## See it in action
+### See it in action
 https://youtu.be/vZdafun0nYo
 
 
