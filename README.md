@@ -6,17 +6,20 @@ It's ulitmately your decision who you'll assign the loot to and how you do it
 (trade or master loot).
 
 ## Features
- * detects if someone rolls too many times and ignores extra rolls
- * if multiple players roll the same number, it automatically shows it and
-   waits for these players to re-roll 
- * integrates with https://raidres.fly.dev
- * tries to fix typos or special characters in players' names when importing
-   from raidres.fly.dev
- * supports "two top rolls win" rolling
- * supports raid-rolls
- * it stops rolling and announces the winner if all eligible players rolled
-   (that is, all players in the group or players who SRed the item)
- * upgrades Master Loot window
+### Shows the loot that dropped (and who soft reserved)
+![](docs/dropped-loot.gif)
+
+
+### And much more
+ * Detects if someone rolls too many times and ignores extra rolls.
+ * If multiple players roll the same number, it automatically shows it and
+   waits for these players to re-roll.
+ * Integrates with https://raidres.fly.dev.
+ * Supports "**two top rolls win**" rolling.
+ * Supports **raid rolls**.
+ * Fully automated.
+ * Makes Master Loot window pretty.
+ * Adds confirmation window for Master Loot.
 
 
 ## See it in action
