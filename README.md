@@ -8,7 +8,7 @@ you do it (trade or master loot).
 
 ## Features
 ### Shows the loot that dropped (and who soft reserved)
-![](docs/dropped-loot.gif)
+<img src="docs/dropped-loot.gif" alt="Shows dropped loot" style="width:720px;height:350">
 
 ---
 
