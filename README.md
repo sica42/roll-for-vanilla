@@ -15,8 +15,7 @@ you do it (trade or master loot).
 ### Makes Master Loot window pretty and safe
 * one window with players sorted by class
 * adds confirmation window
-
-![](docs/master-loot-window.gif)
+<img src="docs/master-loot-window.gif" alt="Pretty Master Loot window" style="width:720px;height:350">
 
 ---
 
@@ -24,6 +23,7 @@ you do it (trade or master loot).
  * Detects if someone rolls too many times and ignores extra rolls.
  * If multiple players roll the same number, it automatically shows it and
    waits for these players to re-roll.
+<img src="docs/tie-winners.gif" alt="Tie winners" style="width:720px;height:350">
 
 ---
 
