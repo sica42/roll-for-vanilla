@@ -112,9 +112,9 @@ instead of `/rf`. "arf" stands for "All Roll For".
 
 The addon will tell you the status of SR import.  
 Hovering over the minimap icon will tell you who did not soft-res.  
-If you see `Soft-res setup is complete.` then it means you're good to go.
+
 The minimap icon will go **green** if everyone in the group is soft-ressing.  
-The minimap icon will be **orange** if someone has not soft-ressed.
+The minimap icon will be **orange** if someone has not soft-ressed.  
 The minimap icon will be **red** if you have an outdated soft-res data.  
 The minimap icon will be **white** if there is no soft-res data.  
 
