@@ -95,17 +95,22 @@ function M.new( softres, group_roster, name_matcher, ace_timer, absent_softres, 
     local p = pretty_print
 
     for _, item_id in pairs( softressed_item_ids ) do
-      local players = softres.get( item_id )
-      local quality = softres.get_item_quality( item_id )
-      local item_link = modules.fetch_item_link( item_id, quality )
+      local id = item_id and tonumber( item_id )
+      if item_id and id and id > 0 then
+        local players = softres.get( item_id )
+        local quality = softres.get_item_quality( item_id )
+        local item_link = modules.fetch_item_link( item_id, quality )
 
-      if not item_link and refetch_retries < 3 then
-        modules.set_game_tooltip_with_item_id( item_id )
-        needs_refetch = true
-      elseif not item_link then
-        unavailable_items[ item_id ] = players
-      else
-        items[ item_link ] = players
+        if not item_link and refetch_retries < 3 then
+          modules.set_game_tooltip_with_item_id( item_id )
+          needs_refetch = true
+        elseif not item_link then
+          -- local players_str = modules.prettify_table( players, function( player ) return player.name end )
+          -- p( string.format( "Couldn't fetch item details (player: %s, item_id: %s).", M.colors.hl( players_str ), M.colors.hl( item_id ) ) )
+          unavailable_items[ item_id ] = players
+        else
+          items[ item_link ] = players
+        end
       end
     end
 

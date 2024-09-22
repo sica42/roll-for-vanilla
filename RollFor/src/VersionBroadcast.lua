@@ -62,7 +62,7 @@ function M.new( db, version )
   local function on_comm( prefix, message, _, sender )
     if prefix ~= comm_prefix then return end
 
-    local cmd, value = modules.lua.strmatch( message, "^(.*)::(.*)$" )
+    local cmd, value = string.match( message, "^(.*)::(.*)$" )
 
     if cmd == "VERSION" and is_new_version( value ) and not version_recently_reminded() then
       db.char.last_new_version_reminder_timestamp = modules.lua.time()
