@@ -76,8 +76,9 @@ function M.new( db )
     table.insert( items, { name = player_name, rolls = 1 } )
   end
 
-  local function add_hr( item_id )
+  local function add_hr( item_id, quality )
     hardres_items[ item_id ] = hardres_items[ item_id ] or 1
+    item_quality[ item_id ] = quality
   end
 
   local function get( item_id )
@@ -131,8 +132,9 @@ function M.new( db )
 
     for i = 1, getn( entries ) do
       local item_id = entries[ i ].id
+      local quality = entries[ i ].quality
 
-      add_hr( item_id )
+      add_hr( item_id, quality )
     end
   end
 
@@ -147,6 +149,16 @@ function M.new( db )
     local result = {}
 
     for k, _ in pairs( softres_items ) do
+      table.insert( result, k )
+    end
+
+    return result
+  end
+
+  local function get_hr_item_ids()
+    local result = {}
+
+    for k, _ in pairs( hardres_items ) do
       table.insert( result, k )
     end
 
@@ -208,6 +220,7 @@ function M.new( db )
     is_player_softressing = is_player_softressing,
     get_item_ids = get_item_ids,
     get_item_quality = get_item_quality,
+    get_hr_item_ids = get_hr_item_ids,
     is_item_hardressed = is_item_hardressed,
     show = show,
     get_all_softres_player_names = get_all_softres_player_names,

@@ -48,6 +48,7 @@ end
 
 function M.new( softres, group_roster, name_matcher, ace_timer, absent_softres, db )
   local refetch_retries = 0
+  local hr_refetch_retries = 0
 
   local function show_who_is_not_softressing( silent )
     local players = group_roster.get_all_players_in_my_group()
@@ -82,6 +83,55 @@ function M.new( softres, group_roster, name_matcher, ace_timer, absent_softres, 
 
     if silent ~= true then modules.NameMatchReport.report( name_matcher ) end
     return show_who_is_not_softressing( silent )
+  end
+
+  local function show_hardres( retry )
+    if not retry then hr_refetch_retries = 0 else hr_refetch_retries = hr_refetch_retries + 1 end
+
+    local needs_refetch = false
+    local hardressed_item_ids = softres.get_hr_item_ids()
+    local items = {}
+
+    local p = pretty_print
+
+    for _, item_id in pairs( hardressed_item_ids ) do
+      local id = item_id and tonumber( item_id )
+      if item_id and id and id > 0 then
+        local quality = softres.get_item_quality( item_id )
+        local item_link = modules.fetch_item_link( item_id, quality )
+
+        if not item_link and hr_refetch_retries < 3 then
+          modules.set_game_tooltip_with_item_id( item_id )
+          needs_refetch = true
+        elseif not item_link then
+          -- local players_str = modules.prettify_table( players, function( player ) return player.name end )
+          -- p( string.format( "Couldn't fetch item details (player: %s, item_id: %s).", M.colors.hl( players_str ), M.colors.hl( item_id ) ) )
+        else
+          items[ item_link ] = 1
+        end
+      end
+    end
+
+    if needs_refetch then
+      modules.pretty_print( "Fetching hard-ressed items details from the server...", colors.grey )
+      hr_refetch_retries = hr_refetch_retries + 1
+      ace_timer.ScheduleTimer( M, function() show_hardres( true ) end, 1 )
+      return
+    end
+
+    local item_count = modules.count_elements( items )
+
+    if item_count == 0 then
+      return
+    end
+
+    if item_count > 0 then
+      p( string.format( "Hard-ressed items:" ) )
+
+      for item_link in pairs( items ) do
+        p( item_link )
+      end
+    end
   end
 
   local function show_softres( retry )
@@ -161,6 +211,7 @@ function M.new( softres, group_roster, name_matcher, ace_timer, absent_softres, 
     end
 
     show_who_is_not_softressing()
+    show_hardres()
   end
 
   local function warn_if_no_data()
