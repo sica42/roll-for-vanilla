@@ -105,18 +105,35 @@ instead of `/rf`. "arf" stands for "All Roll For".
 ## Soft-Res setup
 
 1. Create a Soft Res list at https://raidres.fly.dev.  
-2. Use this tool to export the data: https://github.com/obszczymucha/raidres-parser-rust.  
-3. Click on the minimap icon or type `/sr`.  
-5. Paste the data into the window.  
-6. Click *Close*.  
+2. Ask raiders to add their items.
+3. When ready, lock the raid and click on **RollFor export** button.
+
+<img src="docs/raidres-export.jpg" alt="Raidres export" style="width:720px;height:350">
+
+4. Click on **Copy RollFor data to clipboard** buton.
+
+<img src="docs/raidres-copy-to-clipboard.jpg" alt="Raidres copy to clipboard" style="width:720px;height:350">
+
+5. Click on the minimap icon or type `/sr`.  
+6. Paste the data into the window.  
+7. Click **Import!**.  
+
+<img src="docs/softres-import.jpg" alt="softres-import" style="width:720px;height:350">
 
 The addon will tell you the status of SR import.  
 Hovering over the minimap icon will tell you who did not soft-res.  
 
-The minimap icon will go **green** if everyone in the group is soft-ressing.  
+The minimap icon will be **green** if everyone in the group is soft-ressing.  
 The minimap icon will be **orange** if someone has not soft-ressed.  
 The minimap icon will be **red** if you have an outdated soft-res data.  
 The minimap icon will be **white** if there is no soft-res data.  
+
+To show the SR items type:
+```
+/srs
+```
+
+If someone needs to update their items, repeat the process and copy the data again.
 
 ---
 
