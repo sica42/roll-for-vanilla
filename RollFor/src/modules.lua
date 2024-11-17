@@ -96,7 +96,11 @@ function M.is_player_master_looter()
   return M.api.UnitName( "party" .. id ) == M.my_name()
 end
 
-function M.is_player_a_raid_leader()
+function M.is_master_loot()
+  return M.api.GetLootMethod() == "master"
+end
+
+function M.is_player_a_leader()
   return M.api.UnitIsPartyLeader( "player" )
 end
 

@@ -45,12 +45,10 @@ function M.handle_events( main )
       main.trade_tracker.on_trade_accept_update( arg1, arg2, arg3, arg4, arg5 )
     elseif event == "TRADE_REQUEST_CANCEL" then
       main.trade_tracker.on_trade_request_cancel()
-      -- elseif event == "PLAYER_REGEN_DISABLED" then
-      --   main.master_loot_warning.on_player_regen_disabled()
-      -- elseif event == "PARTY_LOOT_METHOD_CHANGED" then
-      --   main.master_loot_warning.on_party_loot_method_changed()
-      -- elseif event == "ZONE_CHANGED_NEW_AREA" or event == "ZONE_CHANGED" then
-      --   main.master_loot_warning.on_zone_changed()
+    elseif event == "PLAYER_TARGET_CHANGED" then
+      main.master_loot_warning.on_player_target_changed()
+    elseif event == "PARTY_LOOT_METHOD_CHANGED" then
+      main.master_loot_warning.on_party_loot_method_changed()
     elseif event == "UI_ERROR_MESSAGE" then
       local message = arg1
       if message == "That player's inventory is full" then
@@ -85,6 +83,7 @@ function M.handle_events( main )
   frame:RegisterEvent( "PARTY_MEMBERS_CHANGED" )
   frame:RegisterEvent( "UI_ERROR_MESSAGE" )
   frame:RegisterEvent( "PLAYER_REGEN_DISABLED" )
+  frame:RegisterEvent( "PLAYER_TARGET_CHANGED" )
   frame:RegisterEvent( "PARTY_LOOT_METHOD_CHANGED" )
   frame:RegisterEvent( "ZONE_CHANGED" )
   frame:RegisterEvent( "ZONE_CHANGED_NEW_AREA" )

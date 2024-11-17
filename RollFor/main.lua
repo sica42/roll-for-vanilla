@@ -125,7 +125,7 @@ local function create_components()
 
   M.usage_printer = m.UsagePrinter.new()
   M.minimap_button = m.MinimapButton.new( M.api, M.db, M.softres_gui.toggle, M.softres_check )
-  -- M.master_loot_warning = m.MasterLootWarning.new( M.api, M.db )
+  M.master_loot_warning = m.MasterLootWarning.new( M.api, M.db )
   M.auto_loot = m.AutoLoot.new( M.api, M.db )
 end
 
@@ -282,6 +282,7 @@ end
 local function toggle_ml_warning()
   if M.db.char.disable_ml_warning then
     M.db.char.disable_ml_warning = nil
+    M.master_loot_warning.on_player_target_changed()
   else
     M.db.char.disable_ml_warning = 1
     M.master_loot_warning.hide()
@@ -302,10 +303,10 @@ end
 
 local function on_roll_command( roll_type )
   return function( args )
-    -- if args == "ml" then
-    --   toggle_ml_warning()
-    --   return
-    -- end
+    if args == "ml" then
+      toggle_ml_warning()
+      return
+    end
 
     if args == "autoloot" then
       toggle_auto_loot()
