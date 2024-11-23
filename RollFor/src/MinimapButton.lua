@@ -97,6 +97,8 @@ function M.new( api, db, manage_softres_fn, softres_check )
         api().GameTooltip:AddLine( string.format( "%s - lock/unlock minimap button", hl( "/rfl" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - reset loot announce", hl( "/rfr" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - toggle Master Loot warning", hl( "/rf ml" ) ) )
+        api().GameTooltip:AddLine( string.format( "%s - cancel rolling in progress", hl( "/cr" ) ) )
+        api().GameTooltip:AddLine( string.format( "%s - finish rolling early", hl( "/fr" ) ) )
         api().GameTooltip:AddLine( " " )
         api().GameTooltip:AddLine( white( "Click to manage softres." ) )
 
