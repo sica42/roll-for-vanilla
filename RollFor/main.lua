@@ -36,8 +36,8 @@ local function announce( text, use_raid_warning )
 end
 
 local function clear_data()
-  M.dropped_loot.clear( true )
-  M.awarded_loot.clear( true )
+  M.dropped_loot.clear()
+  M.awarded_loot.clear()
   M.softres_gui.clear()
   M.name_matcher.clear( true )
   M.softres.clear( true )

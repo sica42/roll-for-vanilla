@@ -33,11 +33,10 @@ function M.new( db )
     db.char.dropped_items = dropped_items
   end
 
-  local function clear( report )
+  local function clear()
     if getn( dropped_items ) == 0 then return end
     dropped_items = {}
     persist()
-    if report then modules.pretty_print( "Cleared dropped loot data." ) end
   end
 
   return {

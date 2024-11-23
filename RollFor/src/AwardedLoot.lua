@@ -26,12 +26,11 @@ function M.new( db )
     return false
   end
 
-  local function clear( report )
+  local function clear()
     if getn( awarded_items ) == 0 then return end
 
     awarded_items = {}
     persist()
-    if report then modules.pretty_print( "Cleared awarded loot data." ) end
   end
 
   return {
