@@ -3,15 +3,25 @@ if modules.EventHandler then return end
 
 local M = {}
 
+---@diagnostic disable-next-line: undefined-field
+local lua50 = table.setn and true or false
+
 function M.handle_events( main )
   local m_first_enter_world
 
-  --eventHandler( frame, event, ... )
-  local function eventHandler()
+  local function eventHandler( _, _event, _arg1, _arg2, _arg3, _arg4, _arg5 )
     ---@diagnostic disable-next-line: undefined-global
-    local event = event
+    local event = lua50 and event or _event
     ---@diagnostic disable-next-line: undefined-global
-    local arg1, arg2, arg3, arg4, arg5 = arg1, arg2, arg3, arg4, arg5
+    local arg1 = lua50 and arg1 or _arg1
+    ---@diagnostic disable-next-line: undefined-global
+    local arg2 = lua50 and arg2 or _arg2
+    ---@diagnostic disable-next-line: undefined-global
+    local arg3 = lua50 and arg3 or _arg3
+    ---@diagnostic disable-next-line: undefined-global
+    local arg4 = lua50 and arg4 or _arg4
+    ---@diagnostic disable-next-line: undefined-global
+    local arg5 = lua50 and arg5 or _arg5
 
     if event == "PLAYER_LOGIN" then
       m_first_enter_world = false

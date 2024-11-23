@@ -33,22 +33,22 @@ run_test() {
                           gsub("^Failed tests:$", "\033[1;31m&\033[0m");
                           gsub("FAIL$", "\033[1;31m&\033[0m");
                           gsub("ERROR$", "\033[1;31m&\033[0m");
-                          print }'
+                          print }' >&2
 
   TEST_FAILED=$?
   popd > /dev/null || return
 }
 
 run_all_tests() {
-  echo "Running tests..."
+  echo "Running tests..." >&2
   find . -name "*_test.lua" | while read -r file; do {
-    echo
-    echo "Testing $file..."
+    echo >&2
+    echo "Testing $file..." >&2
     run_test "$file" "$@"
 
-    #if [[ $TEST_FAILED -ne 0 ]]; then
-      #return
-    #fi
+    if [[ $TEST_FAILED -ne 0 ]]; then
+      return
+    fi
   }; done
 
   return $?
@@ -86,11 +86,11 @@ on_change() {
   local file
   file=$(echo "$full_file" | sed -E "$sed_expression")
 
-  echo "File: $file"
-  echo
+  echo "File: $file" >&2
+  echo >&2
 
   if echo "$file" | grep -E "^.+_test\.lua$" > /dev/null; then
-    echo "Changed: $file. Running it."
+    echo "Changed: $file. Running it." >&2
     run_test "$file"
   else
     run_all_tests

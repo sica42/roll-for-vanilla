@@ -12,7 +12,42 @@ local m_is_master_looter = false
 local m_player_name = nil
 local m_target = nil
 
-M.debug_enabled = false
+---@diagnostic disable-next-line: undefined-field
+local lua50 = table.setn and true or false
+
+if not lua50 then
+  function getfenv()
+    return _G
+  end
+
+  if not unpack then
+    function unpack( t, i, j )
+      i = i or 1
+      j = j or #t
+
+      if i > j then
+        return
+      end
+
+      return t[ i ], unpack( t, i + 1, j )
+    end
+  end
+
+  if not table.getn then
+    ---@diagnostic disable-next-line: duplicate-set-field
+    function table.getn( t )
+      return #t
+    end
+  end
+
+  if not math.mod then
+    math.mod = function( a, b )
+      return a % b
+    end
+  end
+end
+
+M.debug_enabled = true
 
 function M.princess()
   return "kenny"
@@ -199,6 +234,7 @@ function M.mock_api()
   M.mock( "InCombatLockdown", false )
   M.mock( "UnitName", "Psikutas" )
   M.mock( "UnitClass", "Warrior" )
+  M.mock( "GetRealZoneText", "Elwynn Forest" )
   M.mock_messages()
 end
 
@@ -248,7 +284,19 @@ function M.run_command( command, args )
   local f = m_slashcmdlist[ command ]
 
   if f then
+    if not lua50 then
+      arg = {
+        n = 1,
+        [ 1 ] = args
+      }
+    end
+
     f( args )
+
+    if not lua50 then
+      ---@diagnostic disable-next-line: assign-type-mismatch
+      arg = nil
+    end
   else
     M.debugln( string.format( "No callback provided for command: ", command ) )
   end
@@ -285,7 +333,21 @@ function M.fire_event( name, ... )
     return
   end
 
+  if lua50 then
+    ---@diagnostic disable-next-line: lowercase-global
+    event = name
+    ---@diagnostic disable-next-line: lowercase-global
+    arg1, arg2, arg3, arg4, arg5 = unpack( { ... } )
+  end
+
   m_event_callback( nil, name, ... )
+
+  if lua50 then
+    ---@diagnostic disable-next-line: lowercase-global
+    event = nil
+    ---@diagnostic disable-next-line: lowercase-global
+    arg1, arg2, arg3, arg4, arg5 = nil, nil, nil, nil, nil
+  end
 end
 
 function M.roll( player_name, roll, upper_bound )
@@ -437,7 +499,11 @@ function M.mock_blizzard_loot_buttons()
       GetScript = function() end,
       SetScript = function( self, event, callback )
         if event == "OnClick" then
+          ---@diagnostic disable-next-line: lowercase-global
+          this = self
           self.OnClickCallback = callback
+          ---@diagnostic disable-next-line: lowercase-global
+          this = nil
         end
       end,
       Click = function( self )
@@ -455,6 +521,10 @@ function M.mock_unit_name()
   M.mock_table_function( "UnitName", { [ "player" ] = m_player_name, [ "target" ] = m_target } )
 end
 
+function M.mock_shift_key_pressed( value )
+  M.mock( "IsShiftKeyDown", function() return value end )
+end
+
 function M.load_roll_for()
   local libStub = M.load_libstub()
   return libStub( "RollFor-2" )
@@ -467,6 +537,7 @@ function M.player( name )
   M.mock_unit_name()
   M.mock( "IsInGroup", false )
   local rf = M.load_roll_for()
+  M.fire_event( "PLAYER_ENTERING_WORLD" )
 
   -- TODO: Maybe awarded loot shouldn't be accessible.
   rf.awarded_loot.clear()
@@ -474,6 +545,7 @@ end
 
 function M.master_looter( name )
   M.player( name )
+  M.mock( "GetLootMethod", function() return "master", 0 end )
   m_is_master_looter = true
 end
 
@@ -563,7 +635,6 @@ function M.load_real_stuff()
   require( "settings" )
   require( "src/modules" )
   M.mock_api()
-  M.mock_slashcmdlist()
   require( "src/Api" )
   require( "src/ItemUtils" )
   require( "src/RollingLogicUtils" )
@@ -593,7 +664,9 @@ function M.load_real_stuff()
   require( "src/MasterLootFrame" )
   require( "src/UsagePrinter" )
   require( "src/MinimapButton" )
-  require( "Libs/LibDeflate/LibDeflate" )
+  require( "src/MasterLootWarning" )
+  require( "src/AutoLoot" )
+  -- require( "Libs/LibDeflate/LibDeflate" )
   require( "src/Json" )
   require( "main" )
 end

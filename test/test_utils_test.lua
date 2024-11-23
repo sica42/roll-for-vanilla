@@ -2,6 +2,7 @@ package.path = "./?.lua;" .. package.path .. ";../?.lua;../RollFor/?.lua;../Roll
 
 local lu = require( "luaunit" )
 local utils = require( "test/utils" )
+utils.mock_wow_api()
 utils.load_libstub()
 local modules = require( "src/modules" )
 local map = modules.map

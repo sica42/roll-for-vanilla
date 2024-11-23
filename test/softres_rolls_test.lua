@@ -34,6 +34,7 @@ local clear_dropped_items_db = utils.clear_dropped_items_db
 local loot_threshold = utils.loot_threshold
 local LootQuality = utils.LootQuality
 local mock_blizzard_loot_buttons = utils.mock_blizzard_loot_buttons
+local mock_shift_key_pressed = utils.mock_shift_key_pressed
 
 SoftResIntegrationSpec = {}
 
@@ -270,6 +271,7 @@ function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_r
   is_in_raid( leader( "Psikutas" ), "Obszczymucha", "Ponpon" )
   soft_res( sr( "Obszczymucha", 123 ) )
   mock_blizzard_loot_buttons()
+  mock_shift_key_pressed( false )
 
   -- When
   loot( item( "Hearthstone", 123 ), item( "Hearthstone", 123 ) )

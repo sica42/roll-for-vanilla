@@ -46,7 +46,7 @@ local function hook_loot_buttons( reset_confirmation, normal_loot, master_loot, 
 
     button:SetScript( "OnClick", function()
       ---@diagnostic disable-next-line: undefined-global
-      local self = this
+      local self = button
       reset_confirmation()
 
       if modules.api.IsShiftKeyDown() then
@@ -243,7 +243,7 @@ function M.new()
 
       button:SetScript( "OnClick", function()
         ---@diagnostic disable-next-line: undefined-global
-        local self = this
+        local self = button
         local item_name = modules.api.LootFrame.selectedItemName
         local item_quality = modules.api.LootFrame.selectedQuality
 

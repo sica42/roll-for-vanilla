@@ -56,6 +56,7 @@ function M.new( announce, ace_timer, group_roster, item, count, info, seconds, o
     local sorted_offspec_rolls = map( rlu.sort_rolls( offspec_rolls ), function( v )
       v.offspec = true; return v
     end )
+
     local winners = take( merge( {}, sorted_mainspec_rolls, sorted_offspec_rolls ), count )
 
     on_rolling_finished( item, count, winners )

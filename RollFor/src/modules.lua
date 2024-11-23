@@ -37,15 +37,17 @@ M.colors = {
   end
 }
 
-M.api.RAID_CLASS_COLORS.HUNTER.colorStr = "ffabd473"
-M.api.RAID_CLASS_COLORS.WARLOCK.colorStr = "ff8788ee"
-M.api.RAID_CLASS_COLORS.PRIEST.colorStr = "ffffffff"
-M.api.RAID_CLASS_COLORS.PALADIN.colorStr = "fff58cba"
-M.api.RAID_CLASS_COLORS.MAGE.colorStr = "ff3fc7eb"
-M.api.RAID_CLASS_COLORS.ROGUE.colorStr = "fffff569"
-M.api.RAID_CLASS_COLORS.DRUID.colorStr = "ffff7d0a"
-M.api.RAID_CLASS_COLORS.SHAMAN.colorStr = "ff0070de"
-M.api.RAID_CLASS_COLORS.WARRIOR.colorStr = "ffc79c6e"
+if M.api.RAID_CLASS_COLORS then
+  M.api.RAID_CLASS_COLORS.HUNTER.colorStr = "ffabd473"
+  M.api.RAID_CLASS_COLORS.WARLOCK.colorStr = "ff8788ee"
+  M.api.RAID_CLASS_COLORS.PRIEST.colorStr = "ffffffff"
+  M.api.RAID_CLASS_COLORS.PALADIN.colorStr = "fff58cba"
+  M.api.RAID_CLASS_COLORS.MAGE.colorStr = "ff3fc7eb"
+  M.api.RAID_CLASS_COLORS.ROGUE.colorStr = "fffff569"
+  M.api.RAID_CLASS_COLORS.DRUID.colorStr = "ffff7d0a"
+  M.api.RAID_CLASS_COLORS.SHAMAN.colorStr = "ff0070de"
+  M.api.RAID_CLASS_COLORS.WARRIOR.colorStr = "ffc79c6e"
+end
 
 M.colors.softres = M.colors.blue
 M.colors.name_matcher = M.colors.blue
@@ -273,7 +275,7 @@ function M.no_nil( f )
 end
 
 ---@diagnostic disable-next-line: unused-vararg
-function M.merge( result, next, ... )
+function M.merge( result, next, p3, p4 )
   if type( result ) ~= "table" then return {} end
   if type( next ) ~= "table" then return result end
 
@@ -281,7 +283,11 @@ function M.merge( result, next, ... )
     table.insert( result, next[ i ] )
   end
 
-  return M.merge( result, unpack( arg ) )
+  if p3 then
+    return M.merge( result, p3, p4 )
+  end
+
+  return result
 end
 
 function M.keys( t )

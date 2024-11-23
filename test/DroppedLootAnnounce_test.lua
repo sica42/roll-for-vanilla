@@ -329,7 +329,8 @@ function ProcessDroppedItemsIntegrationSpec:should_return_source_guid()
   -- Given
   local items = { item( "Legendary item", 123, LootQuality.Legendary ), item( "Epic item", 124, LootQuality.Epic ) }
   utils.mock( "GetNumLootItems", #items )
-  utils.mock( "UnitGUID", "PrincessKenny_123" )
+  -- utils.mock( "UnitGUID", "PrincessKenny_123" ) -- 2.4.3
+  utils.mock( "UnitName", "Nightbane" )
   utils.targetting_enemy( "Nightbane" )
   utils.mock_table_function( "GetLootSlotLink", map( items, make_link ) )
   utils.mock_table_function( "GetLootSlotInfo", map( items, make_quality ) )
@@ -338,7 +339,7 @@ function ProcessDroppedItemsIntegrationSpec:should_return_source_guid()
   local result, _, _ = process_dropped_items()
 
   -- Then
-  lu.assertEquals( result, "PrincessKenny_123" )
+  lu.assertEquals( result, "Nightbane" )
 end
 
 function ProcessDroppedItemsIntegrationSpec:should_return_dropped_items()
@@ -406,6 +407,7 @@ function ProcessDroppedItemsIntegrationSpec:should_filter_items_below_rare_quali
   utils.mock( "UnitGUID", "PrincessKenny_123" )
   utils.mock_table_function( "GetLootSlotLink", map( items, make_link ) )
   utils.mock_table_function( "GetLootSlotInfo", map( items, make_quality ) )
+  utils.mock( "UnitName", "Onyxia" )
   loot_threshold( LootQuality.Rare )
 
   -- When
@@ -476,6 +478,7 @@ function ProcessDroppedItemsIntegrationSpec:should_filter_items_below_common_qua
   utils.mock( "UnitGUID", "PrincessKenny_123" )
   utils.mock_table_function( "GetLootSlotLink", map( items, make_link ) )
   utils.mock_table_function( "GetLootSlotInfo", map( items, make_quality ) )
+  utils.mock( "UnitName", "Onyxia" )
   loot_threshold( LootQuality.Common )
 
   -- When
