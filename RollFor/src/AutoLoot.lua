@@ -59,8 +59,6 @@ function M.new( api, db )
           else
             pretty_print( string.format( "%s cannot be looted.", link ) )
           end
-        else
-          pretty_print( string.format( "%s (%s) is not on the auto-loot list.", link, item_id ) )
         end
       end
     end
