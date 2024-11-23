@@ -25,7 +25,7 @@ local function winner_found( rollers, rolls )
   return rlu.has_everyone_rolled( rollers, rolls ) and is_the_winner_the_only_player_with_extra_rolls( rollers, rolls )
 end
 
-function M.new( announce, ace_timer, rollers, item, count, seconds, on_rolling_finished, on_softres_rolls_available, master_loot_frame )
+function M.new( announce, ace_timer, rollers, item, count, seconds, on_rolling_finished, on_softres_rolls_available )
   local rolls = {}
   local rolling = false
   local seconds_left = seconds
@@ -135,11 +135,9 @@ function M.new( announce, ace_timer, rollers, item, count, seconds, on_rolling_f
     local x_rolls_win = count > 1 and string.format( ". %d top rolls win.", count ) or ""
     local ressed_by = modules.prettify_table( map( rollers, name_with_rolls ) )
 
-    master_loot_frame.clear_winners()
-
     if count == getn( rollers ) then
       announce( string.format( "%s soft-ressed %s.", ressed_by, item.link ), true )
-      master_loot_frame.mark_winner( ressed_by, item.name )
+      on_rolling_finished( item, 0, { ressed_by } )
     else
       announce( string.format( "Roll for %s%s: (SR by %s)%s", count_str, item.link, ressed_by, x_rolls_win ), true )
       accept_rolls()

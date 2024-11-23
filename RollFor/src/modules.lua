@@ -61,6 +61,14 @@ function M.pretty_print( message, color_fn, module_name )
   M.api.ChatFrame1:AddMessage( string.format( "%s%s: %s", c( "RollFor" ), module_str, message ) )
 end
 
+function M.info( message )
+  M.pretty_print( message )
+end
+
+function M.dbg( message )
+  M.pretty_print( message, M.colors.grey )
+end
+
 function M.count_elements( t, f )
   local result = 0
 

@@ -82,16 +82,25 @@ local function stringify( announcements )
     local entry = announcements[ i ]
 
     if entry.is_hardressed then
-      table.insert( result, string.format( "%s. %s (HR)", i, entry.item_link ) )
+      table.insert( result, {
+        text = string.format( "%s. %s (HR)", i, entry.item_link ),
+        entry = entry
+      } )
     elseif entry.softres_count > 0 then
       local count = entry.how_many_dropped
       local prefix = count == 1 and "" or string.format( "%sx", count )
       local f = print_player( entry.softres_count > 1 )
-      table.insert( result, string.format( "%s. %s%s (SR by %s)", i, prefix, entry.item_link, commify( entry.softressers, f ) ) )
+      table.insert( result, {
+        text = string.format( "%s. %s%s (SR by %s)", i, prefix, entry.item_link, commify( entry.softressers, f ) ),
+        entry = entry
+      } )
     else
       local count = entry.how_many_dropped
       local prefix = count == 1 and "" or string.format( "%sx", count )
-      table.insert( result, string.format( "%s. %s%s", i, prefix, entry.item_link ) )
+      table.insert( result, {
+        text = string.format( "%s. %s%s", i, prefix, entry.item_link ),
+        entry = entry
+      } )
     end
   end
 
@@ -134,12 +143,14 @@ function M.create_item_announcements( summary )
     if entry.is_hardressed then
       table.insert( result, {
         item_link = entry.item.link,
+        item_name = entry.item.item_name,
         is_hardressed = true,
         softres_count = 0
       } )
     elseif softres_count == 0 then
       table.insert( result, {
         item_link = entry.item.link,
+        item_name = entry.item.name,
         softres_count = 0,
         how_many_dropped = entry.how_many_dropped
       } )
@@ -147,6 +158,7 @@ function M.create_item_announcements( summary )
       for j = 1, softres_count do
         table.insert( result, {
           item_link = entry.item.link,
+          item_name = entry.item.name,
           softres_count = 1,
           how_many_dropped = 1,
           softressers = { entry.softressers[ j ] }
@@ -155,6 +167,7 @@ function M.create_item_announcements( summary )
     else
       table.insert( result, {
         item_link = entry.item.link,
+        item_name = entry.item.name,
         softres_count = getn( entry.softressers ),
         how_many_dropped = entry.how_many_dropped,
         softressers = entry.softressers
@@ -218,7 +231,7 @@ function M.create_item_summary( items, softres )
   return result
 end
 
-function M.new( announce, dropped_loot, master_loot_tracker, softres )
+function M.new( announce, dropped_loot, master_loot_tracker, softres, winner_tracker )
   local announcing = false
   local announced_source_ids = {}
 
@@ -252,8 +265,12 @@ function M.new( announce, dropped_loot, master_loot_tracker, softres )
         dropped_loot.add( item.id, item.name )
       end
 
-      for i = 1, getn( announcements ) do
-        announce( announcements[ i ] )
+      for _, announcement in ipairs( announcements ) do
+        announce( announcement.text )
+
+        if announcement.entry.softres_count == 1 then
+          winner_tracker.track( announcement.entry.softressers[ 1 ].name, announcement.entry.item_name )
+        end
       end
 
       dropped_loot.persist()

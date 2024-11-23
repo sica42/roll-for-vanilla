@@ -42,4 +42,5 @@ src\UsagePrinter.lua
 src\MinimapButton.lua
 src\MasterLootWarning.lua
 src\AutoLoot.lua
+src\WinnerTracker.lua
 main.lua

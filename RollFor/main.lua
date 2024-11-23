@@ -42,6 +42,7 @@ local function clear_data()
   M.name_matcher.clear( true )
   M.softres.clear( true )
   M.minimap_button.set_icon( M.minimap_button.ColorType.White )
+  M.winner_tracker.clear()
 end
 
 local function update_minimap_icon()
@@ -113,8 +114,9 @@ local function create_components()
   M.master_loot_tracker = m.MasterLootTracker.new()
   M.softres_check = m.SoftResCheck.new( M.matched_name_softres, M.group_roster, M.name_matcher, M.ace_timer,
     M.absent_softres, M.db )
-  M.dropped_loot_announce = m.DroppedLootAnnounce.new( announce, M.dropped_loot, M.master_loot_tracker, M.softres )
-  M.master_loot_frame = m.MasterLootFrame.new()
+  M.winner_tracker = m.WinnerTracker.new( M.db )
+  M.dropped_loot_announce = m.DroppedLootAnnounce.new( announce, M.dropped_loot, M.master_loot_tracker, M.softres, M.winner_tracker )
+  M.master_loot_frame = m.MasterLootFrame.new( M.winner_tracker )
   M.master_loot = m.MasterLoot.new( M.group_roster, M.dropped_loot, M.award_item, M.master_loot_frame, M.master_loot_tracker )
   M.softres_gui = m.SoftResGui.new( M.api, M.import_encoded_softres_data, M.softres_check, M.softres, clear_data, M.dropped_loot_announce.reset )
 
@@ -147,11 +149,11 @@ local function on_softres_rolls_available( rollers )
 end
 
 local function raid_roll_rolling_logic( item )
-  return modules.RaidRollRollingLogic.new( announce, M.ace_timer, M.group_roster, item, M.master_loot_frame )
+  return modules.RaidRollRollingLogic.new( announce, M.ace_timer, M.group_roster, item, M.winner_tracker )
 end
 
 local function non_softres_rolling_logic( item, count, info, seconds, on_rolling_finished )
-  return modules.NonSoftResRollingLogic.new( announce, M.ace_timer, M.group_roster, item, count, info, seconds, on_rolling_finished, M.master_loot_frame )
+  return modules.NonSoftResRollingLogic.new( announce, M.ace_timer, M.group_roster, item, count, info, seconds, on_rolling_finished )
 end
 
 local function soft_res_rolling_logic( item, count, info, seconds, on_rolling_finished )
@@ -161,8 +163,7 @@ local function soft_res_rolling_logic( item, count, info, seconds, on_rolling_fi
     return non_softres_rolling_logic( item, count, info, seconds, on_rolling_finished )
   end
 
-  return modules.SoftResRollingLogic.new( announce, M.ace_timer, softressing_players, item, count, seconds, on_rolling_finished,
-    on_softres_rolls_available, M.master_loot_frame )
+  return modules.SoftResRollingLogic.new( announce, M.ace_timer, softressing_players, item, count, seconds, on_rolling_finished, on_softres_rolls_available )
 end
 
 function M.import_encoded_softres_data( data, data_loaded_callback )
@@ -224,7 +225,7 @@ function M.on_rolling_finished( item, count, winners, rerolling )
         rerolling and "re-" or "", top_roll and "" or "next ", roll, item.link, os ) )
 
     for _, player_name in ipairs( players ) do
-      M.master_loot_frame.mark_winner( player_name, item.name )
+      M.winner_tracker.track( player_name, item.name )
     end
   end
 
@@ -246,6 +247,10 @@ function M.on_rolling_finished( item, count, winners, rerolling )
 
   for i = 1, getn( winners ) do
     if items_left == 0 then
+      if i == 1 then
+        M.winner_tracker.track( winners[ i ], item.name )
+      end
+
       if not m_rolling_logic.is_rolling() then
         pretty_print( string.format( "Rolling for %s has finished.", item.link ) )
       end
@@ -372,7 +377,7 @@ local function on_roll_command( roll_type )
       return
     end
 
-    M.master_loot_frame.clear_winners()
+    M.winner_tracker.start_rolling( item.name )
     m_rolling_logic.announce_rolling()
   end
 end
@@ -605,9 +610,10 @@ local function on_party_message( message, player )
   end
 end
 
-function M.award_item( player, item_id, item_name, item_link_or_colored_item_name )
-  M.awarded_loot.award( player, item_id, item_name )
-  pretty_print( string.format( "%s received %s.", hl( player ), item_link_or_colored_item_name ) )
+function M.award_item( player_name, item_id, item_name, item_link_or_colored_item_name )
+  M.awarded_loot.award( player_name, item_id, item_name )
+  pretty_print( string.format( "%s received %s.", hl( player_name ), item_link_or_colored_item_name ) )
+  M.winner_tracker.untrack( player_name, item_name )
 end
 
 ---@diagnostic disable-next-line: unused-local

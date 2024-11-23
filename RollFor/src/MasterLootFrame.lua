@@ -198,7 +198,7 @@ local function create_custom_confirmation_dialog_data( on_confirm )
   };
 end
 
-function M.new()
+function M.new( winner_tracker )
   local m_frame
   local m_buttons = {}
   local m_dialog
@@ -272,19 +272,6 @@ function M.new()
     end
   end
 
-  local function show()
-    if m_frame then m_frame:Show() end
-  end
-
-  local function hide()
-    if m_frame then m_frame:Hide() end
-    hide_dialog()
-  end
-
-  local function anchor( frame )
-    m_frame:SetPoint( "TOPLEFT", frame, "BOTTOMLEFT", 0, 0 )
-  end
-
   local function clear_winners()
     for i = 1, 40 do
       local button = m_buttons[ i ]
@@ -296,8 +283,7 @@ function M.new()
   end
 
   local function mark_winner( winner_name, item_name )
-    modules.pretty_print( string.format( "%s - %s", winner_name or "nil", item_name or "nil" ) )
-    -- if item_name ~= modules.api.LootFrame.selectedItemName then return end
+    if item_name ~= modules.api.LootFrame.selectedItemName then return end
 
     for i = 1, 40 do
       local button = m_buttons[ i ]
@@ -309,6 +295,29 @@ function M.new()
     end
   end
 
+  local function show()
+    if not m_frame then return end
+
+    local item_name = modules.api.LootFrame.selectedItemName
+    clear_winners()
+    m_frame:Show()
+
+    for _, winner_name in ipairs( winner_tracker.find_winners( item_name ) ) do
+      mark_winner( winner_name, item_name )
+    end
+  end
+
+  local function hide()
+    if m_frame then m_frame:Hide() end
+    hide_dialog()
+  end
+
+  local function anchor( frame )
+    m_frame:SetPoint( "TOPLEFT", frame, "BOTTOMLEFT", 0, 0 )
+  end
+
+  winner_tracker.subscribe( clear_winners, mark_winner )
+
   return {
     hook_loot_buttons = hook_loot_buttons,
     restore_loot_buttons = restore_loot_buttons,
@@ -317,8 +326,6 @@ function M.new()
     show = show,
     hide = hide,
     anchor = anchor,
-    clear_winners = clear_winners,
-    mark_winner = mark_winner
   }
 end
 
