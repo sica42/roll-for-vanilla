@@ -309,6 +309,10 @@ local function toggle_auto_loot()
   pretty_print( string.format( "Auto-loot %s.", M.db.char.auto_loot and hl( "enabled" ) or hl( "disabled" ) ) )
 end
 
+local function print_auto_raid_roll_status()
+  pretty_print( string.format( "Auto raid-roll is %s.", M.db.char.auto_raid_roll and hl( "enabled" ) or hl( "disabled" ) ) )
+end
+
 local function toggle_auto_raid_roll()
   if M.db.char.auto_raid_roll then
     M.db.char.auto_raid_roll = nil
@@ -316,7 +320,7 @@ local function toggle_auto_raid_roll()
     M.db.char.auto_raid_roll = 1
   end
 
-  pretty_print( string.format( "Auto raid-roll %s.", M.db.char.auto_raid_roll and hl( "enabled" ) or hl( "disabled" ) ) )
+  print_auto_raid_roll_status()
 end
 
 local function on_roll_command( roll_type )
@@ -617,6 +621,12 @@ end
 function M.on_group_changed()
   M.name_matcher.auto_match()
   update_minimap_icon()
+end
+
+function M.on_loot_changed()
+  if modules.is_player_master_looter() and modules.is_master_loot() then
+    print_auto_raid_roll_status()
+  end
 end
 
 modules.EventHandler.handle_events( M )

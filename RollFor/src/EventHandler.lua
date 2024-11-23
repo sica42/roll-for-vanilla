@@ -59,6 +59,7 @@ function M.handle_events( main )
       main.master_loot_warning.on_player_target_changed()
     elseif event == "PARTY_LOOT_METHOD_CHANGED" then
       main.master_loot_warning.on_party_loot_method_changed()
+      main.on_loot_changed()
     elseif event == "UI_ERROR_MESSAGE" then
       local message = arg1
       if message == "That player's inventory is full" then
