@@ -26,8 +26,9 @@ function M.new( db, version )
     end
   end
 
-  local function broadcast_version( type, target )
-    ace_comm:SendCommMessage( comm_prefix, "VERSION::" .. version, type, target )
+  local function broadcast_version( channel )
+    -- ace_comm:SendCommMessage( comm_prefix, "VERSION::" .. version, type, target )
+    modules.api.SendAddonMessage( "RollFor", "VERSION::" .. version, channel )
   end
 
   local function broadcast_version_to_the_guild()
@@ -58,6 +59,17 @@ function M.new( db, version )
     broadcast_version_to_the_group()
   end
 
+  local function notify_about_new_version( ver )
+    db.char.last_new_version_reminder_timestamp = modules.lua.time()
+    modules.pretty_print( string.format( "New version (%s) is available!", modules.colors.highlight( string.format( "v%s", ver ) ) ) )
+  end
+
+  local function on_version( ver )
+    if is_new_version( ver ) and not version_recently_reminded() then
+      notify_about_new_version( ver )
+    end
+  end
+
   -- OnComm(prefix, message, distribution, sender)
   local function on_comm( prefix, message, _, sender )
     if prefix ~= comm_prefix then return end
@@ -65,8 +77,7 @@ function M.new( db, version )
     local cmd, value = string.match( message, "^(.*)::(.*)$" )
 
     if cmd == "VERSION" and is_new_version( value ) and not version_recently_reminded() then
-      db.char.last_new_version_reminder_timestamp = modules.lua.time()
-      modules.pretty_print( string.format( "New version (%s) is available!", modules.colors.highlight( string.format( "v%s", value ) ) ) )
+      notify_about_new_version( value )
     elseif cmd == "VERSION" and is_old_version( value ) then
       broadcast_version( "WHISPER", sender )
     end
@@ -81,7 +92,8 @@ function M.new( db, version )
 
   return {
     on_group_changed = on_group_changed,
-    broadcast = broadcast
+    broadcast = broadcast,
+    on_version = on_version
   }
 end
 

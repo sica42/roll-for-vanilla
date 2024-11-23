@@ -629,5 +629,13 @@ function M.on_loot_changed()
   end
 end
 
+function M.on_chat_msg_addon( name, message )
+  if name ~= "RollFor" then return end
+
+  for ver in string.gmatch( message, "VERSION::(.-)" ) do
+    M.version_broadcast.on_version( ver )
+  end
+end
+
 modules.EventHandler.handle_events( M )
 return M

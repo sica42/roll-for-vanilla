@@ -37,6 +37,8 @@ function M.handle_events( main )
       --main.on_chat_msg_system(arg1, arg2, arg3, arg4, arg5)
     elseif event == "CHAT_MSG_SYSTEM" then
       main.on_chat_msg_system( arg1, arg2, arg3, arg4, arg5 )
+    elseif event == "CHAT_MSG_ADDON" then
+      main.on_chat_msg_addon( arg1, arg2 )
     elseif event == "LOOT_OPENED" then
       main.on_loot_opened()
     elseif event == "LOOT_CLOSED" then
