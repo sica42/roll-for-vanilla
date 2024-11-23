@@ -14,6 +14,10 @@ local items = {
     14113, -- Aboriginal Sash of the Whale
     81094  -- Amber Topaz
   },
+  [ "Blackwing Lair" ] = {
+    18562, -- Elementium Ore
+    19183, -- Hourglass Sand
+  },
 }
 
 function M.new( api, db )
