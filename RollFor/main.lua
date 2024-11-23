@@ -228,7 +228,10 @@ function M.on_rolling_finished( item, count, winners, rerolling )
     pretty_print( string.format( "Nobody rolled for %s.", item.link ) )
     announce( string.format( "Nobody rolled for %s.", item.link ) )
 
-    if m_rolling_logic and not m_rolling_logic.is_rolling() then
+    if M.db.char.auto_raid_roll then
+      m_rolling_logic = raid_roll_rolling_logic( item )
+      m_rolling_logic.announce_rolling()
+    elseif m_rolling_logic and not m_rolling_logic.is_rolling() then
       pretty_print( string.format( "Rolling for %s has finished.", item.link ) )
     end
 
@@ -301,15 +304,33 @@ local function toggle_auto_loot()
   pretty_print( string.format( "Auto-loot %s.", M.db.char.auto_loot and hl( "enabled" ) or hl( "disabled" ) ) )
 end
 
+local function toggle_auto_raid_roll()
+  if M.db.char.auto_raid_roll then
+    M.db.char.auto_raid_roll = nil
+  else
+    M.db.char.auto_raid_roll = 1
+  end
+
+  pretty_print( string.format( "Auto raid-roll %s.", M.db.char.auto_raid_roll and hl( "enabled" ) or hl( "disabled" ) ) )
+end
+
 local function on_roll_command( roll_type )
+  local normal_roll = roll_type == RollType.NormalRoll
+  local raid_roll = roll_type == RollType.RaidRoll
+
   return function( args )
-    if args == "ml" then
+    if normal_roll and args == "ml" then
       toggle_ml_warning()
       return
     end
 
-    if args == "autoloot" then
+    if normal_roll and args == "autoloot" then
       toggle_auto_loot()
+      return
+    end
+
+    if raid_roll and args == "auto" then
+      toggle_auto_raid_roll()
       return
     end
 
@@ -331,11 +352,11 @@ local function on_roll_command( roll_type )
       return
     end
 
-    if roll_type == RollType.NormalRoll then
+    if normal_roll then
       m_rolling_logic = soft_res_rolling_logic( item, count, info, seconds, M.on_rolling_finished )
     elseif roll_type == RollType.NoSoftResRoll then
       m_rolling_logic = non_softres_rolling_logic( item, count, info, seconds, M.on_rolling_finished )
-    elseif roll_type == RollType.RaidRoll then
+    elseif raid_roll then
       m_rolling_logic = raid_roll_rolling_logic( item )
     else
       pretty_print( string.format( "Unsupported command: %s", hl( roll_type and roll_type.slash_command or "?" ) ) )
