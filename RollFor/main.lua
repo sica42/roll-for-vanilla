@@ -304,6 +304,15 @@ local function toggle_ml_warning()
   pretty_print( string.format( "Master Loot warning %s.", M.db.char.disable_ml_warning and hl( "disabled" ) or hl( "enabled" ) ) )
 end
 
+local function print_settings()
+  local enabled = hl( "enabled" )
+  local disabled = hl( "disabled" )
+  local auto_raidroll = M.db.char.auto_raid_roll and enabled or disabled
+  local auto_loot = M.db.char.auto_loot and enabled or disabled
+
+  pretty_print( string.format( "Auto raid-roll is %s. Auto-loot is %s.", auto_raidroll, auto_loot ) )
+end
+
 local function toggle_auto_loot()
   if M.db.char.auto_loot then
     M.db.char.auto_loot = nil
@@ -311,11 +320,7 @@ local function toggle_auto_loot()
     M.db.char.auto_loot = 1
   end
 
-  pretty_print( string.format( "Auto-loot %s.", M.db.char.auto_loot and hl( "enabled" ) or hl( "disabled" ) ) )
-end
-
-local function print_auto_raid_roll_status()
-  pretty_print( string.format( "Auto raid-roll is %s.", M.db.char.auto_raid_roll and hl( "enabled" ) or hl( "disabled" ) ) )
+  print_settings()
 end
 
 local function toggle_auto_raid_roll()
@@ -325,7 +330,7 @@ local function toggle_auto_raid_roll()
     M.db.char.auto_raid_roll = 1
   end
 
-  print_auto_raid_roll_status()
+  print_settings()
 end
 
 local function on_roll_command( roll_type )
@@ -631,7 +636,7 @@ end
 
 function M.on_loot_changed()
   if modules.is_player_master_looter() and modules.is_master_loot() then
-    print_auto_raid_roll_status()
+    print_settings()
   end
 end
 
