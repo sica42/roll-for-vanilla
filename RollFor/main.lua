@@ -147,11 +147,11 @@ local function on_softres_rolls_available( rollers )
 end
 
 local function raid_roll_rolling_logic( item )
-  return modules.RaidRollRollingLogic.new( announce, M.ace_timer, M.group_roster, item )
+  return modules.RaidRollRollingLogic.new( announce, M.ace_timer, M.group_roster, item, M.master_loot_frame )
 end
 
 local function non_softres_rolling_logic( item, count, info, seconds, on_rolling_finished )
-  return modules.NonSoftResRollingLogic.new( announce, M.ace_timer, M.group_roster, item, count, info, seconds, on_rolling_finished )
+  return modules.NonSoftResRollingLogic.new( announce, M.ace_timer, M.group_roster, item, count, info, seconds, on_rolling_finished, M.master_loot_frame )
 end
 
 local function soft_res_rolling_logic( item, count, info, seconds, on_rolling_finished )
@@ -162,7 +162,7 @@ local function soft_res_rolling_logic( item, count, info, seconds, on_rolling_fi
   end
 
   return modules.SoftResRollingLogic.new( announce, M.ace_timer, softressing_players, item, count, seconds, on_rolling_finished,
-    on_softres_rolls_available )
+    on_softres_rolls_available, M.master_loot_frame )
 end
 
 function M.import_encoded_softres_data( data, data_loaded_callback )
@@ -222,6 +222,10 @@ function M.on_rolling_finished( item, count, winners, rerolling )
     announce(
       string.format( "%s %srolled the %shighest (%d) for %s%s.", modules.prettify_table( players ),
         rerolling and "re-" or "", top_roll and "" or "next ", roll, item.link, os ) )
+
+    for _, player_name in ipairs( players ) do
+      M.master_loot_frame.mark_winner( player_name, item.name )
+    end
   end
 
   if getn( winners ) == 0 then
@@ -274,7 +278,8 @@ local function parse_args( args )
   for item_count, item_link, seconds, info in string.gmatch( args, "(%d*)[xX]?%s*(|%w+|Hitem.+|r)%s*(%d*)%s*(.*)" ) do
     local count = (not item_count or item_count == "") and 1 or tonumber( item_count )
     local item_id = M.item_utils.get_item_id( item_link )
-    local item = { id = item_id, link = item_link }
+    local item_name = M.item_utils.get_item_name( item_link )
+    local item = { id = item_id, link = item_link, name = item_name }
     local secs = seconds and seconds ~= "" and seconds ~= " " and tonumber( seconds ) or 8
 
     return item, count, secs <= 3 and 4 or secs, info
@@ -363,6 +368,7 @@ local function on_roll_command( roll_type )
       return
     end
 
+    M.master_loot_frame.clear_winners()
     m_rolling_logic.announce_rolling()
   end
 end

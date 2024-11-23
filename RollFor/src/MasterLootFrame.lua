@@ -6,7 +6,8 @@ local M = {}
 
 local _G = getfenv()
 local confirmation_dialog_key = "ROLLFOR_MASTER_LOOT_CONFIRMATION_DIALOG"
-local button_width = 85
+local icon_width = 16
+local button_width = 85 + icon_width
 local button_height = 16
 local horizontal_padding = 3
 local vertical_padding = 5
@@ -132,6 +133,14 @@ local function create_button( parent, index )
   text:SetPoint( "CENTER", frame, "CENTER" )
   text:SetText( "" )
   frame.text = text
+
+  local icon = frame:CreateTexture( nil, "ARTWORK" )
+  icon:SetPoint( "LEFT", text, "RIGHT", 2, 0 )
+  icon:SetWidth( 13 )
+  icon:SetHeight( 12 )
+  icon:SetTexture( string.format( "Interface\\AddOns\\RollFor\\assets\\star-%s.tga", "gold" ) )
+  icon:Hide()
+  frame.icon = icon
 
   frame:SetScript( "OnEnter", function()
     ---@diagnostic disable-next-line: undefined-global
@@ -276,6 +285,30 @@ function M.new()
     m_frame:SetPoint( "TOPLEFT", frame, "BOTTOMLEFT", 0, 0 )
   end
 
+  local function clear_winners()
+    for i = 1, 40 do
+      local button = m_buttons[ i ]
+      if button then
+        button.text:SetPoint( "CENTER", button, "CENTER" )
+        button.icon:Hide()
+      end
+    end
+  end
+
+  local function mark_winner( winner_name, item_name )
+    modules.pretty_print( string.format( "%s - %s", winner_name or "nil", item_name or "nil" ) )
+    -- if item_name ~= modules.api.LootFrame.selectedItemName then return end
+
+    for i = 1, 40 do
+      local button = m_buttons[ i ]
+
+      if button and button:IsVisible() and button.text:GetText() == winner_name then
+        button.text:SetPoint( "CENTER", button, "CENTER", 2 - icon_width / 2, 0 )
+        button.icon:Show()
+      end
+    end
+  end
+
   return {
     hook_loot_buttons = hook_loot_buttons,
     restore_loot_buttons = restore_loot_buttons,
@@ -283,7 +316,9 @@ function M.new()
     create_candidate_frames = create_candidate_frames,
     show = show,
     hide = hide,
-    anchor = anchor
+    anchor = anchor,
+    clear_winners = clear_winners,
+    mark_winner = mark_winner
   }
 end
 

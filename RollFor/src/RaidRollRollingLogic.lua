@@ -9,7 +9,7 @@ local hl = modules.colors.hl
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
-function M.new( announce, ace_timer, group_roster, item )
+function M.new( announce, ace_timer, group_roster, item, master_loot_frame )
   local m_rolling = false
   local m_players
   local m_winner
@@ -44,6 +44,8 @@ function M.new( announce, ace_timer, group_roster, item )
     m_winner = nil
 
     announce( string.format( "Raid rolling %s...", item.link ) )
+    master_loot_frame.clear_winners()
+
     m_players = group_roster.get_all_players_in_my_group()
     print_players( m_players )
     ace_timer.ScheduleTimer( M, raid_roll, 1 )
@@ -55,6 +57,8 @@ function M.new( announce, ace_timer, group_roster, item )
 
     m_winner = m_players[ roll ]
     announce( string.format( "%s wins %s.", m_winner.name, item.link ) )
+
+    master_loot_frame.mark_winner( m_winner.name, item.name )
 
     m_rolling = false
   end
