@@ -138,6 +138,7 @@ function M.mock_wow_api()
           SetTexture = function() end,
           SetPoint = function() end,
           SetTexCoord = function() end,
+          Hide = function() end
         }
       end,
       SetWidth = function() end,
@@ -536,6 +537,7 @@ function M.player( name )
   m_target = nil
   M.mock_unit_name()
   M.mock( "IsInGroup", false )
+  M.mock_object( "LootFrame", {} )
   local rf = M.load_roll_for()
   M.fire_event( "PLAYER_ENTERING_WORLD" )
 
@@ -666,6 +668,7 @@ function M.load_real_stuff()
   require( "src/MinimapButton" )
   require( "src/MasterLootWarning" )
   require( "src/AutoLoot" )
+  require( "src/WinnerTracker" )
   -- require( "Libs/LibDeflate/LibDeflate" )
   require( "src/Json" )
   require( "main" )
@@ -701,6 +704,7 @@ function M.loot( ... )
   local items = { ... }
   local count = items and #items or 0
   M.mock( "GetNumLootItems", count )
+  M.mock_object( "LootFrame", {} )
 
   if count > 0 then
     M.mock( "UnitGUID", items[ 1 ].source_id )

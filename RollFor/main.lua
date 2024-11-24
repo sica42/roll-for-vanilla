@@ -211,7 +211,7 @@ function M.there_was_a_tie( item, count, winners, top_roll, rerolling )
 end
 
 -- This should probably not be here.
-function M.on_rolling_finished( item, count, winners, rerolling )
+function M.on_rolling_finished( item, count, winners, rerolling, there_was_no_rolling )
   local announce_winners = function( v, top_roll )
     local roll = v.roll
     local players = v.players
@@ -251,7 +251,11 @@ function M.on_rolling_finished( item, count, winners, rerolling )
         M.winner_tracker.track( winners[ i ], item.name )
       end
 
-      if not m_rolling_logic.is_rolling() then
+      if m_rolling_logic.is_rolling() then return end
+
+      if there_was_no_rolling then
+        pretty_print( string.format( "Use %s %s to roll the item and ignore the softres.", hl( "/arf" ), item.link ), nil, "Tip" )
+      else
         pretty_print( string.format( "Rolling for %s has finished.", item.link ) )
       end
 

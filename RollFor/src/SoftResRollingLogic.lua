@@ -137,7 +137,7 @@ function M.new( announce, ace_timer, rollers, item, count, seconds, on_rolling_f
 
     if count == getn( rollers ) then
       announce( string.format( "%s soft-ressed %s.", ressed_by, item.link ), true )
-      on_rolling_finished( item, 0, { ressed_by } )
+      on_rolling_finished( item, 0, { ressed_by }, false, true )
     else
       announce( string.format( "Roll for %s%s: (SR by %s)%s", count_str, item.link, ressed_by, x_rolls_win ), true )
       accept_rolls()

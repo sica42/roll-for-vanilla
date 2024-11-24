@@ -13,6 +13,7 @@ require( "settings" )
 require( "src/SoftRes" )
 require( "src/MasterLootTracker" )
 local mod = require( "src/DroppedLootAnnounce" )
+local map = utils.map
 
 local item = function( name, id, quality ) return make_item( id, name, string.format( "[%s]", name ), quality or 4 ) end
 
@@ -128,6 +129,10 @@ end
 
 ItemAnnouncementSpec = {}
 
+local function get_text( announcements )
+  return map( announcements, function( v ) return v.text end )
+end
+
 function ItemAnnouncementSpec:should_create_announcements_if_there_is_one_sr_hr_and_normal()
   -- Given
   local items = { item( "Hearthstone", 123 ), item( "Big mace", 111 ), item( "Small mace", 112 ) }
@@ -135,7 +140,7 @@ function ItemAnnouncementSpec:should_create_announcements_if_there_is_one_sr_hr_
   local summary = mod.create_item_summary( items, softres( softresses, hr( 111 ) ) )
 
   -- When
-  local result = mod.create_item_announcements( summary )
+  local result = get_text( mod.create_item_announcements( summary ) )
 
   -- Then
   lu.assertEquals( result, {
@@ -153,7 +158,7 @@ function ItemAnnouncementSpec:should_create_announcements_if_there_is_one_sr_and
   local summary = mod.create_item_summary( items, softres( softresses, hr( 111 ) ) )
 
   -- When
-  local result = mod.create_item_announcements( summary )
+  local result = get_text( mod.create_item_announcements( summary ) )
 
   -- Then
   lu.assertEquals( result, {
@@ -162,7 +167,7 @@ function ItemAnnouncementSpec:should_create_announcements_if_there_is_one_sr_and
   } )
 end
 
-function ItemAnnouncementSpec:should_create_announcements_if_the_number_if_items_is_equal_to_softressers()
+function ItemAnnouncementSpec:should_create_announcements_if_the_number_of_items_is_equal_to_softressers()
   -- Given
   local hs = item( "Hearthstone", 123 )
   local items = { hs, hs, item( "Big mace", 111 ), item( "Small mace", 112 ) }
@@ -170,7 +175,7 @@ function ItemAnnouncementSpec:should_create_announcements_if_the_number_if_items
   local summary = mod.create_item_summary( items, softres( softresses, hr( 111 ) ) )
 
   -- When
-  local result = mod.create_item_announcements( summary )
+  local result = get_text( mod.create_item_announcements( summary ) )
 
   -- Then
   lu.assertEquals( result, {
@@ -181,7 +186,7 @@ function ItemAnnouncementSpec:should_create_announcements_if_the_number_if_items
   } )
 end
 
-function ItemAnnouncementSpec:should_create_announcements_if_the_number_if_items_is_greater_than_softressers_by_one()
+function ItemAnnouncementSpec:should_create_announcements_if_the_number_of_items_is_greater_than_softressers_by_one()
   -- Given
   local hs = item( "Hearthstone", 123 )
   local items = { hs, hs, hs, item( "Big mace", 111 ), item( "Small mace", 112 ) }
@@ -189,7 +194,7 @@ function ItemAnnouncementSpec:should_create_announcements_if_the_number_if_items
   local summary = mod.create_item_summary( items, softres( softresses, hr( 111 ) ) )
 
   -- When
-  local result = mod.create_item_announcements( summary )
+  local result = get_text( mod.create_item_announcements( summary ) )
 
   -- Then
   lu.assertEquals( result, {
@@ -201,7 +206,7 @@ function ItemAnnouncementSpec:should_create_announcements_if_the_number_if_items
   } )
 end
 
-function ItemAnnouncementSpec:should_create_announcements_if_the_number_if_items_is_greater_than_softressers_by_more()
+function ItemAnnouncementSpec:should_create_announcements_if_the_number_of_items_is_greater_than_softressers_by_more()
   -- Given
   local hs = item( "Hearthstone", 123 )
   local items = { hs, hs, hs, hs, item( "Big mace", 111 ), item( "Small mace", 112 ) }
@@ -209,7 +214,7 @@ function ItemAnnouncementSpec:should_create_announcements_if_the_number_if_items
   local summary = mod.create_item_summary( items, softres( softresses, hr( 111 ) ) )
 
   -- When
-  local result = mod.create_item_announcements( summary )
+  local result = get_text( mod.create_item_announcements( summary ) )
 
   -- Then
   lu.assertEquals( result, {
@@ -230,7 +235,7 @@ function ItemAnnouncementSpec:should_group_items_that_are_not_soft_ressed()
   local summary = mod.create_item_summary( items, softres( softresses, hr( 111 ) ) )
 
   -- When
-  local result = mod.create_item_announcements( summary )
+  local result = get_text( mod.create_item_announcements( summary ) )
 
   -- Then
   lu.assertEquals( result, {
@@ -251,7 +256,7 @@ function ItemAnnouncementSpec:should_group_soft_ressers_if_only_one_sr_item_drop
   local summary = mod.create_item_summary( items, softres( softresses, hr( 111 ) ) )
 
   -- When
-  local result = mod.create_item_announcements( summary )
+  local result = get_text( mod.create_item_announcements( summary ) )
 
   -- Then
   lu.assertEquals( result, {
@@ -270,7 +275,7 @@ function ItemAnnouncementSpec:should_group_soft_ressers_if_only_one_sr_item_drop
   local summary = mod.create_item_summary( items, softres( softresses, hr( 111 ) ) )
 
   -- When
-  local result = mod.create_item_announcements( summary )
+  local result = get_text( mod.create_item_announcements( summary ) )
 
   -- Then
   lu.assertEquals( result, {
@@ -289,7 +294,7 @@ function ItemAnnouncementSpec:should_group_soft_ressers_if_two_sr_items_dropped_
   local summary = mod.create_item_summary( items, softres( softresses, hr( 111 ) ) )
 
   -- When
-  local result = mod.create_item_announcements( summary )
+  local result = get_text( mod.create_item_announcements( summary ) )
 
   -- Then
   lu.assertEquals( result, {
@@ -300,17 +305,6 @@ function ItemAnnouncementSpec:should_group_soft_ressers_if_two_sr_items_dropped_
 end
 
 ProcessDroppedItemsIntegrationSpec = {}
-
-local function map( t, f )
-  local result = {}
-
-  for i = 1, #t do
-    local value = f( t[ i ] ) -- If this isn't a variable, then table.insert breaks. Hmm...
-    table.insert( result, value )
-  end
-
-  return result
-end
 
 local function make_link( _item )
   return utils.item_link( _item.name, _item.id )
@@ -379,7 +373,7 @@ function ProcessDroppedItemsIntegrationSpec:should_filter_items_below_epic_quali
 
   -- When
   local _, items_dropped, announcements = process_dropped_items()
-  local result = map( announcements, utils.parse_item_link )
+  local result = map( get_text( announcements ), utils.parse_item_link )
 
   -- Then
   lu.assertEquals( items_dropped, {
@@ -412,7 +406,7 @@ function ProcessDroppedItemsIntegrationSpec:should_filter_items_below_rare_quali
 
   -- When
   local _, items_dropped, announcements = process_dropped_items( 3 )
-  local result = map( announcements, utils.parse_item_link )
+  local result = map( get_text( announcements ), utils.parse_item_link )
 
   -- Then
   lu.assertEquals( items_dropped, {
@@ -446,7 +440,7 @@ function ProcessDroppedItemsIntegrationSpec:should_filter_items_below_uncommon_q
 
   -- When
   local _, items_dropped, announcements = process_dropped_items( 2 )
-  local result = map( announcements, utils.parse_item_link )
+  local result = map( get_text( announcements ), utils.parse_item_link )
 
   -- Then
   lu.assertEquals( items_dropped, {
@@ -483,7 +477,7 @@ function ProcessDroppedItemsIntegrationSpec:should_filter_items_below_common_qua
 
   -- When
   local _, items_dropped, announcements = process_dropped_items( 1 )
-  local result = map( announcements, utils.parse_item_link )
+  local result = map( get_text( announcements ), utils.parse_item_link )
 
   -- Then
   lu.assertEquals( items_dropped, {
@@ -521,7 +515,7 @@ function ProcessDroppedItemsIntegrationSpec:should_not_filter_any_items_if_thres
 
   -- When
   local _, items_dropped, announcements = process_dropped_items( 0 )
-  local result = map( announcements, utils.parse_item_link )
+  local result = map( get_text( announcements ), utils.parse_item_link )
 
   -- Then
   lu.assertEquals( items_dropped, {
