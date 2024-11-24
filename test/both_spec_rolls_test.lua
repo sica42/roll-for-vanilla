@@ -30,7 +30,7 @@ function BothSpecRollsSpec:should_prioritize_mainspec_over_offspec_rolls()
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Psikutas rolled the highest (69) for [Hearthstone]." ),
     rolling_finished()
@@ -51,7 +51,7 @@ function BothSpecRollsSpec:should_override_offspec_roll_with_mainspec_and_finish
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2" ),
     cr( "Psikutas rolled the highest (69) for [Hearthstone]." ),
     rolling_finished()
@@ -73,7 +73,7 @@ function BothSpecRollsSpec:should_override_offspec_roll_with_mainspec_and_not_fi
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Psikutas rolled the highest (69) for [Hearthstone]." ),
     rolling_finished()
@@ -93,7 +93,7 @@ function BothSpecRollsSpec:should_recognize_both_mainspec_and_offspec_rollers_an
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." ),
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     r( "Stopping rolls in 3", "2" ),
     cr( "Obszczymucha rolled the highest (3) for [Hearthstone]." ),
     cr( "Psikutas rolled the next highest (63) for [Hearthstone] (OS)." ),
@@ -115,7 +115,7 @@ function BothSpecRollsSpec:should_recognize_both_mainspec_and_top_offspec_roller
 
   -- Then
   assert_messages(
-    rw( "Roll for 3x[Hearthstone]: /roll (MS) or /roll 99 (OS). 3 top rolls win." ),
+    rw( "Roll for 3x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 3 top rolls win." ),
     r( "Stopping rolls in 3", "2" ),
     cr( "Obszczymucha rolled the highest (3) for [Hearthstone]." ),
     cr( "Chuj rolled the next highest (99) for [Hearthstone] (OS)." ),
@@ -138,7 +138,7 @@ function BothSpecRollsSpec:should_recognize_both_top_mainspec_and_offspec_roller
 
   -- Then
   assert_messages(
-    rw( "Roll for 3x[Hearthstone]: /roll (MS) or /roll 99 (OS). 3 top rolls win." ),
+    rw( "Roll for 3x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 3 top rolls win." ),
     r( "Stopping rolls in 3", "2" ),
     cr( "Chuj rolled the highest (99) for [Hearthstone]." ),
     cr( "Obszczymucha rolled the next highest (3) for [Hearthstone]." ),
@@ -162,7 +162,7 @@ function BothSpecRollsSpec:should_recognize_both_mainspec_rollers_and_not_stop_a
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." ),
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Psikutas rolled the highest (63) for [Hearthstone]." ),
     cr( "Obszczymucha rolled the next highest (3) for [Hearthstone]." ),
@@ -184,7 +184,7 @@ function BothSpecRollsSpec:should_recognize_both_mainspec_rollers_and_not_stop_a
 
   -- Then
   assert_messages(
-    rw( "Roll for 3x[Hearthstone]: /roll (MS) or /roll 99 (OS). 3 top rolls win." ),
+    rw( "Roll for 3x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 3 top rolls win." ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Psikutas rolled the highest (63) for [Hearthstone]." ),
     cr( "Obszczymucha rolled the next highest (3) for [Hearthstone]." ),
@@ -207,7 +207,7 @@ function BothSpecRollsSpec:should_recognize_mainspec_and_offspec_rollers_and_not
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." ),
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Psikutas rolled the highest (63) for [Hearthstone]." ),
     cr( "Chuj rolled the next highest (99) for [Hearthstone] (OS)." ),
@@ -230,7 +230,7 @@ function BothSpecRollsSpec:should_recognize_mainspec_roller_and_top_offspec_roll
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." ),
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Obszczymucha rolled the highest (1) for [Hearthstone]." ),
     cr( "Psikutas rolled the next highest (69) for [Hearthstone] (OS)." ),
@@ -253,7 +253,7 @@ function BothSpecRollsSpec:should_recognize_mainspec_rollers_if_item_count_is_le
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." ),
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Psikutas rolled the highest (69) for [Hearthstone]." ),
     cr( "Obszczymucha rolled the next highest (1) for [Hearthstone]." ),

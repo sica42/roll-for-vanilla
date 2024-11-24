@@ -37,6 +37,11 @@ M.colors = {
   end
 }
 
+M.msg = {
+  disabled = M.colors.red( "disabled" ),
+  enabled = M.colors.green( "enabled" )
+}
+
 if M.api.RAID_CLASS_COLORS then
   M.api.RAID_CLASS_COLORS.HUNTER.colorStr = "ffabd473"
   M.api.RAID_CLASS_COLORS.WARLOCK.colorStr = "ff8788ee"
@@ -53,12 +58,22 @@ M.colors.softres = M.colors.blue
 M.colors.name_matcher = M.colors.blue
 M.colors.hl = M.colors.highlight
 
+function M.print( message )
+  if not message then return end
+  M.api.DEFAULT_CHAT_FRAME:AddMessage( message )
+end
+
 function M.pretty_print( message, color_fn, module_name )
   if not message then return end
 
   local c = color_fn and type( color_fn ) == "function" and color_fn or color_fn and type( color_fn ) == "string" and M.colors[ color_fn ] or M.colors.blue
   local module_str = module_name and string.format( "%s%s%s", c( "[ " ), M.colors.white( module_name ), c( " ]" ) ) or ""
-  M.api.ChatFrame1:AddMessage( string.format( "%s%s: %s", c( "RollFor" ), module_str, message ) )
+  M.api.DEFAULT_CHAT_FRAME:AddMessage( string.format( "%s%s: %s", c( "RollFor" ), module_str, message ) )
+end
+
+function M.print_header( text, color_fn )
+  local c = color_fn or M.colors.blue
+  M.api.DEFAULT_CHAT_FRAME:AddMessage( c( text ) )
 end
 
 function M.info( message )

@@ -33,7 +33,7 @@ function MainspecRollsSpec:should_finish_rolling_automatically_if_all_players_ro
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     cr( "Psikutas rolled the highest (69) for [Hearthstone]." ),
     rolling_finished(),
     rolling_not_in_progress()
@@ -53,7 +53,7 @@ function MainspecRollsSpec:should_finish_rolling_after_the_timer_if_not_all_play
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Psikutas rolled the highest (69) for [Hearthstone]." ),
     rolling_finished(),
@@ -76,7 +76,7 @@ function MainspecRollsSpec:should_recognize_tie_rolls_when_all_players_tie()
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     cr( "The highest roll was 69 by Obszczymucha and Psikutas." ),
     r( "Obszczymucha and Psikutas /roll for [Hearthstone] now." ),
     cr( "Psikutas re-rolled the highest (100) for [Hearthstone]." ),
@@ -100,7 +100,7 @@ function MainspecRollsSpec:should_recognize_tie_rolls_when_some_players_tie()
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "The highest roll was 69 by Obszczymucha and Psikutas." ),
     r( "Obszczymucha and Psikutas /roll for [Hearthstone] now." ),
@@ -123,7 +123,7 @@ function MainspecRollsSpec:should_detect_and_ignore_double_rolls()
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2" ),
     c( "RollFor: Obszczymucha exhausted their rolls. This roll (100) is ignored." ),
     cr( "Psikutas rolled the highest (69) for [Hearthstone]." ),
@@ -143,7 +143,7 @@ function MainspecRollsSpec:should_recognize_multiple_rollers_for_multiple_items_
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." ),
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     cr( "Obszczymucha rolled the highest (100) for [Hearthstone]." ),
     cr( "Psikutas rolled the next highest (69) for [Hearthstone]." ),
     rolling_finished()
@@ -164,7 +164,7 @@ function MainspecRollsSpec:should_recognize_multiple_rollers_for_multiple_items_
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." ),
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Obszczymucha rolled the highest (100) for [Hearthstone]." ),
     cr( "Psikutas rolled the next highest (69) for [Hearthstone]." ),
@@ -186,7 +186,7 @@ function MainspecRollsSpec:should_not_reroll_if_enough_items_dropped_for_players
 
   -- Then
   assert_messages(
-    rw( "Roll for 3x[Hearthstone]: /roll (MS) or /roll 99 (OS). 3 top rolls win." ),
+    rw( "Roll for 3x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 3 top rolls win." ),
     cr( "Obszczymucha rolled the highest (69) for [Hearthstone]." ),
     cr( "Ponpon and Psikutas rolled the next highest (42) for [Hearthstone]." ),
     rolling_finished()
@@ -210,7 +210,7 @@ function MainspecRollsSpec:should_reroll_if_not_enough_items_dropped_for_players
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." ),
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     cr( "Obszczymucha rolled the highest (69) for [Hearthstone]." ),
     cr( "The next highest roll was 42 by Ponpon and Psikutas." ),
     r( "Ponpon and Psikutas /roll for [Hearthstone] now." ),
@@ -237,7 +237,7 @@ function MainspecRollsSpec:should_reroll_if_two_items_dropped_and_three_players_
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." ),
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     cr( "The highest roll was 69 by Chuj, Obszczymucha and Psikutas." ),
     r( "Chuj, Obszczymucha and Psikutas /roll for 2x[Hearthstone] now. 2 top rolls win." ),
     cr( "Psikutas re-rolled the highest (100) for [Hearthstone]." ),

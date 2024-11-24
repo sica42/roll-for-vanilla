@@ -109,7 +109,7 @@ function GenericSpec:should_properly_parse_multiple_item_roll_for()
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." )
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." )
   )
 end
 
@@ -124,7 +124,7 @@ function GenericSpec:should_properly_parse_multiple_item_roll_for_if_there_is_sp
 
   -- Then
   assert_messages(
-    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS). 2 top rolls win." )
+    rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." )
   )
 end
 
@@ -138,7 +138,7 @@ function GenericSpec:should_roll_the_item_in_party_chat()
 
   -- Then
   assert_messages(
-    p( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" )
+    p( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" )
   )
 end
 
@@ -153,7 +153,7 @@ function GenericSpec:should_not_roll_again_if_rolling_is_in_progress()
 
   -- Then
   assert_messages(
-    p( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    p( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     c( "RollFor: Rolling already in progress." )
   )
 end
@@ -168,7 +168,7 @@ function GenericSpec:should_roll_the_item_in_raid_chat()
 
   -- Then
   assert_messages(
-    r( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" )
+    r( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" )
   )
 end
 
@@ -182,7 +182,7 @@ function GenericSpec:should_roll_the_item_in_raid_warning()
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" )
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" )
   )
 end
 
@@ -208,7 +208,7 @@ function GenericSpec:should_cancel_rolling()
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     c( "RollFor: Rolling for [Hearthstone] has been cancelled." )
   )
 end
@@ -235,7 +235,7 @@ function GenericSpec:should_finish_rolling()
 
   -- Then
   assert_messages(
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     cr( "Nobody rolled for [Hearthstone]." ),
     c( "RollFor: Rolling for [Hearthstone] has finished." )
   )

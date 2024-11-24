@@ -12,20 +12,28 @@ local rlu = modules.RollingLogicUtils
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
-function M.new( announce, ace_timer, group_roster, item, count, info, seconds, on_rolling_finished )
+function M.new( announce, ace_timer, group_roster, item, count, info, seconds, on_rolling_finished, db )
   local mainspec_rollers, mainspec_rolls = rlu.all_present_players( group_roster ), {}
   local offspec_rollers, offspec_rolls = rlu.copy_rollers( mainspec_rollers ), {}
+  local tmog_rollers, tmog_rolls = rlu.copy_rollers( mainspec_rollers ), {}
   local rolling = false
   local seconds_left = seconds
   local timer
 
+  local ms_threshold = db.char.ms_roll_threshold
+  local os_threshold = db.char.os_roll_threshold
+  local tmog_threshold = db.char.tmog_roll_threshold
+  local tmog_rolling_enabled = db.char.tmog_rolling_enabled
+
   local function have_all_rolls_been_exhausted()
     local mainspec_roll_count = count_elements( mainspec_rolls )
     local offspec_roll_count = count_elements( offspec_rolls )
-    local total_roll_count = mainspec_roll_count + offspec_roll_count
+    local tmog_roll_count = count_elements( tmog_rolls )
+    local total_roll_count = mainspec_roll_count + offspec_roll_count + tmog_roll_count
 
-    if count == getn( offspec_rollers ) and rlu.have_all_players_rolled( offspec_rollers ) or
-        getn( mainspec_rollers ) == count and total_roll_count == getn( mainspec_rollers ) then
+    if count == getn( tmog_rollers ) and rlu.have_all_players_rolled( tmog_rollers ) or
+        count == getn( offspec_rollers ) and rlu.have_all_players_rolled( offspec_rollers ) or
+        count == getn( mainspec_rollers ) and total_roll_count == getn( mainspec_rollers ) then
       return true
     end
 
@@ -46,8 +54,9 @@ function M.new( announce, ace_timer, group_roster, item, count, info, seconds, o
 
     local mainspec_roll_count = count_elements( mainspec_rolls )
     local offspec_roll_count = count_elements( offspec_rolls )
+    local tmog_roll_count = count_elements( tmog_rolls )
 
-    if mainspec_roll_count == 0 and offspec_roll_count == 0 then
+    if mainspec_roll_count == 0 and offspec_roll_count == 0 and tmog_roll_count == 0 then
       on_rolling_finished( item, count, {} )
       return
     end
@@ -56,23 +65,28 @@ function M.new( announce, ace_timer, group_roster, item, count, info, seconds, o
     local sorted_offspec_rolls = map( rlu.sort_rolls( offspec_rolls ), function( v )
       v.offspec = true; return v
     end )
+    local sorted_tmog_rolls = map( rlu.sort_rolls( tmog_rolls ), function( v )
+      v.tmog = true; return v
+    end )
 
-    local winners = take( merge( {}, sorted_mainspec_rolls, sorted_offspec_rolls ), count )
+    local winners = take( merge( {}, sorted_mainspec_rolls, sorted_offspec_rolls, sorted_tmog_rolls ), count )
 
     on_rolling_finished( item, count, winners )
   end
 
   local function on_roll( player_name, roll, min, max )
-    if not rolling or min ~= 1 or (max ~= 99 and max ~= 100) then return end
-    local mainspec_roll = max == 100
+    if not rolling or min ~= 1 or (max ~= tmog_threshold and max ~= os_threshold and max ~= ms_threshold) then return end
+    if max == tmog_threshold and not tmog_rolling_enabled then return end
+    local ms_roll = max == ms_threshold
+    local os_roll = max == os_threshold
 
-    if not rlu.has_rolls_left( mainspec_roll and mainspec_rollers or offspec_rollers, player_name ) then
+    if not rlu.has_rolls_left( ms_roll and mainspec_rollers or os_roll and offspec_rollers or tmog_rollers, player_name ) then
       pretty_print( string.format( "|cffff9f69%s|r exhausted their rolls. This roll (|cffff9f69%s|r) is ignored.", player_name, roll ) )
       return
     end
 
-    rlu.subtract_roll( mainspec_roll and mainspec_rollers or offspec_rollers, player_name )
-    rlu.record_roll( mainspec_roll and mainspec_rolls or offspec_rolls, player_name, roll )
+    rlu.subtract_roll( ms_roll and mainspec_rollers or os_roll and offspec_rollers or tmog_rollers, player_name )
+    rlu.record_roll( ms_roll and mainspec_rolls or os_roll and offspec_rolls or tmog_rolls, player_name, roll )
 
     if have_all_rolls_been_exhausted() then find_winner() end
   end
@@ -100,7 +114,10 @@ function M.new( announce, ace_timer, group_roster, item, count, info, seconds, o
 
   local function announce_rolling()
     local count_str = count > 1 and string.format( "%sx", count ) or ""
-    local info_str = info and info ~= "" and string.format( " %s", info ) or " /roll (MS) or /roll 99 (OS)"
+    local tmog_info = db.char.tmog_rolling_enabled and string.format( " or /roll %s (TMOG)", db.char.tmog_roll_threshold ) or ""
+    local default_ms = db.char.ms_roll_threshold ~= 100 and string.format( "%s ", db.char.ms_roll_threshold ) or ""
+    local roll_info = string.format( " /roll %s(MS) or /roll %s (OS)%s", default_ms, db.char.os_roll_threshold, tmog_info )
+    local info_str = info and info ~= "" and string.format( " %s", info ) or roll_info
     local x_rolls_win = count > 1 and string.format( ". %d top rolls win.", count ) or ""
 
     announce( string.format( "Roll for %s%s:%s%s", count_str, item.link, info_str, x_rolls_win ), true )

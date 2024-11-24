@@ -39,7 +39,8 @@ function HowToRollSpec:should_show_how_to_roll_if_in_party()
   assert_messages(
     p( "How to roll:" ),
     p( "For main-spec, type: /roll" ),
-    p( "For off-spec, type: /roll 99" )
+    p( "For off-spec, type: /roll 99" ),
+    p( "For transmog, type: /roll 98" )
   )
 end
 
@@ -55,7 +56,8 @@ function HowToRollSpec:should_show_how_to_roll_if_in_raid()
   assert_messages(
     r( "How to roll:" ),
     r( "For main-spec, type: /roll" ),
-    r( "For off-spec, type: /roll 99" )
+    r( "For off-spec, type: /roll 99" ),
+    r( "For transmog, type: /roll 98" )
   )
 end
 
@@ -71,7 +73,8 @@ function HowToRollSpec:should_show_how_to_roll_if_in_raid_and_a_leader()
   assert_messages(
     r( "How to roll:" ),
     r( "For main-spec, type: /roll" ),
-    r( "For off-spec, type: /roll 99" )
+    r( "For off-spec, type: /roll 99" ),
+    r( "For transmog, type: /roll 98" )
   )
 end
 

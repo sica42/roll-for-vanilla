@@ -250,7 +250,7 @@ function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_r
     rw( "Psikutas soft-ressed [Hearthstone]." ),
     c( "RollFor[ Tip ]: Use /arf [Hearthstone] to roll the item and ignore the softres." ),
     c( "RollFor: Psikutas received [Hearthstone]." ),
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Ponpon rolled the highest (1) for [Hearthstone]." ),
     rolling_finished()
@@ -285,7 +285,7 @@ function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_r
     c( "RollFor: Trading with Obszczymucha complete." ),
     c( "RollFor: Traded: 1x[Hearthstone]" ),
     c( "RollFor: Obszczymucha received [Hearthstone]." ),
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Ponpon rolled the highest (1) for [Hearthstone]." ),
     rolling_finished()
@@ -316,7 +316,7 @@ function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_r
     rw( "Obszczymucha soft-ressed [Hearthstone]." ),
     c( "RollFor[ Tip ]: Use /arf [Hearthstone] to roll the item and ignore the softres." ),
     c( "RollFor: Obszczymucha received [Hearthstone]." ),
-    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS)" ),
+    rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Ponpon rolled the highest (1) for [Hearthstone]." ),
     rolling_finished()

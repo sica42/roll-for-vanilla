@@ -257,7 +257,7 @@ function M.mock_messages()
     table.insert( m_messages, { message = parsed_message, chat = chat } )
   end
 
-  M.modules().api.ChatFrame1 = {
+  M.modules().api.DEFAULT_CHAT_FRAME = {
     AddMessage = function( _, message )
       local message_without_colors = M.parse_item_link( M.decolorize( message ) )
       table.insert( m_messages, { message = message_without_colors, chat = "CONSOLE" } )
