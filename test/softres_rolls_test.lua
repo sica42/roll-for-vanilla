@@ -100,7 +100,6 @@ function SoftResIntegrationSpec:should_ignore_offspec_rolls_by_players_who_soft_
     rw( "Roll for [Hearthstone]: (SR by Ponpon and Psikutas)" ),
     c( "RollFor: Psikutas did SR [Hearthstone], but rolled OS. This roll (69) is ignored." ),
     r( "Stopping rolls in 3", "2", "1" ),
-    cr( "Ponpon rolled the highest (42) for [Hearthstone]." ),
     r( "SR rolls remaining: Psikutas (1 roll)" ),
     cr( "Psikutas rolled the highest (99) for [Hearthstone]." ),
     rolling_finished()
@@ -125,7 +124,6 @@ function SoftResIntegrationSpec:should_announce_current_highest_roller_if_a_play
     rw( "Roll for [Hearthstone]: (SR by Ponpon and Psikutas)" ),
     c( "RollFor: Psikutas did SR [Hearthstone], but rolled OS. This roll (69) is ignored." ),
     r( "Stopping rolls in 3", "2", "1" ),
-    cr( "Ponpon rolled the highest (42) for [Hearthstone]." ),
     r( "SR rolls remaining: Psikutas (1 roll)" ),
     cr( "Ponpon rolled the highest (42) for [Hearthstone]." ),
     rolling_finished()
@@ -147,7 +145,6 @@ function SoftResIntegrationSpec:should_announce_all_missing_sr_rolls_if_players_
   assert_messages(
     rw( "Roll for [Hearthstone]: (SR by Ponpon [2 rolls], Psikutas [2 rolls] and Rikus)" ),
     r( "Stopping rolls in 3", "2", "1" ),
-    cr( "Ponpon rolled the highest (42) for [Hearthstone]." ),
     r( "SR rolls remaining: Ponpon (1 roll), Psikutas (2 rolls) and Rikus (1 roll)" )
   )
 end
@@ -199,6 +196,34 @@ function SoftResIntegrationSpec:should_ask_for_a_reroll_if_there_is_a_tie_and_ig
     r( "Pimp, Ponpon and Psikutas /roll for [Hearthstone] now." ),
     c( "RollFor: Rikus exhausted their rolls. This roll (100) is ignored." ),
     cr( "Psikutas re-rolled the highest (100) for [Hearthstone]." ),
+    rolling_finished()
+  )
+end
+
+function SoftResIntegrationSpec:should_not_ask_for_a_reroll_if_there_is_a_tie_and_there_are_still_sr_rolls_remaining()
+  -- Given
+  player( "Psikutas" )
+  is_in_raid( leader( "Psikutas" ), "Ponpon", "Rikus", "Pimp" )
+  soft_res( sr( "Psikutas", 123 ), sr( "Psikutas", 123 ), sr( "Ponpon", 123 ), sr( "Rikus", 123 ), sr( "Pimp", 123 ) )
+
+  -- When
+  roll_for( "Hearthstone", 1, 123 )
+  roll( "Psikutas", 69 )
+  roll( "Rikus", 42 )
+  roll( "Ponpon", 69 )
+  roll( "Pimp", 69 )
+  tick() -- ScheduleTimer() needs to tick
+  repeating_tick( 8 )
+  tick()
+  tick()
+  roll( "Psikutas", 70 )
+
+  -- Then
+  assert_messages(
+    rw( "Roll for [Hearthstone]: (SR by Pimp, Ponpon, Psikutas [2 rolls] and Rikus)" ),
+    r( "Stopping rolls in 3", "2", "1" ),
+    r( "SR rolls remaining: Psikutas (1 roll)" ),
+    cr( "Psikutas rolled the highest (70) for [Hearthstone]." ),
     rolling_finished()
   )
 end

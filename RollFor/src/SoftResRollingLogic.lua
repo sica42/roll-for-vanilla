@@ -70,12 +70,13 @@ function M.new( announce, ace_timer, rollers, item, count, seconds, on_rolling_f
     local sorted_rolls = rlu.sort_rolls( rolls )
     local winners = take( sorted_rolls, count )
 
-    on_rolling_finished( item, count, winners )
-
     if state ~= State.ManualStop and not rolls_exhausted then
       stop_timer()
       on_softres_rolls_available( rlu.players_with_available_rolls( rollers ) )
+      return
     end
+
+    on_rolling_finished( item, count, winners )
   end
 
   local function on_roll( player_name, roll, min, max )
