@@ -549,6 +549,10 @@ local function show_how_to_roll()
   announce( "For off-spec, type: /roll 99" )
 end
 
+local function on_reset_dropped_loot_announce_command()
+  M.dropped_loot_announce.reset()
+end
+
 local function setup_slash_commands()
   -- Roll For commands
   SLASH_RF1 = RollType.NormalRoll.slash_command
@@ -567,6 +571,8 @@ local function setup_slash_commands()
   M.api().SlashCmdList[ "FR" ] = is_rolling_check( on_finish_roll_command )
   SLASH_SSR1 = "/ssr"
   M.api().SlashCmdList[ "SSR" ] = on_show_sorted_rolls_command
+  SLASH_RFR1 = "/rfr"
+  M.api().SlashCmdList[ "RFR" ] = on_reset_dropped_loot_announce_command
 
   -- Soft Res commands
   SLASH_SR1 = "/sr"
