@@ -23,6 +23,7 @@ GenericSpec = {}
 
 function GenericSpec:should_load_roll_for()
   -- When
+  ---@diagnostic disable-next-line: undefined-global
   local result = LibStub( "RollFor-2" )
 
   -- Expect

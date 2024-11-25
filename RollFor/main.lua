@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: undefined-global
 local lib_stub = LibStub
 local m = lib_stub( "RollFor-Modules" )
 local version = m.get_addon_version()
@@ -118,7 +119,7 @@ local function create_components()
   M.winner_tracker = m.WinnerTracker.new( M.db )
   M.dropped_loot_announce = m.DroppedLootAnnounce.new( announce, M.dropped_loot, M.master_loot_tracker, M.softres, M.winner_tracker )
   M.master_loot_frame = m.MasterLootFrame.new( M.winner_tracker )
-  M.master_loot = m.MasterLoot.new( M.group_roster, M.dropped_loot, M.award_item, M.master_loot_frame, M.master_loot_tracker )
+  M.master_loot = m.MasterLoot.new( M.group_roster, M.dropped_loot, M.award_item, M.master_loot_frame, M.master_loot_tracker, M.db )
   M.softres_gui = m.SoftResGui.new( M.api, M.import_encoded_softres_data, M.softres_check, M.softres, clear_data, M.dropped_loot_announce.reset )
 
   M.trade_tracker = m.TradeTracker.new(
@@ -130,6 +131,7 @@ local function create_components()
   M.minimap_button = m.MinimapButton.new( M.api, M.db, M.softres_gui.toggle, M.softres_check )
   M.master_loot_warning = m.MasterLootWarning.new( M.api, M.db )
   M.auto_loot = m.AutoLoot.new( M.api, M.db )
+  M.pfui_integration_dialog = m.PfIntegrationDialog.new( M.db )
 end
 
 function M.import_softres_data( softres_data )
@@ -153,15 +155,15 @@ local function raid_roll_rolling_logic( item )
   return m.RaidRollRollingLogic.new( announce, M.ace_timer, M.group_roster, item, M.winner_tracker )
 end
 
-local function non_softres_rolling_logic( item, count, info, seconds, on_rolling_finished )
-  return m.NonSoftResRollingLogic.new( announce, M.ace_timer, M.group_roster, item, count, info, seconds, on_rolling_finished, M.db )
+local function non_softres_rolling_logic( item, count, message, seconds, on_rolling_finished )
+  return m.NonSoftResRollingLogic.new( announce, M.ace_timer, M.group_roster, item, count, message, seconds, on_rolling_finished, M.db )
 end
 
-local function soft_res_rolling_logic( item, count, info, seconds, on_rolling_finished )
+local function soft_res_rolling_logic( item, count, message, seconds, on_rolling_finished )
   local softressing_players = M.softres.get( item.id )
 
   if getn( softressing_players ) == 0 then
-    return non_softres_rolling_logic( item, count, info, seconds, on_rolling_finished )
+    return non_softres_rolling_logic( item, count, message, seconds, on_rolling_finished )
   end
 
   return m.SoftResRollingLogic.new( announce, M.ace_timer, softressing_players, item, count, seconds, on_rolling_finished, on_softres_rolls_available )
@@ -285,14 +287,14 @@ local function announce_hr( item )
 end
 
 local function parse_args( args )
-  for item_count, item_link, seconds, info in string.gmatch( args, "(%d*)[xX]?%s*(|%w+|Hitem.+|r)%s*(%d*)%s*(.*)" ) do
+  for item_count, item_link, seconds, message in string.gmatch( args, "(%d*)[xX]?%s*(|%w+|Hitem.+|r)%s*(%d*)%s*(.*)" ) do
     local count = (not item_count or item_count == "") and 1 or tonumber( item_count )
     local item_id = M.item_utils.get_item_id( item_link )
     local item_name = M.item_utils.get_item_name( item_link )
     local item = { id = item_id, link = item_link, name = item_name }
     local secs = seconds and seconds ~= "" and seconds ~= " " and tonumber( seconds ) or 8
 
-    return item, count, secs <= 3 and 4 or secs, info
+    return item, count, secs <= 3 and 4 or secs, message
   end
 end
 
@@ -329,32 +331,36 @@ local function print_transmog_rolling_setting( show_threshold )
   info( string.format( "Transmog rolling is %s%s.", tmog_rolling_enabled and m.msg.enabled or m.msg.disabled, threshold ) )
 end
 
+local function print_pfui_integration_setting()
+  info( string.format( "%s integration is %s.", m.msg.pfui, M.db.char.pfui_integration and m.msg.enabled or m.msg.disabled ) )
+end
+
 local function print_config()
   print_header( "RollFor Configuration" )
   info( string.format( "Master loot warning is %s.", M.db.char.disable_ml_warning and m.msg.disabled or m.msg.enabled ) )
   info( string.format( "Auto raid-roll is %s.", M.db.char.auto_raid_roll and m.msg.enabled or m.msg.disabled ) )
-  -- pretty_print( string.format( "Auto-loot is %s.", M.db.char.auto_loot and m.msg.enabled or m.msg.disabled ) )
 
   print_roll_thresholds()
   print_transmog_rolling_setting()
+  print_pfui_integration_setting()
   print( string.format( "For more info, type: %s", hl( "/rf config help" ) ) )
 end
 
 local function toggle_auto_loot()
   if M.db.char.auto_loot then
-    M.db.char.auto_loot = nil
+    M.db.char.auto_loot = false
   else
-    M.db.char.auto_loot = 1
+    M.db.char.auto_loot = true
   end
 
-  print_raid_roll_settings()
+  info( string.format( "Auto-loot is %s.", M.db.char.auto_loot and m.msg.enabled or m.msg.disabled ) )
 end
 
 local function toggle_auto_raid_roll()
   if M.db.char.auto_raid_roll then
-    M.db.char.auto_raid_roll = nil
+    M.db.char.auto_raid_roll = false
   else
-    M.db.char.auto_raid_roll = 1
+    M.db.char.auto_raid_roll = true
   end
 
   print_raid_roll_settings()
@@ -415,6 +421,16 @@ local function print_config_help()
   print( string.format( "%s %s - set TMOG rolling threshold", hl( "/rf config tmog" ), v( "threshold" ) ) )
 end
 
+local function toggle_pfui_integration()
+  if M.db.char.pfui_integration then
+    M.db.char.pfui_integration = false
+  else
+    M.db.char.pfui_integration = true
+  end
+
+  print_pfui_integration_setting()
+end
+
 local function on_config( args )
   if args == "config" then
     print_config()
@@ -465,6 +481,11 @@ local function on_config( args )
     configure_tmog_threshold( args )
     return
   end
+
+  if args == "config pfui" then
+    toggle_pfui_integration()
+    return
+  end
 end
 
 local function on_roll_command( roll_type )
@@ -482,7 +503,7 @@ local function on_roll_command( roll_type )
       return
     end
 
-    local item, count, seconds, info = parse_args( args )
+    local item, count, seconds, message = parse_args( args )
 
     if not item then
       M.usage_printer.print_usage( roll_type )
@@ -496,13 +517,13 @@ local function on_roll_command( roll_type )
     end
 
     if normal_roll then
-      m_rolling_logic = soft_res_rolling_logic( item, count, info, seconds, M.on_rolling_finished )
+      m_rolling_logic = soft_res_rolling_logic( item, count, message, seconds, M.on_rolling_finished )
     elseif roll_type == RollType.NoSoftResRoll then
-      m_rolling_logic = non_softres_rolling_logic( item, count, info, seconds, M.on_rolling_finished )
+      m_rolling_logic = non_softres_rolling_logic( item, count, message, seconds, M.on_rolling_finished )
     elseif raid_roll then
       m_rolling_logic = raid_roll_rolling_logic( item )
     else
-      info( string.format( "Unsupported command: %s", hl( roll_type and roll_type.slash_command or "?" ) ) )
+      message( string.format( "Unsupported command: %s", hl( roll_type and roll_type.slash_command or "?" ) ) )
       return
     end
 
@@ -612,6 +633,10 @@ end
 local function on_master_looter_changed( player_name )
   if m.my_name() == player_name and m.is_master_loot() then
     M.ace_timer.ScheduleTimer( M, print_raid_roll_settings, 0.1 )
+
+    if M.db.char.pfui_integration == nil then
+      M.ace_timer.ScheduleTimer( M, M.pfui_integration_dialog.on_master_loot, 3 )
+    end
   end
 end
 

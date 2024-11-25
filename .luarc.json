@@ -12,6 +12,5 @@
   ],
   "workspace.library": [],
     "diagnostics.disable": [
-        "undefined-global"
     ]
 }

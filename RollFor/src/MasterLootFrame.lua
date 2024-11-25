@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: undefined-global
 local libStub = LibStub
 local modules = libStub( "RollFor-Modules" )
 if modules.MasterLootFrame then return end
@@ -64,13 +65,66 @@ local function hook_loot_buttons( reset_confirmation, normal_loot, master_loot, 
 
       if self.hasItem then
         modules.api.CloseDropDownMenus()
-        master_loot( self )
+        master_loot( {
+          item_name = _G[ self:GetName() .. "Text" ]:GetText(),
+          quality = self.quality,
+          slot = self.slot,
+          button = self
+        } )
         return
       end
 
       hide()
       normal_loot( self )
     end )
+  end
+end
+
+local function hook_pfui_loot_buttons( reset_confirmation, normal_loot, master_loot, hide )
+  for i = 1, modules.api.LOOTFRAME_NUMBUTTONS do
+    local name = "pfLootButton" .. i
+    local button = _G[ name ]
+
+    if button then
+      if not button.OriginalOnClick then button.OriginalOnClick = button:GetScript( "OnClick" ) end
+
+      button:SetScript( "OnClick", function()
+        ---@diagnostic disable-next-line: undefined-global
+        local self = button
+        reset_confirmation()
+
+        if modules.api.IsShiftKeyDown() then
+          modules.api.ChatFrameEditBox:Show()
+          modules.api.ChatFrameEditBox:SetText( string.format( "/rf %s", modules.api.GetLootSlotLink( self:GetID() ) ) )
+          return
+        end
+
+        if modules.api.IsAltKeyDown() then
+          modules.api.ChatFrameEditBox:Show()
+          modules.api.ChatFrameEditBox:SetText( string.format( "/rr %s", modules.api.GetLootSlotLink( self:GetID() ) ) )
+          return
+        end
+
+        if modules.api.IsControlKeyDown() then
+          button.OriginalOnClick()
+          return
+        end
+
+        if modules.api.LootSlotIsItem( self:GetID() ) then
+          modules.api.CloseDropDownMenus()
+          master_loot( {
+            item_name = self.name:GetText(),
+            quality = self.quality,
+            slot = self:GetID(),
+            button = self
+          } )
+          return
+        end
+
+        hide()
+        normal_loot( self )
+      end )
+    end
   end
 end
 
@@ -195,7 +249,7 @@ local function create_custom_confirmation_dialog_data( on_confirm )
     end,
     timeout = 0,
     hideOnEscape = 1,
-  };
+  }
 end
 
 function M.new( winner_tracker )
@@ -320,6 +374,7 @@ function M.new( winner_tracker )
 
   return {
     hook_loot_buttons = hook_loot_buttons,
+    hook_pfui_loot_buttons = hook_pfui_loot_buttons,
     restore_loot_buttons = restore_loot_buttons,
     create = create,
     create_candidate_frames = create_candidate_frames,

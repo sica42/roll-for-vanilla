@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: undefined-global
 local lib_stub = LibStub
 local modules = lib_stub( "RollFor-Modules" )
 if modules.VersionBroadcast then return end

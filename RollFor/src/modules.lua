@@ -39,7 +39,8 @@ M.colors = {
 
 M.msg = {
   disabled = M.colors.red( "disabled" ),
-  enabled = M.colors.green( "enabled" )
+  enabled = M.colors.green( "enabled" ),
+  pfui = "|cff33ffccpf|cffffffffUI"
 }
 
 if M.api.RAID_CLASS_COLORS then

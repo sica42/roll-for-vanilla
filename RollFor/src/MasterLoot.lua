@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: undefined-global
 local libStub = LibStub
 local modules = libStub( "RollFor-Modules" )
 if modules.MasterLoot then return end
@@ -7,6 +8,8 @@ local _G = getfenv()
 local pretty_print = modules.pretty_print
 local hl = modules.colors.hl
 local buttons_hooked = false
+local original_toggle_dropdown_menu
+local bypass_dropdown_menu = false
 
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
@@ -62,11 +65,20 @@ local function sort( candidates )
   end )
 end
 
-function M.new( group_roster, dropped_loot, award_item, master_loot_frame, master_loot_tracker )
+function M.new( group_roster, dropped_loot, award_item, master_loot_frame, master_loot_tracker, db )
   local m_confirmed = nil
 
   local function reset_confirmation()
     m_confirmed = nil
+  end
+
+  local function hook_toggle_dropdown_menu()
+    original_toggle_dropdown_menu = modules.api.ToggleDropDownMenu
+
+    _G[ "ToggleDropDownMenu" ] = function( level, value, dropDownFrame, anchorName, xOffset, yOffset, menuList )
+      if db.char.pfui_integration and bypass_dropdown_menu then return end
+      original_toggle_dropdown_menu( level, value, dropDownFrame, anchorName, xOffset, yOffset, menuList )
+    end
   end
 
   local function on_loot_slot_cleared( slot )
@@ -100,11 +112,10 @@ function M.new( group_roster, dropped_loot, award_item, master_loot_frame, maste
     button:OriginalOnClick()
   end
 
-  local function master_loot( button )
-    local item_name = _G[ button:GetName() .. "Text" ]:GetText()
-    modules.api.LootFrame.selectedQuality = button.quality
-    modules.api.LootFrame.selectedItemName = item_name
-    modules.api.LootFrame.selectedSlot = button.slot
+  local function master_loot( data )
+    modules.api.LootFrame.selectedQuality = data.quality
+    modules.api.LootFrame.selectedItemName = data.item_name
+    modules.api.LootFrame.selectedSlot = data.slot
     master_loot_frame.create( on_confirm )
     master_loot_frame.hide()
 
@@ -113,13 +124,13 @@ function M.new( group_roster, dropped_loot, award_item, master_loot_frame, maste
     if getn( candidates ) == 0 then
       -- This happened before.
       modules.pretty_print( "Game API didn't return any loot candidates. Restoring original button hook." )
-      normal_loot( button )
+      normal_loot( data.button )
       return
     end
 
     sort( candidates )
     master_loot_frame.create_candidate_frames( candidates )
-    master_loot_frame.anchor( button )
+    master_loot_frame.anchor( data.button )
     master_loot_frame.show()
   end
 
@@ -134,11 +145,21 @@ function M.new( group_roster, dropped_loot, award_item, master_loot_frame, maste
     end
 
     reset_confirmation()
-    master_loot_frame.hook_loot_buttons( reset_confirmation, normal_loot, master_loot, master_loot_frame.hide )
+    if not original_toggle_dropdown_menu then hook_toggle_dropdown_menu() end
+    bypass_dropdown_menu = true
+
+    ---@diagnostic disable-next-line: undefined-global
+    if pfUI and db.char.pfui_integration then
+      master_loot_frame.hook_pfui_loot_buttons( reset_confirmation, normal_loot, master_loot, master_loot_frame.hide )
+    else
+      master_loot_frame.hook_loot_buttons( reset_confirmation, normal_loot, master_loot, master_loot_frame.hide )
+    end
+
     buttons_hooked = true
   end
 
   local function on_loot_closed()
+    bypass_dropdown_menu = false
     master_loot_frame.hide()
     if not modules.is_player_master_looter() then return end
 

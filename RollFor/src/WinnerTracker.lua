@@ -1,9 +1,8 @@
+---@diagnostic disable-next-line: undefined-global
 local modules = LibStub( "RollFor-Modules" )
 if modules.WinnerTracker then return end
 
 local M = {}
-local dbg = modules.dbg
-local hl = modules.colors.hl
 
 local EventType = {
   RollingStarted = "RollingStarted",

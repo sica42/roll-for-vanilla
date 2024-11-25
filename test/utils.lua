@@ -215,6 +215,7 @@ end
 
 function M.mock_library( name, object )
   M.load_libstub()
+  ---@diagnostic disable-next-line: undefined-global
   local result = LibStub:NewLibrary( name, 1 )
   if not result then return nil end
   if not object then return result end
@@ -242,6 +243,7 @@ end
 function M.modules()
   M.load_libstub()
   require( "src/modules" )
+  ---@diagnostic disable-next-line: undefined-global
   return LibStub( "RollFor-Modules" )
 end
 
@@ -669,6 +671,7 @@ function M.load_real_stuff()
   require( "src/MasterLootWarning" )
   require( "src/AutoLoot" )
   require( "src/WinnerTracker" )
+  require( "src/PfUiIntegrationDialog" )
   -- require( "Libs/LibDeflate/LibDeflate" )
   require( "src/Json" )
   require( "main" )
@@ -810,6 +813,7 @@ function M.load_libstub()
   strmatch = string.match
   require( "LibStub" )
 
+  ---@diagnostic disable-next-line: undefined-global
   return LibStub
 end
 

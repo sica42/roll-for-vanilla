@@ -1,12 +1,14 @@
+---@diagnostic disable-next-line: undefined-global
 local modules = LibStub( "RollFor-Modules" )
 if modules.AutoLoot then return end
 
 local M = {}
-local pretty_print = modules.pretty_print
 local item_utils = modules.ItemUtils
 local contains = modules.table_contains_value
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
+
+local button_visible = false
 
 local items = {
   [ "Ragefire Chasm" ] = {
@@ -56,8 +58,8 @@ function M.new( api, db )
 
           if index then
             api().GiveMasterLoot( slot, index )
-          else
-            pretty_print( string.format( "%s cannot be looted.", link ) )
+            -- else
+            -- pretty_print( string.format( "%s cannot be looted.", link ) )
           end
         end
       end
@@ -75,19 +77,20 @@ function M.new( api, db )
   end
 
   local function on_loot_opened()
-    if not frame then create_frame() end
+    if button_visible then
+      if not frame then create_frame() end
 
-    local zone_name = api().GetRealZoneText()
-    local item_ids = items[ zone_name ]
+      local zone_name = api().GetRealZoneText()
+      local item_ids = items[ zone_name ]
 
-    if not item_ids or getn( item_ids ) == 0 then
-      frame:Hide()
-    else
-      frame:Show()
+      if not item_ids or getn( item_ids ) == 0 then
+        frame:Hide()
+      else
+        frame:Show()
+      end
     end
 
     on_auto_loot()
-    -- end
   end
 
   return {

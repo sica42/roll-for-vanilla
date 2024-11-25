@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: undefined-global
 local modules = LibStub( "RollFor-Modules" )
 if modules.SoftResAbsentPlayersDecorator then return end
 

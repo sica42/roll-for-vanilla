@@ -1,3 +1,4 @@
+---@diagnostic disable-next-line: undefined-global
 local libStub = LibStub
 local modules = libStub( "RollFor-Modules" )
 if modules.UsagePrinter then return end

@@ -71,6 +71,7 @@ TradeTrackerSpec = {}
 function TradeTrackerIntegrationSpec:should_call_back_with_recipient_name()
   -- Given
   local result
+  ---@diagnostic disable-next-line: undefined-global
   local ace_timer = LibStub( "AceTimer-3.0" )
   local trade_tracker = mod.new( ace_timer, function( recipient ) result = recipient end )
   trade_with( "Obszczymucha", trade_tracker )
@@ -86,6 +87,7 @@ end
 function TradeTrackerIntegrationSpec:should_call_back_with_items_given()
   -- Given
   local result
+  ---@diagnostic disable-next-line: undefined-global
   local ace_timer = LibStub( "AceTimer-3.0" )
   local trade_tracker = mod.new( ace_timer, function( _, giving_items ) result = giving_items end )
   player( "Psikutas" )
@@ -105,6 +107,7 @@ end
 function TradeTrackerIntegrationSpec:should_call_back_with_items_received()
   -- Given
   local result
+  ---@diagnostic disable-next-line: undefined-global
   local ace_timer = LibStub( "AceTimer-3.0" )
   local trade_tracker = mod.new( ace_timer, function( _, _, receiving_items ) result = receiving_items end )
   player( "Psikutas" )
