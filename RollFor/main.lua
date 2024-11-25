@@ -332,6 +332,7 @@ local function print_transmog_rolling_setting( show_threshold )
 end
 
 local function print_pfui_integration_setting()
+  if not m.uses_pfui() then return end
   info( string.format( "%s integration is %s.", m.msg.pfui, M.db.char.pfui_integration and m.msg.enabled or m.msg.disabled ) )
 end
 
@@ -403,11 +404,9 @@ local function configure_tmog_threshold( args )
 end
 
 local function print_config_help()
-  print_header( "RollFor Configuration Help" )
-  local v = function( name )
-    return string.format( "%s%s%s", hl( "<" ), grey( name ), hl( ">" ) )
-  end
+  local v = function( name ) return string.format( "%s%s%s", hl( "<" ), grey( name ), hl( ">" ) ) end
 
+  print_header( "RollFor Configuration Help" )
   print( string.format( "%s - show configuration", hl( "/rf config" ) ) )
   print( string.format( "%s - toggle minimap icon", hl( "/rf config minimap" ) ) )
   print( string.format( "%s - lock/unlock minimap icon", hl( "/rf config minimap lock" ) ) )
@@ -482,10 +481,12 @@ local function on_config( args )
     return
   end
 
-  if args == "config pfui" then
+  if args == "config pfui" and m.uses_pfui() then
     toggle_pfui_integration()
     return
   end
+
+  print_config_help()
 end
 
 local function on_roll_command( roll_type )
@@ -500,6 +501,11 @@ local function on_roll_command( roll_type )
 
     if string.find( args, "^config" ) then
       on_config( args )
+      return
+    end
+
+    if not M.api().IsInGroup() then
+      info( "Not in a group." )
       return
     end
 
@@ -736,7 +742,7 @@ end
 local function setup_slash_commands()
   -- Roll For commands
   SLASH_RF1 = RollType.NormalRoll.slash_command
-  M.api().SlashCmdList[ "RF" ] = in_group_check( on_roll_command( RollType.NormalRoll ) )
+  M.api().SlashCmdList[ "RF" ] = on_roll_command( RollType.NormalRoll )
   SLASH_ARF1 = RollType.NoSoftResRoll.slash_command
   M.api().SlashCmdList[ "ARF" ] = in_group_check( on_roll_command( RollType.NoSoftResRoll ) )
   SLASH_RR1 = RollType.RaidRoll.slash_command

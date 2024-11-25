@@ -148,8 +148,7 @@ function M.new( group_roster, dropped_loot, award_item, master_loot_frame, maste
     if not original_toggle_dropdown_menu then hook_toggle_dropdown_menu() end
     bypass_dropdown_menu = true
 
-    ---@diagnostic disable-next-line: undefined-global
-    if pfUI and db.char.pfui_integration then
+    if modules.uses_pfui() and db.char.pfui_integration then
       master_loot_frame.hook_pfui_loot_buttons( reset_confirmation, normal_loot, master_loot, master_loot_frame.hide )
     else
       master_loot_frame.hook_loot_buttons( reset_confirmation, normal_loot, master_loot, master_loot_frame.hide )

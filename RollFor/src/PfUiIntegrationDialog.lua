@@ -39,8 +39,7 @@ function M.new( db )
   end
 
   local function on_master_loot()
-    ---@diagnostic disable-next-line: undefined-global
-    if not pfUI or db.char.pfui_integration ~= nil then return end
+    if not modules.uses_pfui() or db.char.pfui_integration ~= nil then return end
     create_custom_dialog()
     modules.api.StaticPopup_Show( confirmation_dialog_key )
   end

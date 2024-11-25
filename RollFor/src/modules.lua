@@ -421,4 +421,8 @@ function M.get_addon_version()
   return result
 end
 
+function M.uses_pfui()
+  return pfUI and pfUI.version and true or false
+end
+
 return M
