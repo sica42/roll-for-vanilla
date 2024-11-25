@@ -5,7 +5,7 @@ local version = m.get_addon_version()
 local M = lib_stub:NewLibrary( string.format( "RollFor-%s", version.major ), version.minor )
 if not M then return end
 
-local pretty_print = m.pretty_print
+local info = m.pretty_print
 local print = m.print
 local print_header = m.print_header
 local hl = m.colors.highlight
@@ -172,7 +172,7 @@ function M.import_encoded_softres_data( data, data_loaded_callback )
   local softres_data = sr.decode( data )
 
   if not softres_data and data and string.len( data ) > 0 then
-    pretty_print( "Could not load soft-res data!", m.colors.red )
+    info( "Could not load soft-res data!", m.colors.red )
     return
   elseif not softres_data then
     M.minimap_button.set_icon( M.minimap_button.ColorType.White )
@@ -181,7 +181,7 @@ function M.import_encoded_softres_data( data, data_loaded_callback )
 
   M.import_softres_data( softres_data )
 
-  pretty_print( "Soft-res data loaded successfully!" )
+  info( "Soft-res data loaded successfully!" )
   if data_loaded_callback then data_loaded_callback( softres_data ) end
 
   update_minimap_icon()
@@ -198,7 +198,7 @@ function M.there_was_a_tie( item, count, winners, top_roll, rerolling )
       rerolling and "re-" or "", winners.roll, rollers )
   end
 
-  pretty_print( message( top_rollers_str_colored ) )
+  info( message( top_rollers_str_colored ) )
   announce( message( top_rollers_str ) )
 
   local prefix = count > 1 and string.format( "%sx", count ) or ""
@@ -219,7 +219,7 @@ function M.on_rolling_finished( item, count, winners, rerolling, there_was_no_ro
     table.sort( players )
     local roll_type = v.offspec and " (OS)" or v.tmog and " (TMOG)" or ""
 
-    pretty_print( string.format( "%s %srolled the %shighest (%s) for %s%s.", m.prettify_table( players, hl ),
+    info( string.format( "%s %srolled the %shighest (%s) for %s%s.", m.prettify_table( players, hl ),
       rerolling and "re-" or "", top_roll and "" or "next ", hl( roll ), item.link, roll_type ) )
     announce(
       string.format( "%s %srolled the %shighest (%d) for %s%s.", m.prettify_table( players ),
@@ -231,14 +231,14 @@ function M.on_rolling_finished( item, count, winners, rerolling, there_was_no_ro
   end
 
   if getn( winners ) == 0 then
-    pretty_print( string.format( "Nobody rolled for %s.", item.link ) )
+    info( string.format( "Nobody rolled for %s.", item.link ) )
     announce( string.format( "Nobody rolled for %s.", item.link ) )
 
     if M.db.char.auto_raid_roll then
       m_rolling_logic = raid_roll_rolling_logic( item )
       m_rolling_logic.announce_rolling()
     elseif m_rolling_logic and not m_rolling_logic.is_rolling() then
-      pretty_print( string.format( "Rolling for %s has finished.", item.link ) )
+      info( string.format( "Rolling for %s has finished.", item.link ) )
     end
 
     return
@@ -255,9 +255,9 @@ function M.on_rolling_finished( item, count, winners, rerolling, there_was_no_ro
       if m_rolling_logic.is_rolling() then return end
 
       if there_was_no_rolling then
-        pretty_print( string.format( "Use %s %s to roll the item and ignore the softres.", hl( "/arf" ), item.link ), nil, "Tip" )
+        info( string.format( "Use %s %s to roll the item and ignore the softres.", hl( "/arf" ), item.link ), nil, "Tip" )
       else
-        pretty_print( string.format( "Rolling for %s has finished.", item.link ) )
+        info( string.format( "Rolling for %s has finished.", item.link ) )
       end
 
       return
@@ -276,7 +276,7 @@ function M.on_rolling_finished( item, count, winners, rerolling, there_was_no_ro
   end
 
   if not m_rolling_logic.is_rolling() then
-    pretty_print( string.format( "Rolling for %s has finished.", item.link ) )
+    info( string.format( "Rolling for %s has finished.", item.link ) )
   end
 end
 
@@ -306,12 +306,12 @@ local function toggle_ml_warning()
     M.master_loot_warning.hide()
   end
 
-  pretty_print( string.format( "Master Loot warning %s.", M.db.char.disable_ml_warning and m.msg.disabled or m.msg.enabled ) )
+  info( string.format( "Master Loot warning %s.", M.db.char.disable_ml_warning and m.msg.disabled or m.msg.enabled ) )
 end
 
 local function print_raid_roll_settings()
   local auto_raidroll = M.db.char.auto_raid_roll and m.msg.enabled or m.msg.disabled
-  pretty_print( string.format( "Auto raid-roll is %s.", auto_raidroll ) )
+  info( string.format( "Auto raid-roll is %s.", auto_raidroll ) )
 end
 
 local function print_roll_thresholds()
@@ -320,19 +320,19 @@ local function print_roll_thresholds()
   local tmog_threshold = M.db.char.tmog_roll_threshold
   local tmog_info = string.format( ", %s %s", hl( "TMOG" ), tmog_threshold ) or ""
 
-  pretty_print( string.format( "Roll thresholds: %s %s, %s %s%s", hl( "MS" ), ms_threshold, hl( "OS" ), os_threshold, tmog_info ) )
+  info( string.format( "Roll thresholds: %s %s, %s %s%s", hl( "MS" ), ms_threshold, hl( "OS" ), os_threshold, tmog_info ) )
 end
 
 local function print_transmog_rolling_setting( show_threshold )
   local tmog_rolling_enabled = M.db.char.tmog_rolling_enabled
   local threshold = show_threshold and tmog_rolling_enabled and string.format( " (%s)", hl( M.db.char.tmog_roll_threshold ) ) or ""
-  pretty_print( string.format( "Transmog rolling is %s%s.", tmog_rolling_enabled and m.msg.enabled or m.msg.disabled, threshold ) )
+  info( string.format( "Transmog rolling is %s%s.", tmog_rolling_enabled and m.msg.enabled or m.msg.disabled, threshold ) )
 end
 
 local function print_config()
   print_header( "RollFor Configuration" )
-  pretty_print( string.format( "Master loot warning is %s.", M.db.char.disable_ml_warning and m.msg.disabled or m.msg.enabled ) )
-  pretty_print( string.format( "Auto raid-roll is %s.", M.db.char.auto_raid_roll and m.msg.enabled or m.msg.disabled ) )
+  info( string.format( "Master loot warning is %s.", M.db.char.disable_ml_warning and m.msg.disabled or m.msg.enabled ) )
+  info( string.format( "Auto raid-roll is %s.", M.db.char.auto_raid_roll and m.msg.enabled or m.msg.disabled ) )
   -- pretty_print( string.format( "Auto-loot is %s.", M.db.char.auto_loot and m.msg.enabled or m.msg.disabled ) )
 
   print_roll_thresholds()
@@ -367,7 +367,7 @@ local function configure_ms_threshold( args )
     return
   end
 
-  pretty_print( string.format( "Usage: %s <threshold>", hl( "/rf config ms" ) ) )
+  info( string.format( "Usage: %s <threshold>", hl( "/rf config ms" ) ) )
 end
 
 local function configure_os_threshold( args )
@@ -377,7 +377,7 @@ local function configure_os_threshold( args )
     return
   end
 
-  pretty_print( string.format( "Usage: %s <threshold>", hl( "/rf config os" ) ) )
+  info( string.format( "Usage: %s <threshold>", hl( "/rf config os" ) ) )
 end
 
 local function configure_tmog_threshold( args )
@@ -393,7 +393,7 @@ local function configure_tmog_threshold( args )
     return
   end
 
-  pretty_print( string.format( "Usage: %s <threshold>", hl( "/rf config tmog" ) ) )
+  info( string.format( "Usage: %s <threshold>", hl( "/rf config tmog" ) ) )
 end
 
 local function print_config_help()
@@ -473,7 +473,7 @@ local function on_roll_command( roll_type )
 
   return function( args )
     if m_rolling_logic and m_rolling_logic.is_rolling() then
-      pretty_print( "Rolling already in progress." )
+      info( "Rolling already in progress." )
       return
     end
 
@@ -502,7 +502,7 @@ local function on_roll_command( roll_type )
     elseif raid_roll then
       m_rolling_logic = raid_roll_rolling_logic( item )
     else
-      pretty_print( string.format( "Unsupported command: %s", hl( roll_type and roll_type.slash_command or "?" ) ) )
+      info( string.format( "Unsupported command: %s", hl( roll_type and roll_type.slash_command or "?" ) ) )
       return
     end
 
@@ -513,12 +513,12 @@ end
 
 local function on_re_raid_roll_command()
   if not m_rolling_logic or m_rolling_logic.get_roll_type() ~= RollType.RaidRoll then
-    pretty_print( "There is nothing to re-raid-roll.", nil, "RaidRoll" )
+    info( "There is nothing to re-raid-roll.", nil, "RaidRoll" )
     return
   end
 
   if m_rolling_logic.is_rolling() then
-    pretty_print( "Raid-rolling is in progress.", nil, "RaidRoll" )
+    info( "Raid-rolling is in progress.", nil, "RaidRoll" )
     return
   end
 
@@ -527,12 +527,12 @@ end
 
 local function on_show_sorted_rolls_command( args )
   if not m_rolling_logic then
-    pretty_print( "No rolls have been recorded." )
+    info( "No rolls have been recorded." )
     return
   end
 
   if m_rolling_logic.is_rolling() then
-    pretty_print( "Rolling is in progress." )
+    info( "Rolling is in progress." )
     return
   end
 
@@ -550,7 +550,7 @@ local function is_rolling_check( f )
   ---@diagnostic disable-next-line: unused-vararg
   return function( ... )
     if not m_rolling_logic or not m_rolling_logic.is_rolling() then
-      pretty_print( "Rolling not in progress." )
+      info( "Rolling not in progress." )
       return
     end
 
@@ -562,7 +562,7 @@ local function in_group_check( f )
   ---@diagnostic disable-next-line: unused-vararg
   return function( ... )
     if not M.api().IsInGroup() then
-      pretty_print( "Not in a group." )
+      info( "Not in a group." )
       return
     end
 
@@ -605,11 +605,13 @@ local function on_roll( player, roll, min, max )
   end
 end
 
-local function on_loot_method_changed( loot_method )
-  main.master_loot_warning.on_party_loot_method_changed()
+local function on_loot_method_changed()
+  M.master_loot_warning.on_party_loot_method_changed()
+end
 
-  if loot_method == "master looter" and m.is_player_master_looter() and m.is_master_loot() then
-    print_raid_roll_settings()
+local function on_master_looter_changed( player_name )
+  if m.my_name() == player_name and m.is_master_loot() then
+    M.ace_timer.ScheduleTimer( M, print_raid_roll_settings, 0.1 )
   end
 end
 
@@ -619,8 +621,13 @@ function M.on_chat_msg_system( message )
     return
   end
 
-  for loot_method in string.gmatch( message, "^Looting changed to (.-)%." ) do
-    on_loot_method_changed( loot_method )
+  if string.find( message, "^Looting changed to" ) then
+    on_loot_method_changed()
+    return
+  end
+
+  for player_name in string.gmatch( message, "(.-) is now the loot master%." ) do
+    on_master_looter_changed( player_name )
     return
   end
 end
@@ -661,7 +668,7 @@ local function simulate_loot_dropped( args )
   local item_links = M.item_utils.parse_all_links( args )
 
   if m.real_api then
-    pretty_print( "Mocking in progress." )
+    info( "Mocking in progress." )
     return
   end
 
@@ -742,7 +749,7 @@ function M.on_first_enter_world()
   create_components()
   setup_slash_commands()
 
-  pretty_print( string.format( "Loaded (%s).", hl( string.format( "v%s", version.str ) ) ) )
+  info( string.format( "Loaded (%s).", hl( string.format( "v%s", version.str ) ) ) )
 
   M.version_broadcast.broadcast()
   M.import_encoded_softres_data( M.db.char.softres_data )
@@ -763,7 +770,7 @@ end
 
 function M.award_item( player_name, item_id, item_name, item_link_or_colored_item_name )
   M.awarded_loot.award( player_name, item_id, item_name )
-  pretty_print( string.format( "%s received %s.", hl( player_name ), item_link_or_colored_item_name ) )
+  info( string.format( "%s received %s.", hl( player_name ), item_link_or_colored_item_name ) )
   M.winner_tracker.untrack( player_name, item_name )
 end
 
@@ -772,7 +779,7 @@ function M.unaward_item( player, item_id, item_link_or_colored_item_name )
   --TODO: Think if we want to do this.
   --m_awarded_items = remove_from_awarded_items( player, item_id )
   --M.db.awarded_items = m_awarded_items
-  pretty_print( string.format( "%s returned %s.", hl( player ), item_link_or_colored_item_name ) )
+  info( string.format( "%s returned %s.", hl( player ), item_link_or_colored_item_name ) )
 end
 
 function M.on_group_changed()
