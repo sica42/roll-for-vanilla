@@ -11,7 +11,8 @@ local print = m.print
 local print_header = m.print_header
 local hl = m.colors.highlight
 local grey = m.colors.grey
-local RollType = m.Api.RollType
+local RollSlashCommand = m.Types.RollSlashCommand
+local RollType = m.Types.RollType
 
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
@@ -75,7 +76,7 @@ local function trade_complete_callback( recipient, items_given, items_received )
       local item_name = M.dropped_loot.get_dropped_item_name( item_id )
 
       if item_name then
-        M.award_item( recipient, item_id, item_name, item.link )
+        M.award_item( recipient, item_id, item.link )
       end
     end
   end
@@ -118,8 +119,14 @@ local function create_components()
     M.absent_softres, M.db )
   M.winner_tracker = m.WinnerTracker.new( M.db )
   M.dropped_loot_announce = m.DroppedLootAnnounce.new( announce, M.dropped_loot, M.master_loot_tracker, M.softres, M.winner_tracker )
-  M.master_loot_frame = m.MasterLootFrame.new( M.winner_tracker )
-  M.master_loot = m.MasterLoot.new( M.group_roster, M.dropped_loot, M.award_item, M.master_loot_frame, M.master_loot_tracker, M.db )
+  M.loot_award_popup = m.LootAwardPopup.new( M.item_utils )
+  M.winner_tracker.subscribe_for_rolling_started( M.loot_award_popup.hide )
+  M.master_loot_correlation_data = m.MasterLootCorrelationData.new( M.item_utils )
+  M.roll_finished_logic = m.RollFinishedLogic.new( M.master_loot_correlation_data, M.winner_tracker, M.loot_award_popup )
+  M.master_loot_frame = m.MasterLootFrame.new( M.winner_tracker, M.loot_award_popup, M.master_loot_correlation_data, M.roll_finished_logic )
+  M.master_loot_candidates = m.MasterLootCandidates.new( M.group_roster ) -- remove group_roster for testing (dummy candidates)
+  M.master_loot = m.MasterLoot.new( M.master_loot_candidates, M.award_item, M.master_loot_frame, M.master_loot_tracker, M.db, M.loot_award_popup,
+    M.master_loot_correlation_data )
   M.softres_gui = m.SoftResGui.new( M.api, M.import_encoded_softres_data, M.softres_check, M.softres, clear_data, M.dropped_loot_announce.reset )
 
   M.trade_tracker = m.TradeTracker.new(
@@ -152,7 +159,7 @@ local function on_softres_rolls_available( rollers )
 end
 
 local function raid_roll_rolling_logic( item )
-  return m.RaidRollRollingLogic.new( announce, M.ace_timer, M.group_roster, item, M.winner_tracker )
+  return m.RaidRollRollingLogic.new( announce, M.ace_timer, M.group_roster, item, M.winner_tracker, M.master_loot_candidates, M.roll_finished_logic.show_popup )
 end
 
 local function non_softres_rolling_logic( item, count, message, seconds, on_rolling_finished )
@@ -228,8 +235,11 @@ function M.on_rolling_finished( item, count, winners, rerolling, there_was_no_ro
         rerolling and "re-" or "", top_roll and "" or "next ", roll, item.link, roll_type ) )
 
     for _, player_name in ipairs( players ) do
-      M.winner_tracker.track( player_name, item.name )
+      M.winner_tracker.track( player_name, item.link, v.offspec and RollType.OffSpec or v.tmog and RollType.Transmog or RollType.MainSpec, roll )
     end
+
+    local player = M.master_loot_candidates.find( players[ 1 ] )
+    M.roll_finished_logic.show_popup( player, item.link )
   end
 
   if getn( winners ) == 0 then
@@ -250,8 +260,13 @@ function M.on_rolling_finished( item, count, winners, rerolling, there_was_no_ro
 
   for i = 1, getn( winners ) do
     if items_left == 0 then
+      -- This situatin here is weird as fuck
+
       if i == 1 then
-        M.winner_tracker.track( winners[ i ], item.name )
+        -- SR winner / no rolling.
+        M.winner_tracker.track( winners[ i ], item.link, RollType.SoftRes )
+        local player = M.master_loot_candidates.find( winners[ 1 ] )
+        M.roll_finished_logic.show_popup( player, item.link )
       end
 
       if m_rolling_logic.is_rolling() then return end
@@ -489,9 +504,9 @@ local function on_config( args )
   print_config_help()
 end
 
-local function on_roll_command( roll_type )
-  local normal_roll = roll_type == RollType.NormalRoll
-  local raid_roll = roll_type == RollType.RaidRoll
+local function on_roll_command( roll_slash_command )
+  local normal_roll = roll_slash_command == RollSlashCommand.NormalRoll
+  local raid_roll = roll_slash_command == RollSlashCommand.RaidRoll
 
   return function( args )
     if m_rolling_logic and m_rolling_logic.is_rolling() then
@@ -512,7 +527,7 @@ local function on_roll_command( roll_type )
     local item, count, seconds, message = parse_args( args )
 
     if not item then
-      M.usage_printer.print_usage( roll_type )
+      M.usage_printer.print_usage( roll_slash_command )
       return
     end
 
@@ -524,32 +539,18 @@ local function on_roll_command( roll_type )
 
     if normal_roll then
       m_rolling_logic = soft_res_rolling_logic( item, count, message, seconds, M.on_rolling_finished )
-    elseif roll_type == RollType.NoSoftResRoll then
+    elseif roll_slash_command == RollSlashCommand.NoSoftResRoll then
       m_rolling_logic = non_softres_rolling_logic( item, count, message, seconds, M.on_rolling_finished )
     elseif raid_roll then
       m_rolling_logic = raid_roll_rolling_logic( item )
     else
-      message( string.format( "Unsupported command: %s", hl( roll_type and roll_type.slash_command or "?" ) ) )
+      message( string.format( "Unsupported command: %s", hl( roll_slash_command and roll_slash_command.slash_command or "?" ) ) )
       return
     end
 
-    M.winner_tracker.start_rolling( item.name )
+    M.winner_tracker.start_rolling( item.link )
     m_rolling_logic.announce_rolling()
   end
-end
-
-local function on_re_raid_roll_command()
-  if not m_rolling_logic or m_rolling_logic.get_roll_type() ~= RollType.RaidRoll then
-    info( "There is nothing to re-raid-roll.", nil, "RaidRoll" )
-    return
-  end
-
-  if m_rolling_logic.is_rolling() then
-    info( "Raid-rolling is in progress.", nil, "RaidRoll" )
-    return
-  end
-
-  m_rolling_logic.re_roll()
 end
 
 local function on_show_sorted_rolls_command( args )
@@ -718,10 +719,12 @@ function M.on_loot_opened()
   M.auto_loot.on_loot_opened()
   M.dropped_loot_announce.on_loot_opened()
   M.master_loot.on_loot_opened()
+  M.master_loot_correlation_data.reset()
 end
 
 function M.on_loot_closed()
   M.master_loot.on_loot_closed()
+  M.master_loot_correlation_data.reset()
 end
 
 local function show_how_to_roll()
@@ -739,16 +742,24 @@ local function on_reset_dropped_loot_announce_command()
   M.dropped_loot_announce.reset()
 end
 
+local function test( args )
+  local player = { name = "Psikutas", class = "Hunter", value = 1 }
+  local item_link = args and args ~= "" and args or "|cffff8000|Hitem:19019:0:0:0|h[Thunderfury, Blessed Blade of the Windseeker]|h|r"
+  M.master_loot_correlation_data.set( item_link, 1 )
+  M.winner_tracker.clear()
+  -- M.winner_tracker.track( player.name, item_link, RollType.RaidRoll, 69 )
+
+  M.roll_finished_logic.show_popup( player, item_link )
+end
+
 local function setup_slash_commands()
   -- Roll For commands
-  SLASH_RF1 = RollType.NormalRoll.slash_command
-  M.api().SlashCmdList[ "RF" ] = on_roll_command( RollType.NormalRoll )
-  SLASH_ARF1 = RollType.NoSoftResRoll.slash_command
-  M.api().SlashCmdList[ "ARF" ] = in_group_check( on_roll_command( RollType.NoSoftResRoll ) )
-  SLASH_RR1 = RollType.RaidRoll.slash_command
-  M.api().SlashCmdList[ "RR" ] = in_group_check( on_roll_command( RollType.RaidRoll ) )
-  SLASH_RRR1 = "/rrr"
-  M.api().SlashCmdList[ "RRR" ] = in_group_check( on_re_raid_roll_command )
+  SLASH_RF1 = RollSlashCommand.NormalRoll
+  M.api().SlashCmdList[ "RF" ] = on_roll_command( RollSlashCommand.NormalRoll )
+  SLASH_ARF1 = RollSlashCommand.NoSoftResRoll
+  M.api().SlashCmdList[ "ARF" ] = in_group_check( on_roll_command( RollSlashCommand.NoSoftResRoll ) )
+  SLASH_RR1 = RollSlashCommand.RaidRoll
+  M.api().SlashCmdList[ "RR" ] = in_group_check( on_roll_command( RollSlashCommand.RaidRoll ) )
   SLASH_HTR1 = "/htr"
   M.api().SlashCmdList[ "HTR" ] = in_group_check( show_how_to_roll )
   SLASH_CR1 = "/cr"
@@ -769,6 +780,9 @@ local function setup_slash_commands()
   M.api().SlashCmdList[ "SRC" ] = M.softres_check.check_softres
   SLASH_SRO1 = "/sro"
   M.api().SlashCmdList[ "SRO" ] = M.name_matcher.manual_match
+
+  SLASH_RFTEST1 = "/rftest"
+  M.api().SlashCmdList[ "RFTEST" ] = test
 
   --SLASH_DROPPED1 = "/DROPPED"
   --M.api().SlashCmdList[ "DROPPED" ] = simulate_loot_dropped
@@ -799,18 +813,15 @@ local function on_party_message( message, player )
   end
 end
 
-function M.award_item( player_name, item_id, item_name, item_link_or_colored_item_name )
-  M.awarded_loot.award( player_name, item_id, item_name )
-  info( string.format( "%s received %s.", hl( player_name ), item_link_or_colored_item_name ) )
-  M.winner_tracker.untrack( player_name, item_name )
+function M.award_item( player_name, item_id, item_link )
+  M.awarded_loot.award( player_name, item_id )
+  info( string.format( "%s received %s.", hl( player_name ), item_link ) )
+  M.winner_tracker.untrack( player_name, item_link )
 end
 
----@diagnostic disable-next-line: unused-local
-function M.unaward_item( player, item_id, item_link_or_colored_item_name )
-  --TODO: Think if we want to do this.
-  --m_awarded_items = remove_from_awarded_items( player, item_id )
-  --M.db.awarded_items = m_awarded_items
-  info( string.format( "%s returned %s.", hl( player ), item_link_or_colored_item_name ) )
+function M.unaward_item( player_name, item_id, item_link )
+  M.awarded_loot.unaward( player_name, item_id )
+  info( string.format( "%s returned %s.", hl( player_name ), item_link ) )
 end
 
 function M.on_group_changed()

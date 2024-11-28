@@ -171,8 +171,7 @@ function M.new( announce, ace_timer, group_roster, item, count, info, seconds, o
     show_sorted_rolls = show_sorted_rolls,
     stop_accepting_rolls = stop_accepting_rolls,
     cancel_rolling = cancel_rolling,
-    is_rolling = is_rolling,
-    get_roll_type = function() return modules.Api.RollType.NoSoftResRoll end
+    is_rolling = is_rolling
   }
 end
 

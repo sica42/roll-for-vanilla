@@ -11,6 +11,7 @@ local m_rolling_item_name = nil
 local m_is_master_looter = false
 local m_player_name = nil
 local m_target = nil
+local m_loot_confirm_callback = nil
 
 ---@diagnostic disable-next-line: undefined-field
 local lua50 = table.setn and true or false
@@ -95,6 +96,8 @@ function M.mock_wow_api()
   M.modules().api.UISpecialFrames = {}
   M.modules().api.IsAltKeyDown = function() return false end
   M.modules().api.GetAddOnMetadata = function() return "2.6" end -- version
+  M.modules().api.tinsert = table.insert
+  M.modules().api.PlaySound = function() end
 
   M.modules().api.CreateFrame = function( _, frame_name )
     local frame = {
@@ -131,6 +134,8 @@ function M.mock_wow_api()
       RegisterForClicks = function() end,
       RegisterForDrag = function() end,
       SetHighlightTexture = function() end,
+      GetFrameLevel = function() return 0 end,
+      GetName = function() return "PrincessKenny" end,
       CreateTexture = function()
         return {
           SetWidth = function() end,
@@ -143,6 +148,12 @@ function M.mock_wow_api()
       end,
       SetWidth = function() end,
       SetHeight = function() end,
+      SetScale = function() end,
+      GetFontString = function()
+        return {
+          SetPoint = function() end,
+        }
+      end,
       SetFocus = function() end,
       SetPoint = function() end,
       SetMovable = function() end,
@@ -169,7 +180,10 @@ function M.mock_wow_api()
         return {
           SetPoint = function() end,
           SetText = function() end,
-          SetTextColor = function() end
+          SetTextColor = function() end,
+          GetStringWidth = function() return 0 end,
+          GetWidth = function() return 100 end,
+          GetText = function() return "Font string text" end
         }
       end,
       Click = function( self )
@@ -363,6 +377,7 @@ end
 
 function M.mock_random_roll( player_name, roll, upper_bound )
   M.mock( "RandomRoll", function() M.roll( player_name, roll, upper_bound ) end )
+  M.mock( "GetMasterLootCandidate", function() return {} end )
 end
 
 function M.init()
@@ -518,6 +533,8 @@ function M.mock_blizzard_loot_buttons()
       end
     } )
   end
+
+  M.mock( "LootSlotIsItem", function() return true end )
 end
 
 function M.mock_unit_name()
@@ -526,6 +543,14 @@ end
 
 function M.mock_shift_key_pressed( value )
   M.mock( "IsShiftKeyDown", function() return value end )
+end
+
+function M.mock_alt_key_pressed( value )
+  M.mock( "IsAltKeyDown", function() return value end )
+end
+
+function M.mock_control_key_pressed( value )
+  M.mock( "IsControlKeyDown", function() return value end )
 end
 
 function M.load_roll_for()
@@ -634,47 +659,53 @@ function M.mock_libraries()
   } )
 end
 
-function M.load_real_stuff()
+function M.load_real_stuff( req )
+  local r = req or require
+
   M.load_libstub()
-  require( "settings" )
-  require( "src/modules" )
+  r( "settings" )
+  r( "src/modules" )
   M.mock_api()
-  require( "src/Api" )
-  require( "src/ItemUtils" )
-  require( "src/RollingLogicUtils" )
-  require( "src/DroppedLoot" )
-  require( "src/DroppedLootAnnounce" )
-  require( "src/TradeTracker" )
-  require( "src/SoftRes" )
-  require( "src/SoftResGui" )
-  require( "src/AwardedLoot" )
-  require( "src/SoftResAwardedLootDecorator" )
-  require( "src/SoftResPresentPlayersDecorator" )
-  require( "src/SoftResAbsentPlayersDecorator" )
-  require( "src/SoftResMatchedNameDecorator" )
-  require( "src/GroupRoster" )
-  require( "src/NameAutoMatcher" )
-  require( "src/NameManualMatcher" )
-  require( "src/NameMatchReport" )
-  require( "src/EventHandler" )
-  require( "src/VersionBroadcast" )
-  require( "src/MasterLoot" )
-  require( "src/SoftResCheck" )
-  require( "src/NonSoftResRollingLogic" )
-  require( "src/SoftResRollingLogic" )
-  require( "src/TieRollingLogic" )
-  require( "src/RaidRollRollingLogic" )
-  require( "src/MasterLootTracker" )
-  require( "src/MasterLootFrame" )
-  require( "src/UsagePrinter" )
-  require( "src/MinimapButton" )
-  require( "src/MasterLootWarning" )
-  require( "src/AutoLoot" )
-  require( "src/WinnerTracker" )
-  require( "src/PfUiIntegrationDialog" )
-  -- require( "Libs/LibDeflate/LibDeflate" )
-  require( "src/Json" )
-  require( "main" )
+  r( "src/Types" )
+  r( "src/ItemUtils" )
+  r( "src/RollingLogicUtils" )
+  r( "src/DroppedLoot" )
+  r( "src/DroppedLootAnnounce" )
+  r( "src/TradeTracker" )
+  r( "src/SoftRes" )
+  r( "src/SoftResGui" )
+  r( "src/AwardedLoot" )
+  r( "src/SoftResAwardedLootDecorator" )
+  r( "src/SoftResPresentPlayersDecorator" )
+  r( "src/SoftResAbsentPlayersDecorator" )
+  r( "src/SoftResMatchedNameDecorator" )
+  r( "src/GroupRoster" )
+  r( "src/NameAutoMatcher" )
+  r( "src/NameManualMatcher" )
+  r( "src/NameMatchReport" )
+  r( "src/EventHandler" )
+  r( "src/VersionBroadcast" )
+  r( "src/MasterLoot" )
+  r( "src/SoftResCheck" )
+  r( "src/NonSoftResRollingLogic" )
+  r( "src/SoftResRollingLogic" )
+  r( "src/TieRollingLogic" )
+  r( "src/RaidRollRollingLogic" )
+  r( "src/MasterLootTracker" )
+  r( "src/MasterLootFrame" )
+  r( "src/UsagePrinter" )
+  r( "src/MinimapButton" )
+  r( "src/MasterLootWarning" )
+  r( "src/AutoLoot" )
+  r( "src/WinnerTracker" )
+  r( "src/PfUiIntegrationDialog" )
+  r( "src/LootAwardPopup" )
+  r( "src/MasterLootCorrelationData" )
+  r( "src/RollFinishedLogic" )
+  r( "src/MasterLootCandidates" )
+  -- r( "Libs/LibDeflate/LibDeflate" )
+  r( "src/Json" )
+  r( "main" )
 end
 
 function M.rolling_finished()
@@ -797,7 +828,7 @@ end
 
 function M.award( player, item_name, item_id )
   local rf = M.load_roll_for()
-  rf.award_item( player, item_id, item_name, M.item_link( item_name, item_id ) )
+  rf.award_item( player, item_id, M.item_link( item_name, item_id ) )
 end
 
 function M.epic_threshold()
@@ -914,18 +945,15 @@ local function get_player_frame_from_master_looter_frame( player_name )
   end
 end
 
-function M.master_loot( item_name, player_name )
+function M.master_loot( item_link, player_name )
   M.mock( "IsModifiedClick", false )
   M.mock( "CloseDropDownMenus", function() end )
+  M.mock( "GetLootSlotLink", function() return item_link end )
   local button = _G[ "LootButton1" ]
-  M.mock_object( "LootButton1Text", {
-    GetText = function() return item_name end
-  } )
   button.hasItem = true
   button.quality = M.LootQuality.Epic
   button.slot = 1
   M.mock_object( "LootFrame", {} )
-  M.mock( "StaticPopup_Show", function() end )
   button:Click()
   local player_frame = get_player_frame_from_master_looter_frame( player_name )
   player_frame:Click()
@@ -934,9 +962,9 @@ end
 function M.mock_softres_gui()
 end
 
-function M.confirm_master_looting( player_name )
+function M.confirm_master_looting( player, item_link )
   M.mock( "GiveMasterLoot", function() end )
-  M.modules().api.StaticPopupDialogs[ "ROLLFOR_MASTER_LOOT_CONFIRMATION_DIALOG" ].OnAccept( { name = player_name, value = 1 } )
+  if m_loot_confirm_callback then m_loot_confirm_callback( player, item_link ) end
   M.fire_event( "LOOT_SLOT_CLEARED", 1 )
 end
 
@@ -964,6 +992,10 @@ function M.import_softres_via_gui( fixture_name )
   local sr_frame = _G[ "RollForSoftResLootFrame" ]
   sr_frame.editbox:SetText( sr_data )
   sr_frame.import_button.OnClickCallback()
+end
+
+function M.register_loot_confirm_callback( callback )
+  m_loot_confirm_callback = callback
 end
 
 return M

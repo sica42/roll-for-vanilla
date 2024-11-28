@@ -18,6 +18,9 @@ local getn = table.getn
 --return o
 --end
 
+-- Taragaman the Hungerer all SR by Jogobobek:
+-- eyJtZXRhZGF0YSI6eyJpZCI6IlNaNEZRSCIsImluc3RhbmNlIjoxMDEsImluc3RhbmNlcyI6WyJLYXJhemhhbiJdLCJvcmlnaW4iOiJyYWlkcmVzIn0sInNvZnRyZXNlcnZlcyI6W3sibmFtZSI6IkpvZ29ib2JlayIsIml0ZW1zIjpbeyJpZCI6MTQxNDUsInF1YWxpdHkiOjN9LHsiaWQiOjE0MTQ4LCJxdWFsaXR5IjozfSx7ImlkIjoxNDE0OSwicXVhbGl0eSI6M31dfV0sImhhcmRyZXNlcnZlcyI6W119
+
 function M.new( db )
   local softres_items = {}
   local hardres_items = {}

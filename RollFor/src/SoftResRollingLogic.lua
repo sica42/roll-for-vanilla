@@ -181,8 +181,7 @@ function M.new( announce, ace_timer, rollers, item, count, seconds, on_rolling_f
     show_sorted_rolls = show_sorted_rolls,
     stop_accepting_rolls = stop_accepting_rolls,
     cancel_rolling = cancel_rolling,
-    is_rolling = is_rolling,
-    get_roll_type = function() return modules.Api.RollType.NormalRoll end
+    is_rolling = is_rolling
   }
 end
 

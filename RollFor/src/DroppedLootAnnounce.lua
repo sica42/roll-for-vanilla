@@ -144,14 +144,12 @@ function M.create_item_announcements( summary )
     if entry.is_hardressed then
       table.insert( result, {
         item_link = entry.item.link,
-        item_name = entry.item.item_name,
         is_hardressed = true,
         softres_count = 0
       } )
     elseif softres_count == 0 then
       table.insert( result, {
         item_link = entry.item.link,
-        item_name = entry.item.name,
         softres_count = 0,
         how_many_dropped = entry.how_many_dropped
       } )
@@ -159,7 +157,6 @@ function M.create_item_announcements( summary )
       for j = 1, softres_count do
         table.insert( result, {
           item_link = entry.item.link,
-          item_name = entry.item.name,
           softres_count = 1,
           how_many_dropped = 1,
           softressers = { entry.softressers[ j ] }
@@ -168,7 +165,6 @@ function M.create_item_announcements( summary )
     else
       table.insert( result, {
         item_link = entry.item.link,
-        item_name = entry.item.name,
         softres_count = getn( entry.softressers ),
         how_many_dropped = entry.how_many_dropped,
         softressers = entry.softressers
@@ -270,7 +266,7 @@ function M.new( announce, dropped_loot, master_loot_tracker, softres, winner_tra
         announce( announcement.text )
 
         if announcement.entry.softres_count == 1 then
-          winner_tracker.track( announcement.entry.softressers[ 1 ].name, announcement.entry.item_name )
+          winner_tracker.track( announcement.entry.softressers[ 1 ].name, announcement.entry.item_link, modules.Types.RollType.SoftRes )
         end
       end
 

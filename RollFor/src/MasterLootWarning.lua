@@ -12,10 +12,6 @@ local table_contains_value = modules.table_contains_value
 local UIParent             = UIParent
 
 local zones                = {
-  [ "Orgrimmar" ] = {
-    "Kaja",
-    "Fara Boltbreaker"
-  },
   [ "Karazhan" ] = {
     "Master Blacksmith Rolfen",
     "Brood Queen Araxxna",

@@ -217,28 +217,6 @@ function RaidRollSpec:should_raid_roll_the_item_in_raid_chat_even_as_a_leader()
   )
 end
 
-function RaidRollSpec:should_re_roll()
-  -- Given
-  player( "Psikutas" )
-  is_in_party( "Psikutas", "Obszczymucha" )
-  mock_random_roll( "Psikutas", 1, 2 )
-
-  -- When
-  raid_roll( "Hearthstone" )
-  roll( "Obszczymucha", 100 )
-  tick()
-  mock_random_roll( "Psikutas", 2, 2 )
-  run_command( "RRR" )
-
-  -- Then
-  assert_messages(
-    p( "Raid rolling [Hearthstone]..." ),
-    p( "[1]:Psikutas, [2]:Obszczymucha" ),
-    p( "Psikutas wins [Hearthstone]." ),
-    p( "Obszczymucha wins [Hearthstone]." )
-  )
-end
-
 function RaidRollSpec:should_show_the_winner_with_ssr_command()
   -- Given
   player( "Psikutas" )
@@ -257,32 +235,6 @@ function RaidRollSpec:should_show_the_winner_with_ssr_command()
     p( "[1]:Psikutas, [2]:Obszczymucha" ),
     p( "Obszczymucha wins [Hearthstone]." ),
     c( "RollFor[ RaidRoll ]: Obszczymucha won [Hearthstone]." )
-  )
-end
-
-function RaidRollSpec:should_show_the_winner_with_ssr_command_after_a_re_roll()
-  -- Given
-  player( "Psikutas" )
-  is_in_party( "Psikutas", "Obszczymucha" )
-  mock_random_roll( "Psikutas", 2, 2 )
-
-  -- When
-  raid_roll( "Hearthstone" )
-  roll( "Obszczymucha", 100 )
-  tick()
-  mock_random_roll( "Psikutas", 1, 2 )
-  run_command( "SSR" )
-  run_command( "RRR" )
-  run_command( "SSR" )
-
-  -- Then
-  assert_messages(
-    p( "Raid rolling [Hearthstone]..." ),
-    p( "[1]:Psikutas, [2]:Obszczymucha" ),
-    p( "Obszczymucha wins [Hearthstone]." ),
-    c( "RollFor[ RaidRoll ]: Obszczymucha won [Hearthstone]." ),
-    p( "Psikutas wins [Hearthstone]." ),
-    c( "RollFor[ RaidRoll ]: Psikutas won [Hearthstone]." )
   )
 end
 

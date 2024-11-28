@@ -58,13 +58,22 @@ function M.new( api )
     return api().IsInGroup() and api().IsInRaid()
   end
 
+  local function find_player( player_name )
+    local players = get_all_players_in_my_group()
+
+    for _, player in pairs( players ) do
+      if string.lower( player.name ) == string.lower( player_name ) then return player end
+    end
+  end
+
   return {
     my_name = my_name,
     get_all_players_in_my_group = get_all_players_in_my_group,
     is_player_in_my_group = is_player_in_my_group,
     am_i_in_group = am_i_in_group,
     am_i_in_party = am_i_in_party,
-    am_i_in_raid = am_i_in_raid
+    am_i_in_raid = am_i_in_raid,
+    find_player = find_player
   }
 end
 

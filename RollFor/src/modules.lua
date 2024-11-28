@@ -34,6 +34,9 @@ M.colors = {
   end,
   green = function( text )
     return string.format( "|cff2fff5f%s|r", text )
+  end,
+  pink = function( text )
+    return string.format( "|cffdf8eed%s|r", text )
   end
 }
 
@@ -257,6 +260,15 @@ function M.table_contains_value( t, value, f )
   return false
 end
 
+function M.find_value_in_table( t, value, f )
+  if not t then return false end
+
+  for _, v in pairs( t ) do
+    local val = type( f ) == "function" and f( v ) or v
+    if val == value then return v end
+  end
+end
+
 function M.reindex_table( t )
   local result = {}
 
@@ -423,6 +435,36 @@ end
 
 function M.uses_pfui()
   return pfUI and pfUI.version and true or false
+end
+
+function M.clear_table( t )
+  for k in pairs( t ) do
+    t[ k ] = nil
+  end
+end
+
+function M.get_all_key_modifiers()
+  local alt = M.api.IsAltKeyDown()
+  local ctrl = M.api.IsControlKeyDown()
+  local shift = M.api.IsShiftKeyDown()
+
+  return alt, ctrl, shift
+end
+
+function M.roll_type_color( roll_type, text )
+  if roll_type == M.Types.RollType.MainSpec then
+    return M.colors.green( text or roll_type )
+  elseif roll_type == M.Types.RollType.OffSpec then
+    return M.colors.grey( text or roll_type )
+  elseif roll_type == M.Types.RollType.Transmog then
+    return M.colors.pink( text or roll_type )
+  elseif roll_type == M.Types.RollType.SoftRes then
+    return M.colors.orange( text or roll_type )
+  elseif roll_type == M.Types.RollType.RaidRoll then
+    return M.colors.blue( text or roll_type )
+  else
+    return M.colors.white( text or roll_type )
+  end
 end
 
 return M

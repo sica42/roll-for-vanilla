@@ -6,14 +6,14 @@ if modules.UsagePrinter then return end
 local M = {}
 local pretty_print = modules.pretty_print
 local hl = modules.colors.hl
-local RollType = modules.Api.RollType
+local RollSlashCommand = modules.Types.RollSlashCommand
 
 function M.new()
   local function print_usage( roll_type )
-    if roll_type == RollType.NormalRoll or roll_type == RollType.NoSoftResRoll then
-      pretty_print( string.format( "Usage: %s <%s> [%s]", roll_type.slash_command, hl( "item" ), hl( "seconds" ) ) )
-    elseif roll_type == RollType.RaidRoll then
-      pretty_print( string.format( "Usage: %s <%s>", roll_type.slash_command, hl( "item" ) ), nil, "RaidRoll" )
+    if roll_type == RollSlashCommand.NormalRoll or roll_type == RollSlashCommand.NoSoftResRoll then
+      pretty_print( string.format( "Usage: %s <%s> [%s]", roll_type, hl( "item" ), hl( "seconds" ) ) )
+    elseif roll_type == RollSlashCommand.RaidRoll then
+      pretty_print( string.format( "Usage: %s <%s>", roll_type, hl( "item" ) ), nil, "RaidRoll" )
     else
     end
   end

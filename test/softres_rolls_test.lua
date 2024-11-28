@@ -24,6 +24,7 @@ local repeating_tick = utils.repeating_tick
 local tick = utils.tick
 local loot = utils.loot
 local item = utils.item
+local item_link = utils.item_link
 local award = utils.award
 local trade_with = utils.trade_with
 local trade_items = utils.trade_items
@@ -35,6 +36,8 @@ local loot_threshold = utils.loot_threshold
 local LootQuality = utils.LootQuality
 local mock_blizzard_loot_buttons = utils.mock_blizzard_loot_buttons
 local mock_shift_key_pressed = utils.mock_shift_key_pressed
+local mock_alt_key_pressed = utils.mock_alt_key_pressed
+local mock_control_key_pressed = utils.mock_control_key_pressed
 
 SoftResIntegrationSpec = {}
 
@@ -300,12 +303,15 @@ function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_r
   soft_res( sr( "Obszczymucha", 123 ) )
   mock_blizzard_loot_buttons()
   mock_shift_key_pressed( false )
+  mock_alt_key_pressed( false )
+  mock_control_key_pressed( false )
+  local link = item_link( "Heartstone", 123 )
 
   -- When
   loot( item( "Hearthstone", 123 ), item( "Hearthstone", 123 ) )
   roll_for( "Hearthstone", 1, 123 )
-  master_loot( "Hearthstone", "Obszczymucha" )
-  confirm_master_looting( "Obszczymucha" )
+  master_loot( link, "Obszczymucha" )
+  confirm_master_looting( { name = "Obszczymucha" }, link )
   roll_for( "Hearthstone", 1, 123 )
   roll( "Ponpon", 1 )
   repeating_tick( 8 )
@@ -367,6 +373,10 @@ function SoftResIntegrationSpec:should_stop_rolling_if_player_who_won_still_has_
 end
 
 utils.mock_libraries()
-utils.load_real_stuff()
+utils.load_real_stuff( function( module_name )
+  if module_name ~= "src/LootAwardPopup" then return require( module_name ) end
+
+  return require( "mocks/LootAwardPopupMock" )
+end )
 
 os.exit( lu.LuaUnit.run() )

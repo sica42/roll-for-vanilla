@@ -6,7 +6,6 @@ if modules.MasterLootFrame then return end
 local M = {}
 
 local _G = getfenv()
-local confirmation_dialog_key = "ROLLFOR_MASTER_LOOT_CONFIRMATION_DIALOG"
 local icon_width = 16
 local button_width = 85 + icon_width
 local button_height = 16
@@ -37,95 +36,6 @@ end
 
 local function press( frame )
   frame:SetBackdropColor( frame.color.r, frame.color.g, frame.color.b, 0.7 )
-end
-
-local function hook_loot_buttons( reset_confirmation, normal_loot, master_loot, hide )
-  for i = 1, modules.api.LOOTFRAME_NUMBUTTONS do
-    local name = "LootButton" .. i
-    local button = _G[ name ]
-
-    if not button.OriginalOnClick then button.OriginalOnClick = button:GetScript( "OnClick" ) end
-
-    button:SetScript( "OnClick", function()
-      ---@diagnostic disable-next-line: undefined-global
-      local self = button
-      reset_confirmation()
-
-      if modules.api.IsShiftKeyDown() then
-        modules.api.ChatFrameEditBox:Show()
-        modules.api.ChatFrameEditBox:SetText( string.format( "/rf %s", modules.api.GetLootSlotLink( self.slot ) ) )
-        return
-      end
-
-      if modules.api.IsAltKeyDown() then
-        modules.api.ChatFrameEditBox:Show()
-        modules.api.ChatFrameEditBox:SetText( string.format( "/rr %s", modules.api.GetLootSlotLink( self.slot ) ) )
-        return
-      end
-
-      if self.hasItem then
-        modules.api.CloseDropDownMenus()
-        master_loot( {
-          item_name = _G[ self:GetName() .. "Text" ]:GetText(),
-          quality = self.quality,
-          slot = self.slot,
-          button = self
-        } )
-        return
-      end
-
-      hide()
-      normal_loot( self )
-    end )
-  end
-end
-
-local function hook_pfui_loot_buttons( reset_confirmation, normal_loot, master_loot, hide )
-  for i = 1, modules.api.LOOTFRAME_NUMBUTTONS do
-    local name = "pfLootButton" .. i
-    local button = _G[ name ]
-
-    if button then
-      if not button.OriginalOnClick then button.OriginalOnClick = button:GetScript( "OnClick" ) end
-
-      button:SetScript( "OnClick", function()
-        ---@diagnostic disable-next-line: undefined-global
-        local self = button
-        reset_confirmation()
-
-        if modules.api.IsShiftKeyDown() then
-          modules.api.ChatFrameEditBox:Show()
-          modules.api.ChatFrameEditBox:SetText( string.format( "/rf %s", modules.api.GetLootSlotLink( self:GetID() ) ) )
-          return
-        end
-
-        if modules.api.IsAltKeyDown() then
-          modules.api.ChatFrameEditBox:Show()
-          modules.api.ChatFrameEditBox:SetText( string.format( "/rr %s", modules.api.GetLootSlotLink( self:GetID() ) ) )
-          return
-        end
-
-        if modules.api.IsControlKeyDown() then
-          button.OriginalOnClick()
-          return
-        end
-
-        if modules.api.LootSlotIsItem( self:GetID() ) then
-          modules.api.CloseDropDownMenus()
-          master_loot( {
-            item_name = self.name:GetText(),
-            quality = self.quality,
-            slot = self:GetID(),
-            button = self
-          } )
-          return
-        end
-
-        hide()
-        normal_loot( self )
-      end )
-    end
-  end
 end
 
 local function restore_loot_buttons()
@@ -233,43 +143,20 @@ local function create_button( parent, index )
   return frame
 end
 
-local function show_confirmation_dialog( item_name, item_quality, player )
-  local colored_item_name = modules.colorize_item_by_quality( item_name, item_quality )
-  local colored_player_name = modules.colorize_player_by_class( player.name, player.class )
-  return modules.api.StaticPopup_Show( confirmation_dialog_key, colored_item_name, colored_player_name );
-end
-
-local function create_custom_confirmation_dialog_data( on_confirm )
-  modules.api.StaticPopupDialogs[ confirmation_dialog_key ] = {
-    text = "Are you sure you want to give %s to %s?",
-    button1 = modules.api.YES,
-    button2 = modules.api.NO,
-    OnAccept = function( data )
-      on_confirm( modules.api.LootFrame.selectedSlot, data )
-    end,
-    timeout = 0,
-    hideOnEscape = 1,
-  }
-end
-
-function M.new( winner_tracker )
+function M.new( winner_tracker, loot_award_popup, master_loot_correlation_data, roll_finished_logic )
   local m_frame
   local m_buttons = {}
-  local m_dialog
 
-  local function create( on_confirm )
+  local function create()
     if m_frame then return end
     m_frame = create_main_frame()
-    create_custom_confirmation_dialog_data( on_confirm )
   end
 
-  local function hide_dialog()
-    if m_dialog and m_dialog:IsVisible() then
-      modules.api.StaticPopup_Hide( confirmation_dialog_key )
-    end
+  local function hide_popup()
+    loot_award_popup.hide()
   end
 
-  local function create_candidate_frames( candidates )
+  local function create_candidate_frames( candidates, item_link )
     local total = getn( candidates )
 
     local columns = modules.api.math.ceil( total / rows )
@@ -294,7 +181,6 @@ function M.new( winner_tracker )
       button.text:SetText( candidate.name )
       local color = modules.api.RAID_CLASS_COLORS[ string.upper( candidate.class ) ]
       button.color = color
-      button.value = candidate.value
       button.player = candidate
 
       if color then
@@ -307,15 +193,7 @@ function M.new( winner_tracker )
       button:SetScript( "OnClick", function()
         ---@diagnostic disable-next-line: undefined-global
         local self = button
-        local item_name = modules.api.LootFrame.selectedItemName
-        local item_quality = modules.api.LootFrame.selectedQuality
-
-        hide_dialog()
-        m_dialog = show_confirmation_dialog( item_name, item_quality, self.player )
-
-        if (m_dialog) then
-          m_dialog.data = self.player
-        end
+        roll_finished_logic.show_popup( self.player, item_link )
       end )
 
       button:Show()
@@ -332,12 +210,14 @@ function M.new( winner_tracker )
       if button then
         button.text:SetPoint( "CENTER", button, "CENTER" )
         button.icon:Hide()
+        button.winner = nil
+        button.winning_roll = nil
       end
     end
   end
 
-  local function mark_winner( winner_name, item_name )
-    if item_name ~= modules.api.LootFrame.selectedItemName then return end
+  local function mark_winner( winner_name, item_link )
+    if item_link ~= modules.api.LootFrame.selectedItemLink then return end
 
     for i = 1, 40 do
       local button = m_buttons[ i ]
@@ -349,28 +229,116 @@ function M.new( winner_tracker )
     end
   end
 
-  local function show()
+  local function show( item_link )
     if not m_frame then return end
 
-    local item_name = modules.api.LootFrame.selectedItemName
     clear_winners()
     m_frame:Show()
 
-    for _, winner_name in ipairs( winner_tracker.find_winners( item_name ) ) do
-      mark_winner( winner_name, item_name )
+    for _, winner in ipairs( winner_tracker.find_winners( item_link ) ) do
+      mark_winner( winner.winner_name, item_link )
     end
   end
 
   local function hide()
     if m_frame then m_frame:Hide() end
-    hide_dialog()
+    hide_popup()
   end
 
   local function anchor( frame )
     m_frame:SetPoint( "TOPLEFT", frame, "BOTTOMLEFT", 0, 0 )
   end
 
-  winner_tracker.subscribe( clear_winners, mark_winner )
+  local function prepare_rolling_slash_command( slot, slash_command )
+    local item_link = modules.api.GetLootSlotLink( slot )
+    master_loot_correlation_data.set( item_link, slot )
+    modules.api.ChatFrameEditBox:Show()
+    modules.api.ChatFrameEditBox:SetText( string.format( "%s %s", slash_command, item_link ) )
+  end
+
+  local function hook_loot_buttons( reset_confirmation, normal_loot, show_loot_candidates_frame, hide_fn )
+    for i = 1, modules.api.LOOTFRAME_NUMBUTTONS do
+      local name = "LootButton" .. i
+      local button = _G[ name ]
+
+      if not button.OriginalOnClick then button.OriginalOnClick = button:GetScript( "OnClick" ) end
+
+      button:SetScript( "OnClick", function()
+        ---@diagnostic disable-next-line: undefined-global
+        local self = button
+        local slot = self.slot
+        reset_confirmation()
+
+        local alt, ctrl, shift = modules.get_all_key_modifiers()
+
+        if shift and not alt and not ctrl then
+          prepare_rolling_slash_command( slot, modules.Types.RollSlashCommand.NormalRoll )
+          return
+        end
+
+        if alt and not ctrl and not shift then
+          prepare_rolling_slash_command( slot, modules.Types.RollSlashCommand.RaidRoll )
+          return
+        end
+
+        if modules.api.LootSlotIsItem( slot ) then
+          local item_link = modules.api.GetLootSlotLink( slot )
+          show_loot_candidates_frame( slot, item_link, button )
+          return
+        end
+
+        hide_fn()
+        normal_loot( self )
+      end )
+    end
+  end
+
+  local function hook_pfui_loot_buttons( reset_confirmation, normal_loot, show_loot_candidates_frame, hide_fn )
+    for i = 1, modules.api.LOOTFRAME_NUMBUTTONS do
+      local name = "pfLootButton" .. i
+      local button = _G[ name ]
+
+      if button then
+        if not button.OriginalOnClick then button.OriginalOnClick = button:GetScript( "OnClick" ) end
+
+        button:SetScript( "OnClick", function()
+          ---@diagnostic disable-next-line: undefined-global
+          local self = button
+          local slot = self:GetID()
+          reset_confirmation()
+
+          local alt, ctrl, shift = modules.get_all_key_modifiers()
+
+          if shift and not alt and not ctrl then
+            prepare_rolling_slash_command( slot, modules.Types.RollSlashCommand.NormalRoll )
+            return
+          end
+
+          if alt and not ctrl and not shift then
+            prepare_rolling_slash_command( slot, modules.Types.RollSlashCommand.RaidRoll )
+            return
+          end
+
+          if alt or ctrl or shift then
+            button.OriginalOnClick()
+            return
+          end
+
+          if modules.api.LootSlotIsItem( slot ) then
+            local item_link = modules.api.GetLootSlotLink( slot )
+            show_loot_candidates_frame( slot, item_link, button )
+            return
+          end
+
+          hide_fn()
+          normal_loot( self )
+        end )
+      end
+    end
+  end
+
+  winner_tracker.subscribe_for_rolling_started( clear_winners )
+  winner_tracker.subscribe_for_winner_found( mark_winner )
 
   return {
     hook_loot_buttons = hook_loot_buttons,

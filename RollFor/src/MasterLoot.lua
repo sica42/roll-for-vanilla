@@ -14,58 +14,7 @@ local bypass_dropdown_menu = false
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
-local function get_dummy_candidates()
-  return {
-    { name = "Ohhaimark",    class = "Warrior", value = 1 },
-    { name = "Obszczymucha", class = "Druid",   value = 2 },
-    { name = "Jogobobek",    class = "Hunter",  value = 3 },
-    { name = "Xiaorotflmao", class = "Shaman",  value = 4 },
-    { name = "Kacprawcze",   class = "Priest",  value = 5 },
-    { name = "Psikutas",     class = "Paladin", value = 6 },
-    { name = "Motoko",       class = "Rogue",   value = 7 },
-    { name = "Blanchot",     class = "Warrior", value = 8 },
-    { name = "Adamsandler",  class = "Druid",   value = 9 },
-    { name = "Johnstamos",   class = "Hunter",  value = 10 },
-    { name = "Xiaolmao",     class = "Shaman",  value = 11 },
-    { name = "Ronaldtramp",  class = "Priest",  value = 12 },
-    { name = "Psikuta",      class = "Paladin", value = 13 },
-    { name = "Kusanagi",     class = "Rogue",   value = 14 },
-    { name = "Chuj",         class = "Priest",  value = 15 },
-  }
-end
-
-local function get_candidates( group_roster )
-  if not group_roster then return get_dummy_candidates() end
-
-  local result = {}
-  local players = group_roster.get_all_players_in_my_group()
-
-  for i = 1, 40 do
-    local name = modules.api.GetMasterLootCandidate( i )
-
-    for _, p in ipairs( players ) do
-      if name == p.name then
-        table.insert( result, { name = name, class = p.class, value = i } )
-      end
-    end
-  end
-
-  return result
-end
-
-local function sort( candidates )
-  table.sort( candidates, function( lhs, rhs )
-    if lhs.class < rhs.class then
-      return true
-    elseif lhs.class > rhs.class then
-      return false
-    end
-
-    return lhs.name < rhs.name
-  end )
-end
-
-function M.new( group_roster, dropped_loot, award_item, master_loot_frame, master_loot_tracker, db )
+function M.new( master_loot_candidates, award_item, master_loot_frame, master_loot_tracker, db, loot_award_popup, master_loot_correlation_data )
   local m_confirmed = nil
 
   local function reset_confirmation()
@@ -84,26 +33,22 @@ function M.new( group_roster, dropped_loot, award_item, master_loot_frame, maste
   local function on_loot_slot_cleared( slot )
     if not m_confirmed then return end
 
-    local item_name = modules.api.LootFrame.selectedItemName
-    local item_quality = modules.api.LootFrame.selectedQuality
-    local item_id = dropped_loot.get_dropped_item_id( item_name )
     local item = master_loot_tracker.get( slot )
-    local colored_item_name = modules.colorize_item_by_quality( item_name, item_quality )
 
-    if item_id then
-      award_item( m_confirmed.player.name, item_id, item_name, item.link )
+    if item then
+      award_item( m_confirmed.player.name, item.id, item.link )
       master_loot_tracker.remove( slot )
-    else
-      pretty_print( string.format( "Cannot determine item id for %s.", colored_item_name ) )
     end
 
     reset_confirmation()
     master_loot_frame.hide()
   end
 
-  local function on_confirm( slot, player )
-    m_confirmed = { slot = slot, player = player }
-    modules.api.GiveMasterLoot( slot, player.value )
+  local function on_confirm( player, item_link )
+    local data = master_loot_correlation_data.get( item_link )
+    if not data then return end
+    m_confirmed = { slot = data.slot, player = player }
+    modules.api.GiveMasterLoot( data.slot, player.value )
     master_loot_frame.hide()
   end
 
@@ -112,26 +57,28 @@ function M.new( group_roster, dropped_loot, award_item, master_loot_frame, maste
     button:OriginalOnClick()
   end
 
-  local function master_loot( data )
-    modules.api.LootFrame.selectedQuality = data.quality
-    modules.api.LootFrame.selectedItemName = data.item_name
-    modules.api.LootFrame.selectedSlot = data.slot
-    master_loot_frame.create( on_confirm )
+  local function show_loot_candidates_frame( slot, item_link, button )
+    modules.api.LootFrame.selectedSlot = slot
+    modules.api.LootFrame.selectedItemLink = item_link
+    master_loot_correlation_data.set( item_link, slot )
+    -- modules.api.LootFrame.selectedItemName = item_name
+
+    modules.api.CloseDropDownMenus()
+    master_loot_frame.create()
     master_loot_frame.hide()
 
-    local candidates = get_candidates( group_roster ) -- remove group_roster for testing (dummy candidates)
+    local candidates = master_loot_candidates.get()
 
     if getn( candidates ) == 0 then
       -- This happened before.
       modules.pretty_print( "Game API didn't return any loot candidates. Restoring original button hook." )
-      normal_loot( data.button )
+      normal_loot( button )
       return
     end
 
-    sort( candidates )
-    master_loot_frame.create_candidate_frames( candidates )
-    master_loot_frame.anchor( data.button )
-    master_loot_frame.show()
+    master_loot_frame.create_candidate_frames( candidates, item_link )
+    master_loot_frame.anchor( button )
+    master_loot_frame.show( item_link )
   end
 
   local function on_loot_opened()
@@ -149,9 +96,9 @@ function M.new( group_roster, dropped_loot, award_item, master_loot_frame, maste
     bypass_dropdown_menu = true
 
     if modules.uses_pfui() and db.char.pfui_integration then
-      master_loot_frame.hook_pfui_loot_buttons( reset_confirmation, normal_loot, master_loot, master_loot_frame.hide )
+      master_loot_frame.hook_pfui_loot_buttons( reset_confirmation, normal_loot, show_loot_candidates_frame, master_loot_frame.hide )
     else
-      master_loot_frame.hook_loot_buttons( reset_confirmation, normal_loot, master_loot, master_loot_frame.hide )
+      master_loot_frame.hook_loot_buttons( reset_confirmation, normal_loot, show_loot_candidates_frame, master_loot_frame.hide )
     end
 
     buttons_hooked = true
@@ -203,10 +150,15 @@ function M.new( group_roster, dropped_loot, award_item, master_loot_frame, maste
 
   local function on_unknown_error_message( message )
     if m_confirmed then
-      pretty_print( message, "red" )
+      if message ~= "You are too far away!" then
+        pretty_print( message, "red" )
+      end
+
       reset_confirmation()
     end
   end
+
+  loot_award_popup.register_confirm_callback( on_confirm )
 
   return {
     on_loot_slot_cleared = on_loot_slot_cleared,
