@@ -8,10 +8,10 @@ local M = {}
 local getn = table.getn
 
 function M.new( db )
-  local awarded_items = db.char.awarded_items or {}
+  local awarded_items = db.awarded_items or {}
 
   local function persist()
-    db.char.awarded_items = awarded_items
+    db.awarded_items = awarded_items
   end
 
   local function award( player_name, item_id )

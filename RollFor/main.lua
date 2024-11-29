@@ -1,16 +1,14 @@
 ---@diagnostic disable-next-line: undefined-global
 local lib_stub = LibStub
-local m = lib_stub( "RollFor-Modules" )
+local modules = lib_stub( "RollFor-Modules" )
+local m = modules
 local version = m.get_addon_version()
 
 local M = lib_stub:NewLibrary( string.format( "RollFor-%s", version.major ), version.minor )
 if not M then return end
 
 local info = m.pretty_print
-local print = m.print
-local print_header = m.print_header
 local hl = m.colors.highlight
-local grey = m.colors.grey
 local RollSlashCommand = m.Types.RollSlashCommand
 local RollType = m.Types.RollType
 
@@ -95,18 +93,24 @@ end
 
 local function create_components()
   M.ace_timer = lib_stub( "AceTimer-3.0" )
+
+  local db = m.Db.new( M.char_db )
+  M.config = m.Config.new( db( "config" ) )
+
   M.api = function() return m.api end
   M.present_softres = function( softres ) return m.SoftResPresentPlayersDecorator.new( M.group_roster, softres ) end
   M.absent_softres = function( softres ) return m.SoftResAbsentPlayersDecorator.new( M.group_roster, softres ) end
 
   M.item_utils = m.ItemUtils
-  M.version_broadcast = m.VersionBroadcast.new( M.db, version.str )
-  M.winner_history = m.WinnerHistory.new( M.db )
-  M.awarded_loot = m.AwardedLoot.new( M.db, M.winner_history )
+
+  M.version_broadcast = m.VersionBroadcast.new( db( "version_broadcast" ), version.str )
+  M.winner_history = m.WinnerHistory.new( db( "winner_history" ) )
+  M.awarded_loot = m.AwardedLoot.new( db( "awarded_loot" ), M.winner_history )
   M.group_roster = m.GroupRoster.new( M.api )
-  M.unfiltered_softres = m.SoftRes.new( M.db )
+  M.softres_db = db( "softres" )
+  M.unfiltered_softres = m.SoftRes.new( M.softres_db )
   M.name_matcher = m.NameManualMatcher.new(
-    M.db, M.api,
+    db( "name_matcher" ), M.api,
     M.absent_softres( M.unfiltered_softres ),
     m.NameAutoMatcher.new( M.group_roster, M.unfiltered_softres, 0.57, 0.4 ),
     on_softres_status_changed
@@ -114,11 +118,11 @@ local function create_components()
   M.matched_name_softres = m.SoftResMatchedNameDecorator.new( M.name_matcher, M.unfiltered_softres )
   M.awarded_loot_softres = m.SoftResAwardedLootDecorator.new( M.awarded_loot, M.matched_name_softres )
   M.softres = M.present_softres( M.awarded_loot_softres )
-  M.dropped_loot = m.DroppedLoot.new( M.db )
+  M.dropped_loot = m.DroppedLoot.new( db( "dropped_loot" ) )
   M.master_loot_tracker = m.MasterLootTracker.new()
   M.softres_check = m.SoftResCheck.new( M.matched_name_softres, M.group_roster, M.name_matcher, M.ace_timer,
-    M.absent_softres, M.db )
-  M.winner_tracker = m.WinnerTracker.new( M.db )
+    M.absent_softres, db( "softres_check" ) )
+  M.winner_tracker = m.WinnerTracker.new( db( "winner_tracker" ) )
   M.dropped_loot_announce = m.DroppedLootAnnounce.new( announce, M.dropped_loot, M.master_loot_tracker, M.softres, M.winner_tracker )
   M.loot_award_popup = m.LootAwardPopup.new( M.item_utils )
   M.winner_tracker.subscribe_for_rolling_started( M.loot_award_popup.hide )
@@ -126,7 +130,7 @@ local function create_components()
   M.roll_finished_logic = m.RollFinishedLogic.new( M.master_loot_correlation_data, M.winner_tracker, M.loot_award_popup )
   M.master_loot_frame = m.MasterLootFrame.new( M.winner_tracker, M.loot_award_popup, M.master_loot_correlation_data, M.roll_finished_logic )
   M.master_loot_candidates = m.MasterLootCandidates.new( M.group_roster ) -- remove group_roster for testing (dummy candidates)
-  M.master_loot = m.MasterLoot.new( M.master_loot_candidates, M.award_item, M.master_loot_frame, M.master_loot_tracker, M.db, M.loot_award_popup,
+  M.master_loot = m.MasterLoot.new( M.master_loot_candidates, M.award_item, M.master_loot_frame, M.master_loot_tracker, M.config, M.loot_award_popup,
     M.master_loot_correlation_data )
   M.softres_gui = m.SoftResGui.new( M.api, M.import_encoded_softres_data, M.softres_check, M.softres, clear_data, M.dropped_loot_announce.reset )
 
@@ -136,12 +140,20 @@ local function create_components()
   )
 
   M.usage_printer = m.UsagePrinter.new()
-  M.minimap_button = m.MinimapButton.new( M.api, M.db, M.softres_gui.toggle, M.softres_check )
-  M.master_loot_warning = m.MasterLootWarning.new( M.api, M.db )
-  M.auto_loot = m.AutoLoot.new( M.api, M.db )
-  M.pfui_integration_dialog = m.PfIntegrationDialog.new( M.db )
-  M.new_group_event = m.NewGroupEvent.new( M.db )
+  M.minimap_button = m.MinimapButton.new( M.api, db( "minimap_button" ), M.softres_gui.toggle, M.softres_check, M.config )
+  M.master_loot_warning = m.MasterLootWarning.new( M.api, db( "master_loot_warning" ) )
+  M.auto_loot = m.AutoLoot.new( M.api, db( "auto_loot" ), M.config )
+  M.pfui_integration_dialog = m.PfUiIntegrationDialog.new( M.config )
+  M.new_group_event = m.NewGroupEvent.new()
   M.new_group_event.subscribe( M.winner_history.start_session )
+
+  M.config.subscribe( "toggle_ml_warning", function( disabled )
+    if disabled then
+      M.master_loot_warning.hide()
+    else
+      M.master_loot_warning.on_player_target_changed()
+    end
+  end )
 end
 
 function M.import_softres_data( softres_data )
@@ -166,7 +178,7 @@ local function raid_roll_rolling_logic( item )
 end
 
 local function non_softres_rolling_logic( item, count, message, seconds, on_rolling_finished )
-  return m.NonSoftResRollingLogic.new( announce, M.ace_timer, M.group_roster, item, count, message, seconds, on_rolling_finished, M.db )
+  return m.NonSoftResRollingLogic.new( announce, M.ace_timer, M.group_roster, item, count, message, seconds, on_rolling_finished, M.config )
 end
 
 local function soft_res_rolling_logic( item, count, message, seconds, on_rolling_finished )
@@ -249,7 +261,7 @@ function M.on_rolling_finished( item, count, winners, rerolling, there_was_no_ro
     info( string.format( "Nobody rolled for %s.", item.link ) )
     announce( string.format( "Nobody rolled for %s.", item.link ) )
 
-    if M.db.char.auto_raid_roll then
+    if M.config.auto_raid_roll() then
       m_rolling_logic = raid_roll_rolling_logic( item )
       m_rolling_logic.announce_rolling()
     elseif m_rolling_logic and not m_rolling_logic.is_rolling() then
@@ -316,197 +328,6 @@ local function parse_args( args )
   end
 end
 
----@diagnostic disable-next-line: unused-local, unused-function
-local function toggle_ml_warning()
-  if M.db.char.disable_ml_warning then
-    M.db.char.disable_ml_warning = nil
-    M.master_loot_warning.on_player_target_changed()
-  else
-    M.db.char.disable_ml_warning = 1
-    M.master_loot_warning.hide()
-  end
-
-  info( string.format( "Master Loot warning %s.", M.db.char.disable_ml_warning and m.msg.disabled or m.msg.enabled ) )
-end
-
-local function print_raid_roll_settings()
-  local auto_raidroll = M.db.char.auto_raid_roll and m.msg.enabled or m.msg.disabled
-  info( string.format( "Auto raid-roll is %s.", auto_raidroll ) )
-end
-
-local function print_roll_thresholds()
-  local ms_threshold = M.db.char.ms_roll_threshold
-  local os_threshold = M.db.char.os_roll_threshold
-  local tmog_threshold = M.db.char.tmog_roll_threshold
-  local tmog_info = string.format( ", %s %s", hl( "TMOG" ), tmog_threshold ) or ""
-
-  info( string.format( "Roll thresholds: %s %s, %s %s%s", hl( "MS" ), ms_threshold, hl( "OS" ), os_threshold, tmog_info ) )
-end
-
-local function print_transmog_rolling_setting( show_threshold )
-  local tmog_rolling_enabled = M.db.char.tmog_rolling_enabled
-  local threshold = show_threshold and tmog_rolling_enabled and string.format( " (%s)", hl( M.db.char.tmog_roll_threshold ) ) or ""
-  info( string.format( "Transmog rolling is %s%s.", tmog_rolling_enabled and m.msg.enabled or m.msg.disabled, threshold ) )
-end
-
-local function print_pfui_integration_setting()
-  if not m.uses_pfui() then return end
-  info( string.format( "%s integration is %s.", m.msg.pfui, M.db.char.pfui_integration and m.msg.enabled or m.msg.disabled ) )
-end
-
-local function print_config()
-  print_header( "RollFor Configuration" )
-  info( string.format( "Master loot warning is %s.", M.db.char.disable_ml_warning and m.msg.disabled or m.msg.enabled ) )
-  info( string.format( "Auto raid-roll is %s.", M.db.char.auto_raid_roll and m.msg.enabled or m.msg.disabled ) )
-
-  print_roll_thresholds()
-  print_transmog_rolling_setting()
-  print_pfui_integration_setting()
-  print( string.format( "For more info, type: %s", hl( "/rf config help" ) ) )
-end
-
-local function toggle_auto_loot()
-  if M.db.char.auto_loot then
-    M.db.char.auto_loot = false
-  else
-    M.db.char.auto_loot = true
-  end
-
-  info( string.format( "Auto-loot is %s.", M.db.char.auto_loot and m.msg.enabled or m.msg.disabled ) )
-end
-
-local function toggle_auto_raid_roll()
-  if M.db.char.auto_raid_roll then
-    M.db.char.auto_raid_roll = false
-  else
-    M.db.char.auto_raid_roll = true
-  end
-
-  print_raid_roll_settings()
-end
-
-local function configure_ms_threshold( args )
-  for value in string.gmatch( args, "config ms (%d+)" ) do
-    M.db.char.ms_roll_threshold = tonumber( value )
-    print_roll_thresholds()
-    return
-  end
-
-  info( string.format( "Usage: %s <threshold>", hl( "/rf config ms" ) ) )
-end
-
-local function configure_os_threshold( args )
-  for value in string.gmatch( args, "config os (%d+)" ) do
-    M.db.char.os_roll_threshold = tonumber( value )
-    print_roll_thresholds()
-    return
-  end
-
-  info( string.format( "Usage: %s <threshold>", hl( "/rf config os" ) ) )
-end
-
-local function configure_tmog_threshold( args )
-  if args == "config tmog" then
-    M.db.char.tmog_rolling_enabled = not M.db.char.tmog_rolling_enabled
-    print_transmog_rolling_setting( true )
-    return
-  end
-
-  for value in string.gmatch( args, "config tmog (%d+)" ) do
-    M.db.char.tmog_roll_threshold = tonumber( value )
-    print_roll_thresholds()
-    return
-  end
-
-  info( string.format( "Usage: %s <threshold>", hl( "/rf config tmog" ) ) )
-end
-
-local function print_config_help()
-  local v = function( name ) return string.format( "%s%s%s", hl( "<" ), grey( name ), hl( ">" ) ) end
-
-  print_header( "RollFor Configuration Help" )
-  print( string.format( "%s - show configuration", hl( "/rf config" ) ) )
-  print( string.format( "%s - toggle minimap icon", hl( "/rf config minimap" ) ) )
-  print( string.format( "%s - lock/unlock minimap icon", hl( "/rf config minimap lock" ) ) )
-  print( string.format( "%s - toggle master loot warning", hl( "/rf config ml" ) ) )
-  print( string.format( "%s - toggle auto raid-roll", hl( "/rf config auto-rr" ) ) )
-  print( string.format( "%s - show MS rolling threshold ", hl( "/rf config ms" ) ) )
-  print( string.format( "%s %s - set MS rolling threshold ", hl( "/rf config ms" ), v( "threshold" ) ) )
-  print( string.format( "%s - show OS rolling threshold ", hl( "/rf config os" ) ) )
-  print( string.format( "%s %s - set OS rolling threshold ", hl( "/rf config os" ), v( "threshold" ) ) )
-  print( string.format( "%s - toggle TMOG rolling", hl( "/rf config tmog" ) ) )
-  print( string.format( "%s %s - set TMOG rolling threshold", hl( "/rf config tmog" ), v( "threshold" ) ) )
-end
-
-local function toggle_pfui_integration()
-  if M.db.char.pfui_integration then
-    M.db.char.pfui_integration = false
-  else
-    M.db.char.pfui_integration = true
-  end
-
-  print_pfui_integration_setting()
-end
-
-local function on_config( args )
-  if args == "config" then
-    print_config()
-    return
-  end
-
-  if args == "config help" then
-    print_config_help()
-    return
-  end
-
-  if args == "config ml" then
-    toggle_ml_warning()
-    return
-  end
-
-  if args == "config autoloot" then
-    toggle_auto_loot()
-    return
-  end
-
-  if args == "config auto-rr" then
-    toggle_auto_raid_roll()
-    return
-  end
-
-  if args == "config minimap" then
-    M.minimap_button.toggle()
-    return
-  end
-
-  if args == "config minimap lock" then
-    M.minimap_button.toggle_lock()
-    return
-  end
-
-  if string.find( args, "^config ms" ) then
-    configure_ms_threshold( args )
-    return
-  end
-
-  if string.find( args, "^config os" ) then
-    configure_os_threshold( args )
-    return
-  end
-
-  if string.find( args, "^config tmog" ) then
-    configure_tmog_threshold( args )
-    return
-  end
-
-  if args == "config pfui" and m.uses_pfui() then
-    toggle_pfui_integration()
-    return
-  end
-
-  print_config_help()
-end
-
 local function on_roll_command( roll_slash_command )
   local normal_roll = roll_slash_command == RollSlashCommand.NormalRoll
   local raid_roll = roll_slash_command == RollSlashCommand.RaidRoll
@@ -518,7 +339,7 @@ local function on_roll_command( roll_slash_command )
     end
 
     if string.find( args, "^config" ) then
-      on_config( args )
+      M.config.on_command( args )
       return
     end
 
@@ -610,16 +431,20 @@ local function on_finish_roll_command()
 end
 
 local function setup_storage()
-  M.db = lib_stub( "AceDB-3.0" ):New( "RollForDb" )
-
-  if not M.db.global.version then
-    M.db.global.version = version.str
+  -- Reset old AceDB configuration. I don't give a fuck :)
+  if RollForDb and RollForDb.global and RollForDb.global.version then
+    RollForDb = nil
   end
 
-  if not M.db.char.ms_roll_threshold then M.db.char.ms_roll_threshold = 100 end
-  if not M.db.char.os_roll_threshold then M.db.char.os_roll_threshold = 99 end
-  if not M.db.char.tmog_roll_threshold then M.db.char.tmog_roll_threshold = 98 end
-  if M.db.char.tmog_rolling_enabled == nil then M.db.char.tmog_rolling_enabled = true end
+  RollForDb = RollForDb or {}
+  RollForCharDb = RollForCharDb or {}
+
+  M.db = RollForDb
+  M.char_db = RollForCharDb
+
+  if not M.db.version then
+    M.db.version = version.str
+  end
 end
 
 local function on_softres_command( args )
@@ -642,11 +467,9 @@ end
 
 local function on_master_looter_changed( player_name )
   if m.my_name() == player_name and m.is_master_loot() then
-    M.ace_timer.ScheduleTimer( M, print_raid_roll_settings, 0.1 )
-
-    if M.db.char.pfui_integration == nil then
-      M.ace_timer.ScheduleTimer( M, M.pfui_integration_dialog.on_master_loot, 3 )
-    end
+    M.ace_timer.ScheduleTimer( M, M.config.print_raid_roll_settings, 0.1 )
+    if M.config.pf_integration_info_showed() then return end
+    M.ace_timer.ScheduleTimer( M, M.pfui_integration_dialog.on_master_loot, 3 )
   end
 end
 
@@ -732,12 +555,12 @@ end
 
 local function show_how_to_roll()
   announce( "How to roll:" )
-  local ms = M.db.char.ms_roll_threshold ~= 100 and string.format( " (%s)", M.db.char.ms_roll_threshold or "100" ) or ""
+  local ms = M.config.ms_roll_threshold() ~= 100 and string.format( " (%s)", M.config.ms_roll_threshold() or "100" ) or ""
   announce( string.format( "For main-spec, type: /roll%s", ms ) )
-  announce( string.format( "For off-spec, type: /roll %s", M.db.char.os_roll_threshold ) )
+  announce( string.format( "For off-spec, type: /roll %s", M.config.os_roll_threshold() ) )
 
-  if M.db.char.tmog_rolling_enabled then
-    announce( string.format( "For transmog, type: /roll %s", M.db.char.tmog_roll_threshold ) )
+  if M.config.tmog_rolling_enabled() then
+    announce( string.format( "For transmog, type: /roll %s", M.config.tmog_roll_threshold() ) )
   end
 end
 
@@ -800,8 +623,8 @@ function M.on_first_enter_world()
   info( string.format( "Loaded (%s).", hl( string.format( "v%s", version.str ) ) ) )
 
   M.version_broadcast.broadcast()
-  M.import_encoded_softres_data( M.db.char.softres_data )
-  M.softres_gui.load( M.db.char.softres_data )
+  M.import_encoded_softres_data( M.softres_db.data )
+  M.softres_gui.load( M.softres_db.data )
 end
 
 ---@diagnostic disable-next-line: unused-local, unused-function

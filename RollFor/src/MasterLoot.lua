@@ -14,7 +14,7 @@ local bypass_dropdown_menu = false
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
-function M.new( master_loot_candidates, award_item, master_loot_frame, master_loot_tracker, db, loot_award_popup, master_loot_correlation_data )
+function M.new( master_loot_candidates, award_item, master_loot_frame, master_loot_tracker, config, loot_award_popup, master_loot_correlation_data )
   local m_confirmed = nil
 
   local function reset_confirmation()
@@ -25,7 +25,7 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
     original_toggle_dropdown_menu = modules.api.ToggleDropDownMenu
 
     _G[ "ToggleDropDownMenu" ] = function( level, value, dropDownFrame, anchorName, xOffset, yOffset, menuList )
-      if db.char.pfui_integration and bypass_dropdown_menu then return end
+      if config.pfui_integration_enabled() and bypass_dropdown_menu then return end
       original_toggle_dropdown_menu( level, value, dropDownFrame, anchorName, xOffset, yOffset, menuList )
     end
   end
@@ -95,7 +95,7 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
     if not original_toggle_dropdown_menu then hook_toggle_dropdown_menu() end
     bypass_dropdown_menu = true
 
-    if modules.uses_pfui() and db.char.pfui_integration then
+    if modules.uses_pfui() and config.pfui_integration_enabled() then
       master_loot_frame.hook_pfui_loot_buttons( reset_confirmation, normal_loot, show_loot_candidates_frame, master_loot_frame.hide )
     else
       master_loot_frame.hook_loot_buttons( reset_confirmation, normal_loot, show_loot_candidates_frame, master_loot_frame.hide )
@@ -150,7 +150,7 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
 
   local function on_unknown_error_message( message )
     if m_confirmed then
-      if message ~= "You are too far away!" then
+      if message ~= "You are too far away!" and message ~= "You must be in a raid group to enter this instance" then
         pretty_print( message, "red" )
       end
 

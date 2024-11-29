@@ -2,30 +2,37 @@
 local modules = LibStub( "RollFor-Modules" )
 if modules.AutoLoot then return end
 
-local M = {}
 local item_utils = modules.ItemUtils
 local contains = modules.table_contains_value
+local info = modules.pretty_print
+local hl = modules.colors.hl
+local grey = modules.colors.grey
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
+local M = {}
 local button_visible = false
+local _G = getfenv( 0 )
 
-local items = {
-  [ "Ragefire Chasm" ] = {
-    14149,
-    14113, -- Aboriginal Sash of the Whale
-    81094  -- Amber Topaz
-  },
-  [ "Blackwing Lair" ] = {
-    18562, -- Elementium Ore
-    19183, -- Hourglass Sand
-  },
-}
+-- local items = {
+--   [ "Ragefire Chasm" ] = {
+--     14149,
+--     14113, -- Aboriginal Sash of the Whale
+--     81094  -- Amber Topaz
+--   },
+--   [ "Blackwing Lair" ] = {
+--     18562, -- Elementium Ore
+--     19183, -- Hourglass Sand
+--   },
+-- }
 
-function M.new( api, db )
+function M.new( api, db, config )
+  db.items = db.items or {}
+
   local frame
+  local items = db.items
 
-  local function find_player_candidate_index()
+  local function find_my_candidate_index()
     for i = 1, 40 do
       local name = modules.api.GetMasterLootCandidate( i )
       if name == api().UnitName( "player" ) then
@@ -38,11 +45,6 @@ function M.new( api, db )
     local item_count = api().GetNumLootItems()
     local zone_name = api().GetRealZoneText()
     local item_ids = items[ zone_name ]
-
-    if not item_ids or getn( item_ids ) == 0 then
-      return
-    end
-
     local threshold = modules.api.GetLootThreshold()
 
     for slot = 1, item_count do
@@ -53,13 +55,11 @@ function M.new( api, db )
       if link then
         local item_id = item_utils.get_item_id( link )
 
-        if quality < threshold or db.char.auto_loot and contains( item_ids, item_id ) then
-          local index = find_player_candidate_index()
+        if quality < threshold or config.is_auto_loot() and contains( item_ids, item_id ) then
+          local index = find_my_candidate_index()
 
           if index then
             api().GiveMasterLoot( slot, index )
-            -- else
-            -- pretty_print( string.format( "%s cannot be looted.", link ) )
           end
         end
       end
@@ -93,8 +93,73 @@ function M.new( api, db )
     on_auto_loot()
   end
 
+  local function show_usage()
+    info( string.format( "Usage: %s <add|remove> %s", hl( "/rfal" ), grey( "<item_link>" ) ) )
+  end
+
+  local function add( item_link )
+    local item_id = item_utils.get_item_id( item_link )
+
+    if not item_id then
+      show_usage()
+      return
+    end
+
+    local zone_name = api().GetRealZoneText()
+
+    if not items[ zone_name ] then
+      items[ zone_name ] = {}
+    end
+
+    items[ zone_name ][ item_id ] = {
+      item_name = item_utils.get_item_name( item_link ),
+      item_link = item_link
+    }
+
+    info( string.format( "%s added.", item_link ), "auto-loot" )
+  end
+
+  local function remove( item_link )
+    local item_id = item_utils.get_item_id( item_link )
+
+    if not item_id then
+      show_usage()
+      return
+    end
+
+    local zone_name = api().GetRealZoneText()
+
+    if not items[ zone_name ] or not items[ zone_name ][ item_id ] then
+      return
+    end
+
+    items[ zone_name ][ item_id ] = nil
+    info( string.format( "%s added.", item_link ), "auto-loot" )
+  end
+
+  local function clear()
+  end
+
+  local function on_command( args )
+    for item_link in string.gmatch( args, "add (.-)" ) do
+      add( item_link )
+      return
+    end
+
+    for item_link in string.gmatch( args, "remove (.-)" ) do
+      remove( item_link )
+      return
+    end
+  end
+
+  -- _G[ "SLASH_RFAL1" ] = "/rfal"
+  -- _G[ "SlashCmdList" ][ "RFAL" ] = on_command
+
   return {
-    on_loot_opened = on_loot_opened
+    on_loot_opened = on_loot_opened,
+    add = add,
+    remove = remove,
+    clear = clear
   }
 end
 

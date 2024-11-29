@@ -3,7 +3,6 @@
 	<Script file="LibStub\LibStub.lua"/>
 	<Include file="CallbackHandler-1.0\CallbackHandler-1.0.xml"/>
 	<Include file="AceCore-3.0\AceCore-3.0.xml"/>
-	<Include file="AceDB-3.0\AceDB-3.0.xml"/>
 	<Include file="AceTimer-3.0\AceTimer-3.0.xml"/>
 	<Include file="AceComm-3.0\AceComm-3.0.xml"/>
 	<!--<Include file="LibDeflate\lib.xml"/>-->

@@ -19,23 +19,23 @@ local ColorType = {
   Red = "Red"
 }
 
-function M.new( api, db, manage_softres_fn, softres_check )
+function M.new( api, db, manage_softres_fn, softres_check, config )
   local icon_color
 
   local function persist_angle( angle )
-    db.char.minimap_angle = angle
+    db.angle = angle
   end
 
   local function get_angle()
-    return db.char.minimap_angle
+    return db.angle
   end
 
   local function is_locked()
-    return db.char.minimap_locked
+    return config.minimap_button_locked()
   end
 
   local function is_hidden()
-    return db.char.minimap_hidden
+    return config.minimap_button_hidden()
   end
 
   local function print_players_who_did_not_softres( tooltip )
@@ -272,9 +272,9 @@ function M.new( api, db, manage_softres_fn, softres_check )
 
   local function toggle()
     if is_hidden() then
-      db.char.minimap_hidden = nil
+      config.show_minimap_button()
     else
-      db.char.minimap_hidden = true
+      config.hide_minimap_button()
     end
 
     show()
@@ -282,15 +282,15 @@ function M.new( api, db, manage_softres_fn, softres_check )
 
   local function toggle_lock()
     if is_locked() then
-      db.char.minimap_locked = nil
-      pretty_print( "Minimap button unlocked." )
+      config.unlock_minimap_button()
     else
-      db.char.minimap_locked = true
-      pretty_print( "Minimap button locked." )
+      config.lock_minimap_button()
     end
 
     lock()
   end
+
+  config.subscribe( "minimap_button_hidden", show )
 
   return {
     toggle = toggle,

@@ -18,6 +18,7 @@ local targetting_enemy = utils.targetting_enemy
 local soft_res = utils.soft_res
 local hr = utils.hard_res_item
 local sr = utils.soft_res_item
+local mock = utils.mock
 
 DroppedLootAnnounceIntegrationSpec = {}
 
@@ -40,6 +41,7 @@ function DroppedLootAnnounceIntegrationSpec:should_not_show_loot_if_there_are_no
   master_looter( "Psikutas" )
   is_in_raid( leader( "Psikutas" ), "Obszczymucha" )
   loot_threshold( LootQuality.Epic )
+  mock( "GiveMasterLoot" )
 
   -- When
   loot( item( "Hearthstone", 123, 3 ) )

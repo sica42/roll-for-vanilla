@@ -28,12 +28,12 @@ function M.new( db )
 
   local function persist( data )
     if data ~= nil then
-      db.char.softres_import_timestamp = modules.lua.time()
+      db.import_timestamp = modules.lua.time()
     else
-      db.char.softres_import_timestamp = nil
+      db.import_timestamp = nil
     end
 
-    db.char.softres_data = data
+    db.data = data
   end
 
   function M.decode( encoded_softres_data )

@@ -16,7 +16,7 @@ local p = modules.pretty_print
 local getn = table.getn
 
 function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status_changed )
-  local manual_matches = db.char.manual_matches or {}
+  local manual_matches = db.manual_matches or {}
   local manual_match_options = nil
 
   local function show_manual_matches( matches, absent_players )
@@ -65,10 +65,6 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
     show_manual_matches( manually_matched, absent_players )
   end
 
-  local function persist()
-    db.char.manual_matches = manual_matches
-  end
-
   local function manual_match( args )
     if not manual_match_options or not args or args == "" then
       create_matches_and_show()
@@ -95,13 +91,11 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
     elseif target and not already_matched_name then
       manual_match_options = nil
       manual_matches[ softres_name ] = target
-      persist()
       p( string.format( "|cffff9f69%s|r is now soft-ressing as |cffff9f69%s|r.", target, softres_name ) )
       softres_status_changed()
     elseif not target and already_matched_name then
       manual_match_options = nil
       manual_matches[ softres_name ] = nil
-      persist()
       p( string.format( "Unmatched |cffff2f2f%s|r.", softres_name ) )
       softres_status_changed()
     else
@@ -125,7 +119,6 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
   local function clear( report )
     if not manual_matches or modules.count_elements( manual_matches ) == 0 then return end
     manual_matches = {}
-    persist()
     if report then p( "Cleared manual matches." ) end
   end
 

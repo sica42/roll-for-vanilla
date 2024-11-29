@@ -128,12 +128,12 @@ local function create_frame( api )
   return frame
 end
 
-function M.new( api, db )
+function M.new( api, config )
   local frame
   local is_visible = false
 
   local function show()
-    if not frame or is_visible or db.char.disable_ml_warning then return end
+    if not frame or is_visible or config.ml_warning_disabled() then return end
 
     api().UIFrameFadeRemoveFrame( frame )
     frame:SetAlpha( 1 )

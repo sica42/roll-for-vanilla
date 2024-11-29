@@ -670,6 +670,8 @@ function M.load_real_stuff( req )
   r( "settings" )
   r( "src/modules" )
   M.mock_api()
+  r( "src/Db" )
+  r( "src/Config" )
   r( "src/Types" )
   r( "src/ItemUtils" )
   r( "src/RollingLogicUtils" )
@@ -980,7 +982,7 @@ end
 
 function M.clear_dropped_items_db()
   local rollfor = M.load_roll_for()
-  rollfor.db.char.dropped_items = {}
+  rollfor.db.dropped_items = {}
 end
 
 function M.read_file( file_name )

@@ -1,6 +1,6 @@
 ---@diagnostic disable-next-line: undefined-global
 local modules = LibStub( "RollFor-Modules" )
-if modules.PfIntegrationDialog then return end
+if modules.PfUiIntegrationDialog then return end
 
 local M = {}
 
@@ -10,12 +10,12 @@ local hl = modules.colors.hl
 local info = modules.pretty_print
 local pfui = modules.msg.pfui
 
-function M.new( db )
+function M.new( config )
   local function create_custom_dialog()
     modules.api.StaticPopupDialogs[ confirmation_dialog_key ] = {
       text = string.format(
         "Would your like to integrate %s with %s?\n" ..
-        "This will add %s and %s click support to roll and raid-roll items.\n" ..
+        "This will add %s and %s click support for roll and raid-rolling items.\n" ..
         "It will also replace master loot frame with roll winner tracking.\n" ..
         "You can always enable/disable the integration using %s.",
         blue( "RollFor" ),
@@ -27,11 +27,11 @@ function M.new( db )
       button1 = modules.api.YES,
       button2 = modules.api.NO,
       OnAccept = function()
-        db.char.pfui_integration = true
+        config.enable_pfui_integration()
         info( string.format( "%s integration is now %s. Disable using %s.", pfui, modules.msg.enabled, hl( "/rf config pfui" ) ) )
       end,
       OnCancel = function()
-        db.char.pfui_integration = false
+        config.disable_pfui_integration()
         info( string.format( "%s integration is now %s. Enable using %s.", pfui, modules.msg.disabled, hl( "/rf config pfui" ) ) )
       end,
       timeout = 0,
@@ -39,7 +39,7 @@ function M.new( db )
   end
 
   local function on_master_loot()
-    if not modules.uses_pfui() or db.char.pfui_integration ~= nil then return end
+    if not modules.uses_pfui() or config.pfui_integration_enabled() then return end
     create_custom_dialog()
     modules.api.StaticPopup_Show( confirmation_dialog_key )
   end
@@ -49,5 +49,5 @@ function M.new( db )
   }
 end
 
-modules.PfIntegrationDialog = M
+modules.PfUiIntegrationDialog = M
 return M

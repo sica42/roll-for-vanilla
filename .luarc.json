@@ -3,7 +3,9 @@
   "Lua.diagnostics.globals": [
     "vim",
     "utf8",
-    "_"
+    "_",
+    "RollForDb",
+    "RollForCharDb"
   ],
   "Lua.workspace.checkThirdParty": false,
   "Lua.workspace.ignoreDir": [

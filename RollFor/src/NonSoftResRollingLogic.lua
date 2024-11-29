@@ -13,7 +13,7 @@ local rlu = modules.RollingLogicUtils
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
-function M.new( announce, ace_timer, group_roster, item, count, info, seconds, on_rolling_finished, db )
+function M.new( announce, ace_timer, group_roster, item, count, info, seconds, on_rolling_finished, config )
   local mainspec_rollers, mainspec_rolls = rlu.all_present_players( group_roster ), {}
   local offspec_rollers, offspec_rolls = rlu.copy_rollers( mainspec_rollers ), {}
   local tmog_rollers, tmog_rolls = rlu.copy_rollers( mainspec_rollers ), {}
@@ -21,10 +21,10 @@ function M.new( announce, ace_timer, group_roster, item, count, info, seconds, o
   local seconds_left = seconds
   local timer
 
-  local ms_threshold = db.char.ms_roll_threshold
-  local os_threshold = db.char.os_roll_threshold
-  local tmog_threshold = db.char.tmog_roll_threshold
-  local tmog_rolling_enabled = db.char.tmog_rolling_enabled
+  local ms_threshold = config.ms_roll_threshold()
+  local os_threshold = config.os_roll_threshold()
+  local tmog_threshold = config.tmog_roll_threshold()
+  local tmog_rolling_enabled = config.tmog_rolling_enabled()
 
   local function have_all_rolls_been_exhausted()
     local mainspec_roll_count = count_elements( mainspec_rolls )
@@ -115,9 +115,9 @@ function M.new( announce, ace_timer, group_roster, item, count, info, seconds, o
 
   local function announce_rolling()
     local count_str = count > 1 and string.format( "%sx", count ) or ""
-    local tmog_info = db.char.tmog_rolling_enabled and string.format( " or /roll %s (TMOG)", db.char.tmog_roll_threshold ) or ""
-    local default_ms = db.char.ms_roll_threshold ~= 100 and string.format( "%s ", db.char.ms_roll_threshold ) or ""
-    local roll_info = string.format( " /roll %s(MS) or /roll %s (OS)%s", default_ms, db.char.os_roll_threshold, tmog_info )
+    local tmog_info = config.tmog_rolling_enabled() and string.format( " or /roll %s (TMOG)", config.tmog_roll_threshold() ) or ""
+    local default_ms = config.ms_roll_threshold() ~= 100 and string.format( "%s ", config.ms_roll_threshold() ) or ""
+    local roll_info = string.format( " /roll %s(MS) or /roll %s (OS)%s", default_ms, config.os_roll_threshold(), tmog_info )
     local info_str = info and info ~= "" and string.format( " %s", info ) or roll_info
     local x_rolls_win = count > 1 and string.format( ". %d top rolls win.", count ) or ""
 

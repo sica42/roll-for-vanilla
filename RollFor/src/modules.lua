@@ -43,6 +43,8 @@ M.colors = {
 M.msg = {
   disabled = M.colors.red( "disabled" ),
   enabled = M.colors.green( "enabled" ),
+  locked = M.colors.red( "locked" ),
+  unlocked = M.colors.green( "unlocked" ),
   pfui = "|cff33ffccpf|cffffffffUI"
 }
 

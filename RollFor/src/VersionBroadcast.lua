@@ -12,12 +12,12 @@ end
 
 function M.new( db, version )
   local function version_recently_reminded()
-    if not db.char.last_new_version_reminder_timestamp then return false end
+    if not db.last_new_version_reminder_timestamp then return false end
 
     local time = modules.lua.time()
 
     -- Only remind once a day
-    if time - db.char.last_new_version_reminder_timestamp > 3600 * 24 then
+    if time - db.last_new_version_reminder_timestamp > 3600 * 24 then
       return false
     else
       return true
@@ -50,7 +50,7 @@ function M.new( db, version )
   end
 
   local function notify_about_new_version( ver )
-    db.char.last_new_version_reminder_timestamp = modules.lua.time()
+    db.last_new_version_reminder_timestamp = modules.lua.time()
     modules.pretty_print( string.format( "New version (%s) is available!", modules.colors.highlight( string.format( "v%s", ver ) ) ) )
   end
 

@@ -15,8 +15,8 @@ function M.new( db )
     [ EventType.WinnerFound ] = {}
   }
 
-  db.char.winner_tracker = db.char.winner_tracker or {}
-  local winners = db.char.winner_tracker.winners or {}
+  db.winners = db.winners or {}
+  local winners = db.winners
 
   -- roll_type -> Types.RollType
   local function notify_winner_found( winner_name, item_link, roll_type, winning_roll )
@@ -26,7 +26,7 @@ function M.new( db )
   end
 
   local function persist()
-    db.char.winner_tracker.winners = winners
+    db.winners = winners
   end
 
   -- roll_type -> Types.RollType
