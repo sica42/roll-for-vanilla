@@ -98,6 +98,7 @@ function M.mock_wow_api()
   M.modules().api.GetAddOnMetadata = function() return "2.6" end -- version
   M.modules().api.tinsert = table.insert
   M.modules().api.PlaySound = function() end
+  M.modules().api.SendAddonMessage = function() end
 
   M.modules().api.CreateFrame = function( _, frame_name )
     local frame = {
@@ -245,6 +246,7 @@ function M.mock_api()
   M.mock_slashcmdlist()
   M.mock( "IsInGuild", false )
   M.mock( "IsInGroup", false )
+  M.mock( "IsInParty", false )
   M.mock( "IsInRaid", false )
   M.mock( "UnitIsFriend", false )
   M.mock( "InCombatLockdown", false )
@@ -470,6 +472,7 @@ function M.is_in_party( ... )
   end
 
   M.mock_table_function( "GetRaidRosterInfo", players )
+  M.fire_event( "PARTY_MEMBERS_CHANGED" )
 end
 
 function M.add_normal_raider_ranks( players )
@@ -494,6 +497,7 @@ function M.is_in_raid( ... )
   M.mock( "IsInRaid", true )
   M.mock_table_function( "GetRaidRosterInfo", players )
   M.mock_table_function( "GetMasterLootCandidate", players )
+  M.fire_event( "PARTY_MEMBERS_CHANGED" )
 end
 
 M.LootQuality = {
@@ -703,6 +707,8 @@ function M.load_real_stuff( req )
   r( "src/MasterLootCorrelationData" )
   r( "src/RollFinishedLogic" )
   r( "src/MasterLootCandidates" )
+  r( "src/WinnerHistory" )
+  r( "src/NewGroupEvent" )
   -- r( "Libs/LibDeflate/LibDeflate" )
   r( "src/Json" )
   r( "main" )

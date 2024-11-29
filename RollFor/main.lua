@@ -101,7 +101,8 @@ local function create_components()
 
   M.item_utils = m.ItemUtils
   M.version_broadcast = m.VersionBroadcast.new( M.db, version.str )
-  M.awarded_loot = m.AwardedLoot.new( M.db )
+  M.winner_history = m.WinnerHistory.new( M.db )
+  M.awarded_loot = m.AwardedLoot.new( M.db, M.winner_history )
   M.group_roster = m.GroupRoster.new( M.api )
   M.unfiltered_softres = m.SoftRes.new( M.db )
   M.name_matcher = m.NameManualMatcher.new(
@@ -139,6 +140,8 @@ local function create_components()
   M.master_loot_warning = m.MasterLootWarning.new( M.api, M.db )
   M.auto_loot = m.AutoLoot.new( M.api, M.db )
   M.pfui_integration_dialog = m.PfIntegrationDialog.new( M.db )
+  M.new_group_event = m.NewGroupEvent.new( M.db )
+  M.new_group_event.subscribe( M.winner_history.start_session )
 end
 
 function M.import_softres_data( softres_data )
@@ -746,8 +749,8 @@ local function test( args )
   local player = { name = "Psikutas", class = "Hunter", value = 1 }
   local item_link = args and args ~= "" and args or "|cffff8000|Hitem:19019:0:0:0|h[Thunderfury, Blessed Blade of the Windseeker]|h|r"
   M.master_loot_correlation_data.set( item_link, 1 )
-  M.winner_tracker.clear()
-  -- M.winner_tracker.track( player.name, item_link, RollType.RaidRoll, 69 )
+  -- M.winner_tracker.clear()
+  M.winner_tracker.track( player.name, item_link, RollType.MainSpec, 69 )
 
   M.roll_finished_logic.show_popup( player, item_link )
 end
@@ -815,6 +818,18 @@ end
 
 function M.award_item( player_name, item_id, item_link )
   M.awarded_loot.award( player_name, item_id )
+  local winners = M.winner_tracker.find_winners( item_link )
+
+  if getn( winners ) > 0 then
+    for _, winner in ipairs( winners ) do
+      if winner.winner_name == player_name then
+        M.winner_history.add( player_name, item_id, item_link, winner.roll_type, winner.winning_roll )
+      end
+    end
+  else
+    M.winner_history.add( player_name, item_id, item_link )
+  end
+
   info( string.format( "%s received %s.", hl( player_name ), item_link ) )
   M.winner_tracker.untrack( player_name, item_link )
 end
