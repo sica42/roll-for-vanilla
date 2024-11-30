@@ -62,6 +62,7 @@ function M.handle_events( main )
       main.trade_tracker.on_trade_request_cancel()
     elseif event == "PLAYER_TARGET_CHANGED" then
       main.master_loot_warning.on_player_target_changed()
+      main.auto_master_loot.on_player_target_changed()
     elseif event == "UI_ERROR_MESSAGE" then
       local message = arg1
       if message == "That player's inventory is full" then

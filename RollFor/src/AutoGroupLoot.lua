@@ -6,8 +6,7 @@ if modules.AutoGroupLoot then return end
 local M = {}
 
 local ignore_zones = {
-  "Blackwing Lair",
-  "Durotar"
+  "Blackwing Lair"
 }
 
 function M.new( config, boss_list )

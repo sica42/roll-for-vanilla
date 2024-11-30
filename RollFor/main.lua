@@ -147,6 +147,7 @@ local function create_components()
   M.new_group_event = m.NewGroupEvent.new()
   M.new_group_event.subscribe( M.winner_history.start_session )
   M.auto_group_loot = m.AutoGroupLoot.new( M.config, m.BossList.zones )
+  M.auto_master_loot = m.AutoMasterLoot.new( M.config, m.BossList.zones )
 
   M.config.subscribe( "toggle_ml_warning", function( disabled )
     if disabled then
