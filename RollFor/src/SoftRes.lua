@@ -19,7 +19,7 @@ local getn = table.getn
 --end
 
 -- Taragaman the Hungerer all SR by Jogobobek:
--- eyJtZXRhZGF0YSI6eyJpZCI6IlNaNEZRSCIsImluc3RhbmNlIjoxMDEsImluc3RhbmNlcyI6WyJLYXJhemhhbiJdLCJvcmlnaW4iOiJyYWlkcmVzIn0sInNvZnRyZXNlcnZlcyI6W3sibmFtZSI6IkpvZ29ib2JlayIsIml0ZW1zIjpbeyJpZCI6MTQxNDUsInF1YWxpdHkiOjN9LHsiaWQiOjE0MTQ4LCJxdWFsaXR5IjozfSx7ImlkIjoxNDE0OSwicXVhbGl0eSI6M31dfV0sImhhcmRyZXNlcnZlcyI6W119
+-- eyJtZXRhZGF0YSI6eyJpZCI6IjNRUzg1OCIsImluc3RhbmNlIjoxMDEsImluc3RhbmNlcyI6WyJLYXJhemhhbiJdLCJvcmlnaW4iOiJyYWlkcmVzIn0sInNvZnRyZXNlcnZlcyI6W3sibmFtZSI6IkpvZ29ib2JlayIsIml0ZW1zIjpbeyJpZCI6MTQxNDUsInF1YWxpdHkiOjN9LHsiaWQiOjE0MTQ4LCJxdWFsaXR5IjozfSx7ImlkIjoxNDE0OSwicXVhbGl0eSI6M31dfV0sImhhcmRyZXNlcnZlcyI6W119
 
 function M.new( db )
   local softres_items = {}
@@ -53,7 +53,9 @@ function M.new( db )
     --   return nil
     -- end
 
-    return libStub( "Json-0.1.2" ).decode( data )
+    local json = libStub( "Json-0.1.2" )
+    local success, result = pcall( function() return json.decode( data ) end )
+    return success and result
   end
 
   local function clear( report )
