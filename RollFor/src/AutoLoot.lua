@@ -3,7 +3,6 @@ local modules = LibStub( "RollFor-Modules" )
 if modules.AutoLoot then return end
 
 local item_utils = modules.ItemUtils
-local contains = modules.table_contains_value
 local info = modules.pretty_print
 local hl = modules.colors.hl
 local grey = modules.colors.grey
@@ -13,18 +12,6 @@ local getn = table.getn
 local M = {}
 local button_visible = false
 local _G = getfenv( 0 )
-
--- local items = {
---   [ "Ragefire Chasm" ] = {
---     14149,
---     14113, -- Aboriginal Sash of the Whale
---     81094  -- Amber Topaz
---   },
---   [ "Blackwing Lair" ] = {
---     18562, -- Elementium Ore
---     19183, -- Hourglass Sand
---   },
--- }
 
 function M.new( api, db, config )
   db.items = db.items or {}
@@ -44,7 +31,7 @@ function M.new( api, db, config )
   local function on_auto_loot()
     local item_count = api().GetNumLootItems()
     local zone_name = api().GetRealZoneText()
-    local item_ids = items[ zone_name ]
+    local item_ids = items[ zone_name ] or {}
     local threshold = modules.api.GetLootThreshold()
 
     for slot = 1, item_count do
@@ -55,7 +42,7 @@ function M.new( api, db, config )
       if link then
         local item_id = item_utils.get_item_id( link )
 
-        if quality < threshold or config.is_auto_loot() and contains( item_ids, item_id ) then
+        if quality < threshold or config.is_auto_loot() and item_ids[ item_id ] then
           local index = find_my_candidate_index()
 
           if index then
@@ -90,11 +77,11 @@ function M.new( api, db, config )
       end
     end
 
-    on_auto_loot()
+    if not modules.is_shift_key_down() then on_auto_loot() end
   end
 
   local function show_usage()
-    info( string.format( "Usage: %s <add|remove> %s", hl( "/rfal" ), grey( "<item_link>" ) ) )
+    info( string.format( "Usage: %s %s", hl( "/rfal <add||remove>" ), grey( "<item_link>" ) ) )
   end
 
   local function add( item_link )
@@ -134,26 +121,28 @@ function M.new( api, db, config )
     end
 
     items[ zone_name ][ item_id ] = nil
-    info( string.format( "%s added.", item_link ), "auto-loot" )
+    info( string.format( "%s removed.", item_link ), "auto-loot" )
   end
 
   local function clear()
   end
 
   local function on_command( args )
-    for item_link in string.gmatch( args, "add (.-)" ) do
+    for item_link in string.gmatch( args, "add (.*)" ) do
       add( item_link )
       return
     end
 
-    for item_link in string.gmatch( args, "remove (.-)" ) do
+    for item_link in string.gmatch( args, "remove (.*)" ) do
       remove( item_link )
       return
     end
+
+    show_usage()
   end
 
-  -- _G[ "SLASH_RFAL1" ] = "/rfal"
-  -- _G[ "SlashCmdList" ][ "RFAL" ] = on_command
+  _G[ "SLASH_RFAL1" ] = "/rfal"
+  _G[ "SlashCmdList" ][ "RFAL" ] = on_command
 
   return {
     on_loot_opened = on_loot_opened,

@@ -99,6 +99,7 @@ function M.mock_wow_api()
   M.modules().api.tinsert = table.insert
   M.modules().api.PlaySound = function() end
   M.modules().api.SendAddonMessage = function() end
+  M.modules().api.IsShiftKeyDown = function() return false end
 
   M.modules().api.CreateFrame = function( _, frame_name )
     local frame = {
@@ -711,6 +712,8 @@ function M.load_real_stuff( req )
   r( "src/MasterLootCandidates" )
   r( "src/WinnerHistory" )
   r( "src/NewGroupEvent" )
+  r( "src/BossList" )
+  r( "src/AutoGroupLoot" )
   -- r( "Libs/LibDeflate/LibDeflate" )
   r( "src/Json" )
   r( "main" )

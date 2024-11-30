@@ -141,11 +141,12 @@ local function create_components()
 
   M.usage_printer = m.UsagePrinter.new()
   M.minimap_button = m.MinimapButton.new( M.api, db( "minimap_button" ), M.softres_gui.toggle, M.softres_check, M.config )
-  M.master_loot_warning = m.MasterLootWarning.new( M.api, db( "master_loot_warning" ) )
+  M.master_loot_warning = m.MasterLootWarning.new( M.api, M.config, m.BossList.zones )
   M.auto_loot = m.AutoLoot.new( M.api, db( "auto_loot" ), M.config )
   M.pfui_integration_dialog = m.PfUiIntegrationDialog.new( M.config )
   M.new_group_event = m.NewGroupEvent.new()
   M.new_group_event.subscribe( M.winner_history.start_session )
+  M.auto_group_loot = m.AutoGroupLoot.new( M.config, m.BossList.zones )
 
   M.config.subscribe( "toggle_ml_warning", function( disabled )
     if disabled then
@@ -546,11 +547,13 @@ function M.on_loot_opened()
   M.dropped_loot_announce.on_loot_opened()
   M.master_loot.on_loot_opened()
   M.master_loot_correlation_data.reset()
+  M.auto_group_loot.on_loot_opened()
 end
 
 function M.on_loot_closed()
   M.master_loot.on_loot_closed()
   M.master_loot_correlation_data.reset()
+  M.auto_group_loot.on_loot_closed()
 end
 
 local function show_how_to_roll()

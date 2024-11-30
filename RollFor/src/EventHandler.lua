@@ -47,6 +47,7 @@ function M.handle_events( main )
       main.on_loot_closed()
     elseif event == "LOOT_SLOT_CLEARED" then
       main.master_loot.on_loot_slot_cleared( arg1, arg2, arg3, arg4, arg5 )
+      main.auto_group_loot.on_loot_slot_cleared()
     elseif event == "TRADE_SHOW" then
       main.trade_tracker.on_trade_show()
     elseif event == "TRADE_PLAYER_ITEM_CHANGED" then

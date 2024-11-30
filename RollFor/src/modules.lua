@@ -139,6 +139,14 @@ function M.my_name()
   return M.api.UnitName( "player" )
 end
 
+function M.target_name()
+  return M.api.UnitName( "target" )
+end
+
+function M.target_dead()
+  return M.api.UnitIsDead( "target" )
+end
+
 function M.get_group_chat_type()
   return M.api.IsInRaid() and "RAID" or "PARTY"
 end
@@ -443,6 +451,10 @@ function M.clear_table( t )
   for k in pairs( t ) do
     t[ k ] = nil
   end
+end
+
+function M.is_shift_key_down()
+  return M.api.IsShiftKeyDown()
 end
 
 function M.get_all_key_modifiers()

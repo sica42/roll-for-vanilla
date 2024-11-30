@@ -11,102 +11,6 @@ local table_contains_value = modules.table_contains_value
 ---@diagnostic disable-next-line: undefined-global
 local UIParent             = UIParent
 
-local zones                = {
-  [ "Karazhan" ] = {
-    "Master Blacksmith Rolfen",
-    "Brood Queen Araxxna",
-    "Grizikil",
-    "Clawlord Howlfang",
-    "Lord Blackwald II",
-    "Moroes"
-  },
-  [ "Zul'Gurub" ] = {
-    "High Priestess Jeklik",
-    "High Priest Venoxis",
-    "High Priestess Mar'li",
-    "Broodlord Mandokir",
-    "Ohgan",
-    "Gri'lek",
-    "Hazza'rah",
-    "Renataki",
-    "Wushoolay",
-    "Gahz'ranka",
-    "High Priest Thekal",
-    "Zealot Zath",
-    "Zealot Lor'Khan",
-    "High Priestess Arlokk",
-    "Jin'do the Hexxer",
-    "Hakkar"
-  },
-  [ "Ruins of Ahn'Qiraj" ] = {
-    "Kurinaxx",
-    "General Rajaxx",
-    "Moam",
-    "Buru the Gorger",
-    "Ayamiss the Hunter",
-    "Ossirian the Unscarred"
-  },
-  [ "Molten Core" ] = {
-    "Lucifron",
-    "Magmadar",
-    "Gehennas",
-    "Garr",
-    "Shazzrah",
-    "Baron Geddon",
-    "Golemagg the Incinerator",
-    "Sulfuron Harbinger",
-    "Majordomo Executus",
-    "Ragnaros"
-  },
-  [ "Blackwing Lair" ] = {
-    "Razorgore the Untamed",
-    "Vaelastrasz the Corrupt",
-    "Broodlord Lashlayer",
-    "Firemaw",
-    "Ebonroc",
-    "Flamegor",
-    "Chromaggus",
-    "Nefarian"
-  },
-  [ "Onyxia's Lair" ] = {
-    "Onyxia"
-  },
-  [ "Temple of Ahn'Qiraj" ] = {
-    "The Prophet Skeram",
-    "Vem",
-    "Lord Kri",
-    "Princess Yauj",
-    "Battle Guard Sartura",
-    "Fankriss the Unyielding",
-    "Viscidus",
-    "Princess Huhuran",
-    "Emperor Vek'lor",
-    "Emperor Vek'nilash",
-    "Ouro",
-    "C'Thun"
-  },
-  [ "Naxxramas" ] = {
-    "Patchwerk",
-    "Grobbulus",
-    "Gluth",
-    "Thaddius",
-    "Anub'Rekhan",
-    "Grand Widow Faerlina",
-    "Maexxna",
-    "Noth the Plaguebringer",
-    "Heigan the Unclean",
-    "Loatheb",
-    "Instructor Razuvious",
-    "Gothik the Harvester",
-    "Thane Korth'azz",
-    "Lady Blaumeux",
-    "Highlord Mograine",
-    "Sir Zeliek",
-    "Sapphiron",
-    "Kel'Thuzad"
-  }
-}
-
 local function create_frame( api )
   local frame = api().CreateFrame( "FRAME", "RollForMasterLootWarning", UIParent )
   frame:Hide()
@@ -119,7 +23,7 @@ local function create_frame( api )
   local label2 = frame:CreateFontString( nil, "OVERLAY" )
   label2:SetFont( "FONTS\\FRIZQT__.TTF", 16, "OUTLINE" )
   label2:SetPoint( "CENTER", 0, -20 )
-  label2:SetText( string.format( "Enable %s or type %s to disable this message.", grey("Master Loot"), blue( "/rf ml" ) ) )
+  label2:SetText( string.format( "Enable %s or type %s to disable this message.", grey( "Master Loot" ), blue( "/rf ml" ) ) )
 
   frame:SetWidth( label:GetWidth() )
   frame:SetHeight( label:GetHeight() )
@@ -128,7 +32,7 @@ local function create_frame( api )
   return frame
 end
 
-function M.new( api, config )
+function M.new( api, config, boss_list )
   local frame
   local is_visible = false
 
@@ -163,8 +67,8 @@ function M.new( api, config )
     local master_loot = modules.is_master_loot()
     local zone_name = api().GetRealZoneText()
     local target_name = api().UnitName( "target" )
-    local zone = zones[ zone_name ]
-    local dead = api().UnitIsDead("target")
+    local zone = boss_list[ zone_name ] or {}
+    local dead = api().UnitIsDead( "target" )
 
     if not zone or master_loot or not table_contains_value( zone, target_name ) or dead then
       if is_visible then hide() end

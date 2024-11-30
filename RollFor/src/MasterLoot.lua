@@ -92,6 +92,7 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
     end
 
     reset_confirmation()
+
     if not original_toggle_dropdown_menu then hook_toggle_dropdown_menu() end
     bypass_dropdown_menu = true
 
@@ -116,7 +117,10 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
       return
     end
 
-    if items_left_count == 0 then return end
+    if items_left_count == 0 then
+      return
+    end
+
     local item = master_loot_tracker.get( m_confirmed.slot )
 
     if items_left_count > 1 then

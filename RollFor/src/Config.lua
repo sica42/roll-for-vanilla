@@ -68,6 +68,21 @@ function M.new( db )
     print_raid_roll_settings()
   end
 
+  local function print_auto_group_loot_settings()
+    local status = db.auto_group_loot and m.msg.enabled or m.msg.disabled
+    info( string.format( "Auto group loot is %s.", status ) )
+  end
+
+  local function toggle_auto_group_loot()
+    if db.auto_group_loot then
+      db.auto_group_loot = false
+    else
+      db.auto_group_loot = true
+    end
+
+    print_auto_group_loot_settings()
+  end
+
   local function print_roll_thresholds()
     local ms_threshold = db.ms_roll_threshold
     local os_threshold = db.os_roll_threshold
@@ -95,6 +110,7 @@ function M.new( db )
     print_roll_thresholds()
     print_transmog_rolling_setting()
     print_pfui_integration_setting()
+    print_auto_group_loot_settings()
     m.print( string.format( "For more info, type: %s", hl( "/rf config help" ) ) )
   end
 
@@ -153,6 +169,8 @@ function M.new( db )
     if m.uses_pfui() then
       m.print( string.format( "%s - toggle %s integration", hl( "/rf config pfui" ), m.msg.pfui ) )
     end
+
+    m.print( string.format( "%s - toggle auto group loot", hl( "/rf config auto-group-loot" ) ) )
   end
 
   local function toggle_pfui_integration()
@@ -219,6 +237,11 @@ function M.new( db )
 
     if args == "config auto-rr" then
       toggle_auto_raid_roll()
+      return
+    end
+
+    if args == "config auto-group-loot" then
+      toggle_auto_group_loot()
       return
     end
 
@@ -297,6 +320,8 @@ function M.new( db )
     unlock_minimap_button = unlock_minimap_button,
     hide_minimap_button = hide_minimap_button,
     show_minimap_button = show_minimap_button,
+    toggle_auto_group_loot = toggle_auto_group_loot,
+    is_auto_group_loot = function() return db.auto_group_loot end,
     print = print,
     print_help = print_help,
     print_raid_roll_settings = print_raid_roll_settings,
