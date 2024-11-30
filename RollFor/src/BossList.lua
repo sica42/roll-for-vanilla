@@ -36,7 +36,7 @@ M.zones          = {
     "Hakkar"
   },
   [ "Ruins of Ahn'Qiraj" ] = {
-    "Kurinaxx",
+    "Kurinnaxx",
     "General Rajaxx",
     "Moam",
     "Buru the Gorger",
