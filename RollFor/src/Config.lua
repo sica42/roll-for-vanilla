@@ -26,6 +26,7 @@ function M.new( db )
     if not db.os_roll_threshold then db.os_roll_threshold = 99 end
     if not db.tmog_roll_threshold then db.tmog_roll_threshold = 98 end
     if db.tmog_rolling_enabled == nil then db.tmog_rolling_enabled = true end
+    if db.rolling_tip == nil then db.rolling_tip = true end
   end
 
   local function toggle_auto_loot()
@@ -98,6 +99,21 @@ function M.new( db )
     print_auto_master_loot_settings()
   end
 
+  local function print_rolling_tip_settings()
+    local status = db.rolling_tip and m.msg.enabled or m.msg.disabled
+    info( string.format( "Rolling tip is %s.", status ) )
+  end
+
+  local function toggle_rolling_tip()
+    if db.rolling_tip then
+      db.rolling_tip = false
+    else
+      db.rolling_tip = true
+    end
+
+    print_rolling_tip_settings()
+  end
+
   local function print_roll_thresholds()
     local ms_threshold = db.ms_roll_threshold
     local os_threshold = db.os_roll_threshold
@@ -127,6 +143,7 @@ function M.new( db )
     print_pfui_integration_setting()
     print_auto_group_loot_settings()
     print_auto_master_loot_settings()
+    print_rolling_tip_settings()
     m.print( string.format( "For more info, type: %s", hl( "/rf config help" ) ) )
   end
 
@@ -188,13 +205,14 @@ function M.new( db )
 
     m.print( string.format( "%s - toggle auto group loot", hl( "/rf config auto-group-loot" ) ) )
     m.print( string.format( "%s - toggle auto master loot", hl( "/rf config auto-master-loot" ) ) )
+    m.print( string.format( "%s - toggle rolling tip window", hl( "/rf config rolling-tip" ) ) )
   end
 
   local function toggle_pfui_integration()
-    if db.pfui_integration then
-      db.pfui_integration = false
+    if db.pfui_integration_enabled then
+      db.pfui_integration_enabled = false
     else
-      db.pfui_integration = true
+      db.pfui_integration_enabled = true
     end
 
     print_pfui_integration_setting()
@@ -264,6 +282,11 @@ function M.new( db )
 
     if args == "config auto-master-loot" then
       toggle_auto_master_loot()
+      return
+    end
+
+    if args == "config rolling-tip" then
+      toggle_rolling_tip()
       return
     end
 
@@ -346,6 +369,8 @@ function M.new( db )
     is_auto_group_loot = function() return db.auto_group_loot end,
     toggle_auto_master_loot = toggle_auto_master_loot,
     is_auto_master_loot = function() return db.auto_master_loot end,
+    toggle_rolling_tip = toggle_rolling_tip,
+    show_rolling_tip = function() return db.rolling_tip end,
     print = print,
     print_help = print_help,
     print_raid_roll_settings = print_raid_roll_settings,

@@ -715,6 +715,8 @@ function M.load_real_stuff( req )
   r( "src/BossList" )
   r( "src/AutoGroupLoot" )
   r( "src/AutoMasterLoot" )
+  r( "src/CustomPopup" )
+  r( "src/RollingTipPopup" )
   -- r( "Libs/LibDeflate/LibDeflate" )
   r( "src/Json" )
   r( "main" )
@@ -750,7 +752,9 @@ function M.loot( ... )
   local items = { ... }
   local count = items and #items or 0
   M.mock( "GetNumLootItems", count )
-  M.mock_object( "LootFrame", {} )
+  M.mock_object( "LootFrame", {
+    GetFrameLevel = function() return 10 end
+  } )
 
   if count > 0 then
     M.mock( "UnitGUID", items[ 1 ].source_id )

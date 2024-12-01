@@ -124,7 +124,7 @@ local function create_components()
     M.absent_softres, db( "softres_check" ) )
   M.winner_tracker = m.WinnerTracker.new( db( "winner_tracker" ) )
   M.dropped_loot_announce = m.DroppedLootAnnounce.new( announce, M.dropped_loot, M.master_loot_tracker, M.softres, M.winner_tracker )
-  M.loot_award_popup = m.LootAwardPopup.new( M.item_utils )
+  M.loot_award_popup = m.LootAwardPopup.new( m.CustomPopup.builder )
   M.winner_tracker.subscribe_for_rolling_started( M.loot_award_popup.hide )
   M.master_loot_correlation_data = m.MasterLootCorrelationData.new( M.item_utils )
   M.roll_finished_logic = m.RollFinishedLogic.new( M.master_loot_correlation_data, M.winner_tracker, M.loot_award_popup )
@@ -148,6 +148,7 @@ local function create_components()
   M.new_group_event.subscribe( M.winner_history.start_session )
   M.auto_group_loot = m.AutoGroupLoot.new( M.config, m.BossList.zones )
   M.auto_master_loot = m.AutoMasterLoot.new( M.config, m.BossList.zones )
+  M.rolling_tip_popup = m.RollingTipPopup.new( m.CustomPopup.builder, M.config )
 
   M.config.subscribe( "toggle_ml_warning", function( disabled )
     if disabled then
@@ -549,12 +550,13 @@ function M.on_loot_opened()
   M.master_loot.on_loot_opened()
   M.master_loot_correlation_data.reset()
   M.auto_group_loot.on_loot_opened()
+  M.rolling_tip_popup.on_loot_opened()
 end
 
 function M.on_loot_closed()
   M.master_loot.on_loot_closed()
   M.master_loot_correlation_data.reset()
-  M.auto_group_loot.on_loot_closed()
+  M.rolling_tip_popup.on_loot_closed()
 end
 
 local function show_how_to_roll()
@@ -573,6 +575,11 @@ local function on_reset_dropped_loot_announce_command()
 end
 
 local function test( args )
+  if not args or args == "" then
+    M.rolling_tip_popup.show()
+    return
+  end
+
   local player = { name = "Psikutas", class = "Hunter", value = 1 }
   local item_link = args and args ~= "" and args or "|cffff8000|Hitem:19019:0:0:0|h[Thunderfury, Blessed Blade of the Windseeker]|h|r"
   M.master_loot_correlation_data.set( item_link, 1 )

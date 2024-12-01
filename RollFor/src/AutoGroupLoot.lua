@@ -20,10 +20,9 @@ function M.new( config, boss_list )
 
   local function on_loot_slot_cleared()
     m_item_count = m_item_count - 1
-  end
-
-  local function on_loot_closed()
+    if m_item_count > 0 then return end
     if not m_item_count or m_item_count > 0 then return end
+
     local zone_name = modules.api.GetRealZoneText()
     if modules.table_contains_value( ignore_zones, zone_name ) then return end
     local bosses = boss_list[ zone_name ] or {}
@@ -36,7 +35,6 @@ function M.new( config, boss_list )
 
   return {
     on_loot_opened = on_loot_opened,
-    on_loot_closed = on_loot_closed,
     on_loot_slot_cleared = on_loot_slot_cleared
   }
 end
