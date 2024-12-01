@@ -115,6 +115,8 @@ function M.clone( t )
 end
 
 function M.is_player_master_looter()
+  if not M.api.IsInGroup() then return false end
+
   local loot_method, id = M.api.GetLootMethod()
   if loot_method ~= "master" or not id then return false end
   if id == 0 then return true end
@@ -479,6 +481,23 @@ function M.roll_type_color( roll_type, text )
   else
     return M.colors.white( text or roll_type )
   end
+end
+
+function M.count_items_to_master_loot()
+  local item_count = M.api.GetNumLootItems()
+  local threshold = M.api.GetLootThreshold()
+  local count = 0
+
+  for slot = 1, item_count do
+    local _, _, _, quality = M.api.GetLootSlotInfo( slot )
+    if not quality then quality = 0 end
+
+    if quality >= threshold then
+      count = count + 1
+    end
+  end
+
+  return count
 end
 
 return M

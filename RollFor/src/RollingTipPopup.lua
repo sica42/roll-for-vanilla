@@ -64,6 +64,9 @@ function M.new( popup_builder, config )
 
   local function on_loot_opened()
     if modules.is_player_master_looter() then
+      local count_items_to_loot = modules.count_items_to_master_loot()
+      if count_items_to_loot == 0 then return end
+
       show()
     end
   end
