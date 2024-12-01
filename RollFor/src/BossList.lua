@@ -9,7 +9,7 @@ M.zones          = {
   [ "Durotar" ] = {
     "Elder Mottled Boar"
   },
-  [ "Karazhan" ] = {
+  [ "Tower of Karazhan" ] = {
     "Master Blacksmith Rolfen",
     "Brood Queen Araxxna",
     "Grizikil",
