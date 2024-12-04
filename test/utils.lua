@@ -100,6 +100,9 @@ function M.mock_wow_api()
   M.modules().api.PlaySound = function() end
   M.modules().api.SendAddonMessage = function() end
   M.modules().api.IsShiftKeyDown = function() return false end
+  M.modules().api.GetItemInfo = function() return nil, nil, 4 end
+  M.modules().api.UIFrameFade = function() end
+  M.modules().api.UnitIsConnected = function() return true end
 
   M.modules().api.CreateFrame = function( _, frame_name )
     local frame = {
@@ -128,6 +131,7 @@ function M.mock_wow_api()
       end,
       Enable = function() end,
       Disable = function() end,
+      ClearAllPoints = function() end,
       SetBackdrop = function() end,
       SetBackdropColor = function() end,
       SetBackdropBorderColor = function() end,
@@ -145,17 +149,22 @@ function M.mock_wow_api()
           SetTexture = function() end,
           SetPoint = function() end,
           SetTexCoord = function() end,
+          Show = function() end,
           Hide = function() end
         }
       end,
       SetWidth = function() end,
+      GetWidth = function() return 20 end,
       SetHeight = function() end,
+      GetHeight = function() return 100 end,
       SetScale = function() end,
+      GetScale = function() return 1 end,
       GetFontString = function()
         return {
           SetPoint = function() end,
         }
       end,
+      SetAlpha = function() end,
       SetFocus = function() end,
       SetPoint = function() end,
       SetMovable = function() end,
@@ -180,12 +189,17 @@ function M.mock_wow_api()
       IsVisible = function() end,
       CreateFontString = function()
         return {
+          Hide = function() end,
+          Show = function() end,
+          ClearAllPoints = function() end,
           SetPoint = function() end,
           SetText = function() end,
           SetTextColor = function() end,
           GetStringWidth = function() return 0 end,
           GetWidth = function() return 100 end,
-          GetText = function() return "Font string text" end
+          GetHeight = function() return 20 end,
+          GetText = function() return "Font string text" end,
+          SetWidth = function() end
         }
       end,
       Click = function( self )
@@ -201,18 +215,25 @@ function M.mock_wow_api()
   M.modules().api.LOOTFRAME_NUMBUTTONS = 4
   M.modules().api.StaticPopupDialogs = {}
   M.modules().api.RAID_CLASS_COLORS = {
-    [ "WARRIOR" ] = {
-      colorStr = "chuj"
-    }
+    [ "DRUID" ] = { colorStr = "ffff7d0a" },
+    [ "HUNTER" ] = { colorStr = "ffabd473" },
+    [ "MAGE" ] = { colorStr = "ff3fc7eb" },
+    [ "PALADIN" ] = { colorStr = "fff58cba" },
+    [ "PRIEST" ] = { colorStr = "ffffffff" },
+    [ "ROGUE" ] = { colorStr = "fffff569" },
+    [ "SHAMAN" ] = { colorStr = "ff0070de" },
+    [ "WARLOCK" ] = { colorStr = "ff8788ee" },
+    [ "WARRIOR" ] = { colorStr = "ffabd473" }
   }
+
   M.modules().api.ITEM_QUALITY_COLORS = {
-    { hex = "asd" },
-    { hex = "blue" },
-    { hex = "green" },
-    { hex = "purple" },
-    { hex = "ass" },
-    { hex = "princess" },
-    { hex = "kenny" }
+    { r = 1, g = 1, b = 1, a = 1, hex = "asd" },
+    { r = 1, g = 1, b = 1, a = 1, hex = "blue" },
+    { r = 1, g = 1, b = 1, a = 1, hex = "green" },
+    { r = 1, g = 1, b = 1, a = 1, hex = "purple" },
+    { r = 1, g = 1, b = 1, a = 1, hex = "ass" },
+    { r = 1, g = 1, b = 1, a = 1, hex = "princess" },
+    { r = 1, g = 1, b = 1, a = 1, hex = "kenny" }
   }
   M.modules().api.FONT_COLOR_CODE_CLOSE = "|r"
 end
@@ -421,23 +442,25 @@ function M.item_link( name, id )
 end
 
 function M.dump( o )
+  if not o then return "nil" end
+  if type( o ) ~= 'table' then return tostring( o ) end
+
   local entries = 0
+  local s = "{"
 
-  if type( o ) == 'table' then
-    local s = '{'
-    for k, v in pairs( o ) do
-      if (entries == 0) then s = s .. " " end
-      if type( k ) ~= 'number' then k = '"' .. k .. '"' end
-      if (entries > 0) then s = s .. ", " end
-      s = s .. '[' .. k .. '] = ' .. M.dump( v )
-      entries = entries + 1
-    end
+  for k, v in pairs( o ) do
+    if (entries == 0) then s = s .. " " end
 
-    if (entries > 0) then s = s .. " " end
-    return s .. '}'
-  else
-    return tostring( o )
+    local key = type( k ) ~= "number" and '"' .. k .. '"' or k
+
+    if (entries > 0) then s = s .. ", " end
+
+    s = s .. "[" .. key .. "] = " .. M.dump( v )
+    entries = entries + 1
   end
+
+  if (entries > 0) then s = s .. " " end
+  return s .. "}"
 end
 
 function M.flatten( target, source )
@@ -563,7 +586,18 @@ function M.load_roll_for()
   return libStub( "RollFor-2" )
 end
 
-function M.player( name )
+function M.force_require( name )
+  package.loaded[ name ] = nil
+  return require( name )
+end
+
+function M.player( name, config )
+  if config then
+    config()
+  else
+    M.force_require( "src/Config" )
+  end
+
   M.init()
   m_player_name = name
   m_target = nil
@@ -577,8 +611,8 @@ function M.player( name )
   rf.awarded_loot.clear()
 end
 
-function M.master_looter( name )
-  M.player( name )
+function M.master_looter( name, config )
+  M.player( name, config )
   M.mock( "GetLootMethod", function() return "master", 0 end )
   m_is_master_looter = true
 end
@@ -668,17 +702,17 @@ function M.load_real_stuff( req )
   local r = req or require
 
   M.load_libstub()
-  r( "settings" )
   r( "src/modules" )
   M.mock_api()
   r( "src/Db" )
-  r( "src/Config" )
   r( "src/Types" )
+  r( "src/Config" )
   r( "src/ItemUtils" )
   r( "src/RollingLogicUtils" )
   r( "src/DroppedLoot" )
   r( "src/DroppedLootAnnounce" )
   r( "src/TradeTracker" )
+  r( "src/SoftResDataTransformer" )
   r( "src/SoftRes" )
   r( "src/SoftResGui" )
   r( "src/AwardedLoot" )
@@ -708,7 +742,6 @@ function M.load_real_stuff( req )
   r( "src/PfUiIntegrationDialog" )
   r( "src/LootAwardPopup" )
   r( "src/MasterLootCorrelationData" )
-  r( "src/RollFinishedLogic" )
   r( "src/MasterLootCandidates" )
   r( "src/WinnerHistory" )
   r( "src/NewGroupEvent" )
@@ -717,6 +750,13 @@ function M.load_real_stuff( req )
   r( "src/AutoMasterLoot" )
   r( "src/CustomPopup" )
   r( "src/RollingTipPopup" )
+  r( "src/RollTracker" )
+  r( "src/RollController" )
+  r( "src/RollingPopup" )
+  r( "src/TieRollGuiData" )
+  r( "src/SoftResRollGuiData" )
+  r( "src/RollingPopupContent" )
+  r( "src/WelcomePopup" )
   -- r( "Libs/LibDeflate/LibDeflate" )
   r( "src/Json" )
   r( "main" )
@@ -784,6 +824,8 @@ end
 function M.import_soft_res( data )
   local rf = M.load_roll_for()
   rf.import_softres_data( data )
+
+  return rf
 end
 
 local function find_soft_res_entry( softreserves, player )
@@ -813,9 +855,9 @@ function M.create_softres_data( ... )
 
       entry.name = item.player
       entry.items = entry.items or {}
-      table.insert( entry.items, { id = item.item_id } )
+      table.insert( entry.items, { id = item.item_id, quality = item.quality } )
     else
-      table.insert( hardreserves, { id = item.item_id } )
+      table.insert( hardreserves, { id = item.item_id, quality = item.quality } )
     end
   end
 
@@ -831,28 +873,20 @@ function M.create_softres_data( ... )
 end
 
 function M.soft_res( ... )
-  M.import_soft_res( M.create_softres_data( ... ) )
+  return M.import_soft_res( M.create_softres_data( ... ) )
 end
 
-function M.soft_res_item( player, item_id )
-  return { soft_res = true, player = player, item_id = item_id }
+function M.soft_res_item( player, item_id, quality )
+  return { soft_res = true, player = player, item_id = item_id, quality = quality or 4 }
 end
 
-function M.hard_res_item( item_id )
-  return { soft_res = false, item_id = item_id }
+function M.hard_res_item( item_id, quality )
+  return { soft_res = false, item_id = item_id, quality = quality or 4 }
 end
 
 function M.award( player, item_name, item_id )
   local rf = M.load_roll_for()
   rf.award_item( player, item_id, M.item_link( item_name, item_id ) )
-end
-
-function M.epic_threshold()
-  M.loot_quality_threshold( 4 )
-end
-
-function M.loot_quality_threshold( quality )
-  RollFor.settings.announce_loot_quality_threshold = quality
 end
 
 function M.load_libstub()
@@ -865,7 +899,6 @@ function M.load_libstub()
 end
 
 function M.trade_with( recipient, trade_tracker )
-  RollFor.settings.trade_tracker_debug = true
   M.mock_object( "TradeFrameRecipientNameText", { GetText = function() return recipient end } )
   M.mock_table_function( "GetTradePlayerItemInfo", { [ "1" ] = nil } )
   M.mock_table_function( "GetTradePlayerItemLink", { [ "1" ] = nil } )
@@ -878,8 +911,6 @@ function M.trade_with( recipient, trade_tracker )
 end
 
 function M.cancel_trade( trade_tracker )
-  RollFor.settings.trade_tracker_debug = true
-
   if trade_tracker then
     trade_tracker.on_trade_accept_update( 0 )
     trade_tracker.on_trade_closed()
@@ -890,7 +921,6 @@ function M.cancel_trade( trade_tracker )
 end
 
 function M.trade_cancelled_by_recipient( trade_tracker )
-  RollFor.settings.trade_tracker_debug = true
   if trade_tracker then
     trade_tracker.on_trade_request_cancel()
   else
@@ -900,8 +930,6 @@ function M.trade_cancelled_by_recipient( trade_tracker )
 end
 
 function M.trade_complete( trade_tracker )
-  RollFor.settings.trade_tracker_debug = true
-
   if trade_tracker then
     trade_tracker.on_trade_accept_update( 1, 1 )
     trade_tracker.on_trade_closed()
@@ -991,6 +1019,8 @@ end
 function M.clear_dropped_items_db()
   local rollfor = M.load_roll_for()
   rollfor.db.dropped_items = {}
+
+  return rollfor
 end
 
 function M.read_file( file_name )
@@ -1012,6 +1042,31 @@ end
 
 function M.register_loot_confirm_callback( callback )
   m_loot_confirm_callback = callback
+end
+
+function M.modifier_keys_not_pressed()
+  M.mock_shift_key_pressed( false )
+  M.mock_alt_key_pressed( false )
+  M.mock_control_key_pressed( false )
+end
+
+function M.modifier_key( keys )
+  if not keys then
+    M.modifier_keys_not_pressed()
+    return
+  end
+
+  if keys.alt then
+    M.mock_alt_key_pressed( true )
+  end
+
+  if keys.control then
+    M.mock_control_key_pressed( true )
+  end
+
+  if keys.shift then
+    M.mock_shift_key_pressed( true )
+  end
 end
 
 return M

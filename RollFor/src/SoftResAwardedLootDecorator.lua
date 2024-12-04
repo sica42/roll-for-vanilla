@@ -4,6 +4,7 @@ if modules.SoftResAwardedLootDecorator then return end
 
 local M = {}
 
+local m = modules
 local filter = modules.filter
 
 -- I decorate given softres class with awarded loot logic.
@@ -15,7 +16,7 @@ function M.new( awarded_loot, softres )
     end )
   end
 
-  local decorator = modules.clone( softres )
+  local decorator = m.clone( softres )
   decorator.get = get
 
   return decorator

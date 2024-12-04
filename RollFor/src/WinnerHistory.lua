@@ -15,11 +15,14 @@ function M.new( db )
   end
 
   local function store_zone_count( zone_name )
+    if not db.current_session or not db.sessions or not db.sessions[ db.current_session ] then start_session() end
+
     local count = db.sessions[ db.current_session ].zones[ zone_name ] or 0
     db.sessions[ db.current_session ].zones[ zone_name ] = count + 1
   end
 
   local function store_session_winner( player_name, item_id, item_link, zone_name, roll_type, winning_roll )
+    if not db.current_session or not db.sessions or not db.sessions[ db.current_session ] then start_session() end
     local player = db.sessions[ db.current_session ].winners[ player_name ] or {}
 
     table.insert( player, {
@@ -35,10 +38,10 @@ function M.new( db )
   end
 
   local function store_winner( player_name, item_id, item_link, zone_name, roll_type, winning_roll )
-    local winners = db.winners or {}
-    winners[ player_name ] = winners[ player_name ] or {}
+    db.winners = db.winners or {}
+    db.winners[ player_name ] = db.winners[ player_name ] or {}
 
-    table.insert( winners[ player_name ], {
+    table.insert( db.winners[ player_name ], {
       item_id = item_id,
       item_link = item_link,
       zone_name = zone_name,
@@ -46,8 +49,6 @@ function M.new( db )
       roll_type = roll_type,
       winning_roll = winning_roll
     } )
-
-    db.winners = winners
   end
 
   local function add( player_name, item_id, item_link, roll_type, winning_roll )
@@ -59,6 +60,7 @@ function M.new( db )
   end
 
   local function find( player_name, item_id )
+    if not db.winners then return end
     return db.winners[ player_name ] and db.winners[ player_name ][ item_id ]
   end
 

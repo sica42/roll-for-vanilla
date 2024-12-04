@@ -4,19 +4,21 @@ if modules.NameManualMatcher then return end
 
 local M = {}
 
-local clone = modules.clone
-local negate = modules.negate
-local filter = modules.filter
-local keys = modules.keys
-local merge = modules.merge
-local colors = modules.colors
-local p = modules.pretty_print
+local m = modules
+local clone = m.clone
+local negate = m.negate
+local filter = m.filter
+local keys = m.keys
+local merge = m.merge
+local colors = m.colors
+local p = m.pretty_print
+local map = m.map
 
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
 function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status_changed )
-  local manual_matches = db.manual_matches or {}
+  db.manual_matches = db.manual_matches or {}
   local manual_match_options = nil
 
   local function show_manual_matches( matches, absent_players )
@@ -31,7 +33,7 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
       p( string.format( "To unmatch, clear your target and type: %s", colors.hl( "/sro <number>" ) ) )
 
       for i = 1, getn( matches ) do
-        p( string.format( "[%s]: %s (manually matched with %s)", colors.green( index ), colors.hl( matches[ i ] ), colors.hl( manual_matches[ matches[ i ] ] ) ) )
+        p( string.format( "[%s]: %s (manually matched with %s)", colors.green( index ), colors.hl( matches[ i ] ), colors.hl( db.manual_matches[ matches[ i ] ] ) ) )
         index = index + 1
       end
     end
@@ -54,13 +56,13 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
     return nil
   end
 
-  local function is_matched( player_name )
-    return manual_matches[ player_name ] or name_matcher.is_matched( player_name )
+  local function is_matched( player )
+    return db.manual_matches[ player.name ] or name_matcher.is_matched( player.name )
   end
 
   local function create_matches_and_show()
-    local absent_players = filter( absent_unfiltered_softres.get_all_softres_player_names(), negate( is_matched ) )
-    local manually_matched = keys( manual_matches )
+    local absent_players = map( filter( absent_unfiltered_softres.get_all_players(), negate( is_matched ) ), function( v ) return v.name end )
+    local manually_matched = keys( db.manual_matches )
     manual_match_options = merge( {}, manually_matched, absent_players )
     show_manual_matches( manually_matched, absent_players )
   end
@@ -83,19 +85,19 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
     end
 
     local softres_name = manual_match_options[ index ]
-    local already_matched_name = manual_matches[ softres_name ]
+    local already_matched_name = db.manual_matches[ softres_name ]
 
     if target and already_matched_name then
       p( string.format( "%s is already matched to %s.", colors.hl( softres_name ), colors.hl( already_matched_name ) ) )
       create_matches_and_show()
     elseif target and not already_matched_name then
       manual_match_options = nil
-      manual_matches[ softres_name ] = target
+      db.manual_matches[ softres_name ] = target
       p( string.format( "|cffff9f69%s|r is now soft-ressing as |cffff9f69%s|r.", target, softres_name ) )
       softres_status_changed()
     elseif not target and already_matched_name then
       manual_match_options = nil
-      manual_matches[ softres_name ] = nil
+      db.manual_matches[ softres_name ] = nil
       p( string.format( "Unmatched |cffff2f2f%s|r.", softres_name ) )
       softres_status_changed()
     else
@@ -105,11 +107,11 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
   end
 
   local function get_matched_name( softres_name )
-    return manual_matches[ softres_name ] or name_matcher.get_matched_name( softres_name )
+    return db.manual_matches[ softres_name ] or name_matcher.get_matched_name( softres_name )
   end
 
   local function get_softres_name( matched_name )
-    for softres_name, name in pairs( manual_matches ) do
+    for softres_name, name in pairs( db.manual_matches ) do
       if name == matched_name then return softres_name end
     end
 
@@ -117,8 +119,9 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
   end
 
   local function clear( report )
-    if not manual_matches or modules.count_elements( manual_matches ) == 0 then return end
-    manual_matches = {}
+    if not db.manual_matches or m.count_elements( db.manual_matches ) == 0 then return end
+    m.clear_table( db.manual_matches )
+    db.manual_matches = {}
     if report then p( "Cleared manual matches." ) end
   end
 
@@ -126,7 +129,7 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
     local result = {}
 
     for _, v in pairs( source ) do
-      if not modules.find( v.softres_name, duplicates, "softres_name" ) then
+      if not m.find( v.softres_name, duplicates, "softres_name" ) then
         table.insert( result, v )
       end
     end
@@ -137,7 +140,7 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
   local function get_matches()
     local matches = {}
 
-    for softres_name, match in pairs( manual_matches ) do
+    for softres_name, match in pairs( db.manual_matches ) do
       table.insert( matches, { softres_name = softres_name, matched_name = match } )
     end
 
@@ -156,5 +159,5 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
   return decorator
 end
 
-modules.NameManualMatcher = M
+m.NameManualMatcher = M
 return M
