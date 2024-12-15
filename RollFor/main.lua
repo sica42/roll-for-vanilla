@@ -757,6 +757,7 @@ end
 
 function M.award_item( player_name, item_id, item_link )
   M.awarded_loot.award( player_name, item_id )
+  M.master_loot_correlation_data.remove( item_link )
   M.roll_controller.loot_awarded( item_link )
   local winners = M.winner_tracker.find_winners( item_link )
 
