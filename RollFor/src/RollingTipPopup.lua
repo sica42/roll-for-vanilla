@@ -79,12 +79,16 @@ function M.new( popup_builder, config )
 
   local function show()
     if not config.show_rolling_tip() then return end
+    if modules.uses_pfui() and not config.pfui_integration_enabled() then return end
+
     if not popup then popup = create_popup() end
 
     if modules.uses_pfui() and config.pfui_integration_enabled() then
+      popup:ClearAllPoints()
       ---@diagnostic disable-next-line: undefined-global
       popup:SetPoint( "TOPRIGHT", pfLootFrame, "TOPLEFT", -2, 1 )
     else
+      popup:ClearAllPoints()
       ---@diagnostic disable-next-line: undefined-global
       popup:SetPoint( "BOTTOMLEFT", LootFrame, "TOPLEFT", 60, -15 )
       ---@diagnostic disable-next-line: undefined-global
