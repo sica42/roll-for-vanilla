@@ -109,7 +109,10 @@ function M.new( popup_builder, config )
 
   config.subscribe( "rolling_tip", function( enabled )
     if enabled then
-      show()
+      ---@diagnostic disable-next-line: undefined-global
+      local frame = modules.uses_pfui() and pfLootFrame or LootFrame
+
+      if frame and frame:IsVisible() then show() end
     else
       if popup then popup:Hide() end
     end
