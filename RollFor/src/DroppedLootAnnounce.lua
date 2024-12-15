@@ -4,8 +4,10 @@ local modules = libStub( "RollFor-Modules" )
 if modules.DroppedLootAnnounce then return end
 
 local M = {}
-local item_utils = modules.ItemUtils
+local m = modules
+local item_utils = m.ItemUtils
 local make_item = item_utils.make_item
+local announce_limit = 6
 
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
@@ -33,12 +35,12 @@ local function distinct( items )
 end
 
 local function process_dropped_item( slot )
-  local link = modules.api.GetLootSlotLink( slot )
+  local link = m.api.GetLootSlotLink( slot )
   if not link then return nil end
 
-  local _, _, _, quality = modules.api.GetLootSlotInfo( slot )
+  local _, _, _, quality = m.api.GetLootSlotInfo( slot )
   if not quality then quality = 0 end
-  if quality < modules.api.GetLootThreshold() then return nil end
+  if quality < m.api.GetLootThreshold() then return nil end
 
   local item_id = item_utils.get_item_id( link )
   local item_name = item_utils.get_item_name( link )
@@ -124,15 +126,25 @@ local function sort( announcements )
     end
   end
 
-  table.sort( sr, function( left, right )
-    if left.softres_count == 1 and left.softres_count == right.softres_count then
-      return left.softressers[ 1 ].name < right.softressers[ 1 ].name
+  table.sort( free_roll, function( left, right )
+    if left.item_quality ~= right.item_quality then
+      return left.item_quality > right.item_quality
     else
-      return left.softres_count < right.softres_count
+      return left.item_name < right.item_name
     end
   end )
 
-  return modules.merge( {}, hr, sr, free_roll )
+  table.sort( sr, function( left, right )
+    if left.softres_count == 1 and left.softres_count == right.softres_count then
+      return left.softressers[ 1 ].name < right.softressers[ 1 ].name
+    elseif left.softres_count ~= right.softres_count then
+      return left.softres_count < right.softres_count
+    else
+      return left.item_name < right.item_name
+    end
+  end )
+
+  return m.merge( {}, hr, sr, free_roll )
 end
 
 function M.create_item_announcements( summary )
@@ -145,12 +157,16 @@ function M.create_item_announcements( summary )
     if entry.is_hardressed then
       table.insert( result, {
         item_link = entry.item.link,
+        item_name = entry.item.name,
+        item_quality = entry.item.quality,
         is_hardressed = true,
         softres_count = 0
       } )
     elseif softres_count == 0 then
       table.insert( result, {
         item_link = entry.item.link,
+        item_name = entry.item.name,
+        item_quality = entry.item.quality,
         softres_count = 0,
         how_many_dropped = entry.how_many_dropped
       } )
@@ -158,6 +174,8 @@ function M.create_item_announcements( summary )
       for j = 1, softres_count do
         table.insert( result, {
           item_link = entry.item.link,
+          item_name = entry.item.name,
+          item_quality = entry.item.quality,
           softres_count = 1,
           how_many_dropped = 1,
           softressers = { entry.softressers[ j ] }
@@ -166,6 +184,8 @@ function M.create_item_announcements( summary )
     else
       table.insert( result, {
         item_link = entry.item.link,
+        item_name = entry.item.name,
+        item_quality = entry.item.quality,
         softres_count = getn( entry.softressers ),
         how_many_dropped = entry.how_many_dropped,
         softressers = entry.softressers
@@ -177,9 +197,9 @@ function M.create_item_announcements( summary )
 end
 
 function M.process_dropped_items( master_loot_tracker, softres )
-  local source_guid = modules.api.UnitName( "target" )
+  local source_guid = m.api.UnitName( "target" )
   local items = {}
-  local item_count = modules.api.GetNumLootItems()
+  local item_count = m.api.GetNumLootItems()
 
   for slot = 1, item_count do
     local item = process_dropped_item( slot )
@@ -251,16 +271,29 @@ function M.create_item_summary( items, softres )
   return result
 end
 
+local function should_announce( i, item_count, announcement )
+  if i < announce_limit then return true end
+  if i == announce_limit and item_count == announce_limit then return true end
+
+  if announcement.entry.softres_count and announcement.entry.softres_count > 0 then
+    return true
+  end
+
+  if i == item_count then return true end
+
+  return false
+end
+
 function M.new( announce, dropped_loot, master_loot_tracker, softres, winner_tracker )
   local announcing = false
   local announced_source_ids = {}
 
   local function on_loot_opened()
-    if not modules.is_player_master_looter() or announcing then
+    if not m.is_player_master_looter() or announcing then
       -- Wtf is this?
-      if modules.real_api then
-        modules.api = modules.real_api
-        modules.real_api = nil
+      if m.real_api then
+        m.api = m.real_api
+        m.real_api = nil
       end
 
       return
@@ -273,8 +306,8 @@ function M.new( announce, dropped_loot, master_loot_tracker, softres, winner_tra
     announcing = true
     local item_count = getn( items )
 
-    local target = modules.api.UnitName( "target" )
-    local target_msg = target and not modules.api.UnitIsFriend( "player", "target" ) and string.format( "%s dropped ", target ) or ""
+    local target = m.api.UnitName( "target" )
+    local target_msg = target and not m.api.UnitIsFriend( "player", "target" ) and string.format( "%s dropped ", target ) or ""
 
     if item_count > 0 then
       announce(
@@ -285,11 +318,21 @@ function M.new( announce, dropped_loot, master_loot_tracker, softres, winner_tra
         dropped_loot.add( item.id, item.name )
       end
 
-      for _, announcement in ipairs( announcements ) do
-        announce( announcement.text )
+      local trimmed = false
 
-        if announcement.entry.softres_count == 1 then
-          winner_tracker.track( announcement.entry.softressers[ 1 ].name, announcement.entry.item_link, modules.Types.RollType.SoftRes )
+      for i, announcement in ipairs( announcements ) do
+        if not trimmed and should_announce( i, item_count, announcement ) then
+          announce( announcement.text )
+
+          if announcement.entry.softres_count == 1 then
+            winner_tracker.track( announcement.entry.softressers[ 1 ].name, announcement.entry.item_link, m.Types.RollType.SoftRes )
+          end
+        elseif not trimmed then
+          if i > (announce_limit - 1) and item_count > announce_limit then
+            local count = item_count - i + 1
+            announce( string.format( "and %s more item%s...", count, count > 1 and "s" or "" ) )
+            trimmed = true
+          end
         end
       end
 
@@ -300,11 +343,11 @@ function M.new( announce, dropped_loot, master_loot_tracker, softres, winner_tra
   end
 
   local function reset()
-    local former_size = modules.count_elements( announced_source_ids )
+    local former_size = m.count_elements( announced_source_ids )
     announced_source_ids = {}
 
     if former_size > 0 then
-      modules.pretty_print( "Loot announcement has been reset." )
+      m.pretty_print( "Loot announcement has been reset." )
     end
   end
 
@@ -314,5 +357,5 @@ function M.new( announce, dropped_loot, master_loot_tracker, softres, winner_tra
   }
 end
 
-modules.DroppedLootAnnounce = M
+m.DroppedLootAnnounce = M
 return M
