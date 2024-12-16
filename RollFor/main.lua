@@ -786,9 +786,9 @@ function M.on_group_changed()
 end
 
 function M.on_chat_msg_addon( name, message )
-  if name ~= "RollFor" then return end
+  if name ~= "RollFor" or not message then return end
 
-  for ver in string.gmatch( message, "VERSION::(.-)" ) do
+  for ver in string.gmatch( message, "VERSION::(.*)" ) do
     M.version_broadcast.on_version( ver )
   end
 end

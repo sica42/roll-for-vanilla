@@ -52,6 +52,7 @@ function M.new( db, version )
   local function notify_about_new_version( ver )
     db.last_new_version_reminder_timestamp = modules.lua.time()
     modules.pretty_print( string.format( "New version (%s) is available!", modules.colors.highlight( string.format( "v%s", ver ) ) ) )
+    modules.pretty_print( "https://github.com/obszczymucha/roll-for-vanilla/releases/download/latest/RollFor.zip" )
   end
 
   local function on_version( ver )
