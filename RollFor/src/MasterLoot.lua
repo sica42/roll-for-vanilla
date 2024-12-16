@@ -32,7 +32,10 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
   end
 
   local function on_loot_slot_cleared( slot )
-    if not m_confirmed then return end
+    if not m_confirmed then
+      master_loot_tracker.remove( slot )
+      return
+    end
 
     local item = master_loot_tracker.get( slot )
 
