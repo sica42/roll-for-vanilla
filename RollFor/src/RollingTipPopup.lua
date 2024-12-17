@@ -9,6 +9,7 @@ local m = modules
 local blue = m.colors.blue
 local green = m.colors.green
 local white = m.colors.white
+local pink = m.colors.pink
 
 function M.new( popup_builder, config )
   local popup
@@ -52,10 +53,9 @@ function M.new( popup_builder, config )
     local inner_frame = m.api.CreateFrame( "Button", nil, frame )
     inner_frame:SetPoint( "CENTER", 0, 0 )
     local text1 = create_font_string( inner_frame, string.format( "%s %s", blue( "Shift" ), white( "click to roll." ) ) )
-    create_font_string( inner_frame, string.format( "%s %s", green( "Alt" ), white( "click to raid-roll." ) ), text1 )
-
-    inner_frame:SetWidth( frame:GetWidth() - 2 )
-    inner_frame:SetHeight( text1:GetHeight() * 2 + 2 )
+    local text2 = create_font_string( inner_frame, string.format( "%s %s", green( "Alt" ), white( "click to raid-roll." ) ), text1 )
+    local text3 = create_font_string( inner_frame, string.format( "%s%s%s %s", blue( "Shift" ), white( "+" ), green( "Alt" ),
+      white( "click to insta raid-roll." ) ), text2 )
 
     inner_frame:SetScript( "OnEnter", function()
       ---@diagnostic disable-next-line: undefined-global
@@ -74,6 +74,38 @@ function M.new( popup_builder, config )
       m.api.GameTooltip:SetScale( self.tooltip_scale or 1 )
     end )
 
+    frame.update = function()
+      if config.insta_raid_roll() then
+        text3:Show()
+        inner_frame:SetHeight( text1:GetHeight() * 3 + 5 )
+        inner_frame:ClearAllPoints()
+        inner_frame:SetPoint( "CENTER", 0, 0 )
+        inner_frame:SetWidth( text3:GetWidth() + 2 )
+
+        if modules.uses_pfui() then
+          frame:SetWidth( 160 )
+          frame:SetHeight( 53 )
+        else
+          frame:SetWidth( 190 )
+          frame:SetHeight( 63 )
+        end
+      else
+        inner_frame:ClearAllPoints()
+        inner_frame:SetPoint( "CENTER", 0, 0 )
+        text3:Hide()
+        inner_frame:SetHeight( text1:GetHeight() * 2 + 2 )
+        inner_frame:SetWidth( text2:GetWidth() + 2 )
+
+        if modules.uses_pfui() then
+          frame:SetWidth( 110 )
+          frame:SetHeight( 39 )
+        else
+          frame:SetWidth( 130 )
+          frame:SetHeight( 49 )
+        end
+      end
+    end
+
     return frame
   end
 
@@ -90,11 +122,12 @@ function M.new( popup_builder, config )
     else
       popup:ClearAllPoints()
       ---@diagnostic disable-next-line: undefined-global
-      popup:SetPoint( "BOTTOMLEFT", LootFrame, "TOPLEFT", 60, -15 )
+      popup:SetPoint( "TOP", LootFrame, "BOTTOM", -28, 5 )
       ---@diagnostic disable-next-line: undefined-global
       popup:SetFrameLevel( LootFrame:GetFrameLevel() - 1 )
     end
 
+    popup:update()
     popup:Show()
   end
 
@@ -120,6 +153,10 @@ function M.new( popup_builder, config )
     else
       if popup then popup:Hide() end
     end
+  end )
+
+  config.subscribe( "insta_raid_roll", function()
+    if popup then popup:update() end
   end )
 
   return {

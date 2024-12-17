@@ -64,7 +64,7 @@ function M.new( announce, ace_timer, group_roster, item, winner_tracker, roll_co
     m_winner = m_players[ roll ]
     roll_controller.finish( { name = m_winner.name, class = m_winner.class } )
     announce( string.format( "%s wins %s.", m_winner.name, item.link ) )
-    winner_tracker.track( m_winner.name, item.link, modules.Types.RollType.RaidRoll )
+    winner_tracker.track( m_winner.name, item.link, nil, nil, modules.Types.RollingStrategy.RaidRoll )
 
     m_rolling = false
   end

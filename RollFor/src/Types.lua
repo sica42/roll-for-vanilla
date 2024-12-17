@@ -8,7 +8,8 @@ local M = {}
 M.RollSlashCommand = {
   NormalRoll = "/rf",
   NoSoftResRoll = "/arf",
-  RaidRoll = "/rr"
+  RaidRoll = "/rr",
+  InstaRaidRoll = "/irr"
 }
 
 --- Roll type constants
@@ -30,11 +31,13 @@ M.RollType = {
 ---| '"SoftResRoll"'
 ---| '"TieRoll"'
 ---| '"RaidRoll"'
+---| '"InstaRaidRoll"'
 local RollingStrategy = {
   NormalRoll = "NormalRoll",
   SoftResRoll = "SoftResRoll",
   TieRoll = "TieRoll",
-  RaidRoll = "RaidRoll"
+  RaidRoll = "RaidRoll",
+  InstaRaidRoll = "InstaRaidRoll"
 }
 
 M.RollingStrategy = RollingStrategy

@@ -1,7 +1,7 @@
 ## Interface: 11200
 ## Title: RollFor
 ## Author: Obszczymucha
-## Version: 3.6
+## Version: 3.7
 ## Notes: An automated item roller with soft ressing support via raidres.fly.dev.
 ## SavedVariables: RollForDb
 ## SavedVariablesPerCharacter: RollForCharDb
@@ -67,4 +67,5 @@ src\TieRollGuiData.lua
 src\RollingPopupContent.lua
 src\GuiElements.lua
 src\WelcomePopup.lua
+src\InstaRaidRollRollingLogic.lua
 main.lua

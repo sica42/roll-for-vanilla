@@ -10,7 +10,8 @@ M.lua = {
   format = format,
   time = time,
   strmatch = strmatch,
-  random = random
+  random = random,
+  math = math
 }
 
 M.colors = {

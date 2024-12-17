@@ -34,6 +34,11 @@ function M.raid_roll_winner_content( winner )
   return { type = "text", value = string.format( "%s wins the %s.", player, blue( "raid-roll" ) ), padding = 7 }
 end
 
+function M.insta_raid_roll_winner_content( winner )
+  local player = c( winner.name, winner.class )
+  return { type = "text", value = string.format( "%s wins the %s.", player, blue( "insta raid-roll" ) ), padding = 7 }
+end
+
 function M.roll_winner_content( winner, rolling_strategy )
   local player = c( winner.name, winner.class )
   local roll_type = winner.roll_type and r( winner.roll_type )
@@ -90,6 +95,10 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
     return data.status.type == S.Finished and current_iteration and current_iteration.rolling_strategy == RS.RaidRoll
   end
 
+  local function insta_raid_roll_winner( data, current_iteration )
+    return data.status.type == S.Finished and current_iteration and current_iteration.rolling_strategy == RS.InstaRaidRoll
+  end
+
   local function roll_winner( data )
     return data.status.type == S.Finished and data.status.winner and data.status.winner.roll
   end
@@ -144,6 +153,19 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
 
       if config.raid_roll_again() then
         table.insert( result, { type = "button", label = "Raid roll again", width = 130, on_click = function() raid_roll( data.item.link ) end } )
+      end
+
+      table.insert( result, { type = "button", label = "Close", width = 90, on_click = function() popup:hide() end } )
+
+      return result
+    end
+
+    if insta_raid_roll_winner( data, current_iteration ) then
+      table.insert( result, M.insta_raid_roll_winner_content( data.status.winner ) )
+
+      if award_button then
+        table.insert( result,
+          { type = "button", label = "Award", width = 90, on_click = function() roll_controller.award_loot( data.status.winner, data.item.link ) end } )
       end
 
       table.insert( result, { type = "button", label = "Close", width = 90, on_click = function() popup:hide() end } )
@@ -219,7 +241,7 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
 
     if not data or not data.status or not data.item then return end
 
-    if data.status.type == S.Finished and current_iteration and current_iteration.rolling_strategy == RS.RaidRoll then
+    if data.status.type == S.Finished and current_iteration and (current_iteration.rolling_strategy == RS.RaidRoll or current_iteration.rolling_strategy == RS.InstaRaidRoll) then
       local slot = master_loot_correlation_data.get( data.item.link )
 
       -- This confirms that we can safely distribute the item.

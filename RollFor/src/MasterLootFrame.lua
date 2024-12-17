@@ -152,7 +152,7 @@ local function create_button( parent, index )
   return frame
 end
 
-function M.new( winner_tracker, master_loot_correlation_data, roll_controller )
+function M.new( winner_tracker, master_loot_correlation_data, roll_controller, config )
   local m_frame
   local m_buttons = {}
 
@@ -285,6 +285,11 @@ function M.new( winner_tracker, master_loot_correlation_data, roll_controller )
           return
         end
 
+        if shift and alt and not ctrl and config.insta_raid_roll() then
+          prepare_rolling_slash_command( slot, modules.Types.RollSlashCommand.InstaRaidRoll )
+          return
+        end
+
         if ctrl and not alt and not shift then
           local item_link = modules.api.GetLootSlotLink( slot )
           modules.api.DressUpItemLink( item_link )
@@ -326,6 +331,11 @@ function M.new( winner_tracker, master_loot_correlation_data, roll_controller )
 
           if alt and not ctrl and not shift then
             prepare_rolling_slash_command( slot, modules.Types.RollSlashCommand.RaidRoll )
+            return
+          end
+
+          if shift and alt and not ctrl and config.insta_raid_roll() then
+            prepare_rolling_slash_command( slot, modules.Types.RollSlashCommand.InstaRaidRoll )
             return
           end
 

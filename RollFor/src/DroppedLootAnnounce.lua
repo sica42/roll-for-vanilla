@@ -325,7 +325,7 @@ function M.new( announce, dropped_loot, master_loot_tracker, softres, winner_tra
           announce( announcement.text )
 
           if announcement.entry.softres_count == 1 then
-            winner_tracker.track( announcement.entry.softressers[ 1 ].name, announcement.entry.item_link, m.Types.RollType.SoftRes )
+            winner_tracker.track( announcement.entry.softressers[ 1 ].name, announcement.entry.item_link, m.Types.RollType.SoftRes, m.Types.RollingStrategy.SoftResRoll )
           end
         elseif not trimmed then
           if i > (announce_limit - 1) and item_count > announce_limit then

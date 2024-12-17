@@ -112,6 +112,16 @@ local function raid_roll_rolling_logic( item )
   )
 end
 
+local function insta_raid_roll_rolling_logic( item )
+  return m.InstaRaidRollRollingLogic.new(
+    announce,
+    M.group_roster,
+    item,
+    M.winner_tracker,
+    M.roll_controller
+  )
+end
+
 local function raid_roll_item( item_link )
   local item_id = M.item_utils.get_item_id( item_link )
   local item_name = M.item_utils.get_item_name( item_link )
@@ -157,7 +167,7 @@ local function create_components()
   M.roll_tracker = m.RollTracker.new()
   M.roll_controller = m.RollController.new( M.roll_tracker )
   M.master_loot_correlation_data = m.MasterLootCorrelationData.new( M.item_utils )
-  M.master_loot_frame = m.MasterLootFrame.new( M.winner_tracker, M.master_loot_correlation_data, M.roll_controller )
+  M.master_loot_frame = m.MasterLootFrame.new( M.winner_tracker, M.master_loot_correlation_data, M.roll_controller, M.config )
   M.master_loot_candidates = m.MasterLootCandidates.new( M.group_roster ) -- remove group_roster for testing (dummy candidates)
   M.master_loot = m.MasterLoot.new(
     M.master_loot_candidates,
@@ -176,7 +186,7 @@ local function create_components()
     trade_complete_callback
   )
 
-  M.usage_printer = m.UsagePrinter.new()
+  M.usage_printer = m.UsagePrinter.new( M.config )
   M.minimap_button = m.MinimapButton.new( M.api, db( "minimap_button" ), M.softres_gui.toggle, M.softres_check, M.config )
   M.master_loot_warning = m.MasterLootWarning.new( M.api, M.config, m.BossList.zones )
   M.auto_loot = m.AutoLoot.new( M.api, db( "auto_loot" ), M.config )
@@ -365,7 +375,9 @@ function M.on_rolling_finished( item, count, winners, rerolling, there_was_no_ro
         } )
       end
 
-      M.winner_tracker.track( player_name, item.link, v.roll_type, roll )
+      local rolling_strategy = m_rolling_logic and m_rolling_logic.get_rolling_strategy()
+      -- m.dbg( string.format( "1 rolling_strategy: %s", rolling_strategy or "nil" ) )
+      M.winner_tracker.track( player_name, item.link, v.roll_type, roll, rolling_strategy )
       first_winner = false
     end
   end
@@ -403,7 +415,9 @@ function M.on_rolling_finished( item, count, winners, rerolling, there_was_no_ro
       local player = M.group_roster.find_player( winner )
       local candidate = M.master_loot_candidates.find( winner )
 
-      M.winner_tracker.track( player, item.link, RollType.SoftRes )
+      local rolling_strategy = m_rolling_logic and m_rolling_logic.get_rolling_strategy()
+      -- m.dbg( string.format( "2 rolling_strategy: %s", rolling_strategy or "nil" ) )
+      M.winner_tracker.track( player, item.link, RollType.SoftRes, nil, rolling_strategy )
       M.roll_controller.finish( {
         name = player.name,
         class = player.class,
@@ -450,6 +464,7 @@ end
 local function on_roll_command( roll_slash_command )
   local normal_roll = roll_slash_command == RollSlashCommand.NormalRoll
   local raid_roll = roll_slash_command == RollSlashCommand.RaidRoll
+  local insta_raid_roll = roll_slash_command == RollSlashCommand.InstaRaidRoll
 
   return function( args )
     if m_rolling_logic and m_rolling_logic.is_rolling() then
@@ -491,8 +506,13 @@ local function on_roll_command( roll_slash_command )
       m_rolling_logic = non_softres_rolling_logic( item, count, message, seconds, M.on_rolling_finished )
     elseif raid_roll then
       m_rolling_logic = raid_roll_rolling_logic( item )
+    elseif insta_raid_roll and M.config.insta_raid_roll() then
+      m_rolling_logic = insta_raid_roll_rolling_logic( item )
+    elseif insta_raid_roll and not M.config.insta_raid_roll() then
+      info( string.format( "Insta raid-roll is %s.", m.msg.disabled ) )
+      return
     else
-      message( string.format( "Unsupported command: %s", hl( roll_slash_command and roll_slash_command.slash_command or "?" ) ) )
+      info( string.format( "Unsupported command: %s", hl( roll_slash_command and roll_slash_command.slash_command or "?" ) ) )
       return
     end
 
@@ -700,6 +720,8 @@ local function setup_slash_commands()
   M.api().SlashCmdList[ "ARF" ] = in_group_check( on_roll_command( RollSlashCommand.NoSoftResRoll ) )
   SLASH_RR1 = RollSlashCommand.RaidRoll
   M.api().SlashCmdList[ "RR" ] = in_group_check( on_roll_command( RollSlashCommand.RaidRoll ) )
+  SLASH_IRR1 = RollSlashCommand.InstaRaidRoll
+  M.api().SlashCmdList[ "IRR" ] = in_group_check( on_roll_command( RollSlashCommand.InstaRaidRoll ) )
   SLASH_HTR1 = "/htr"
   M.api().SlashCmdList[ "HTR" ] = in_group_check( show_how_to_roll )
   SLASH_CR1 = "/cr"

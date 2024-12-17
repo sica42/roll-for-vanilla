@@ -64,7 +64,8 @@ local mock_config = function( config )
     auto_loot = function() return true end,
     show_rolling_tip = function() return true end,
     tmog_rolling_enabled = function() return true end,
-    rolling_popup = function() return true end
+    rolling_popup = function() return true end,
+    insta_raid_roll = function() return true end
   }
 
   m.Config = {

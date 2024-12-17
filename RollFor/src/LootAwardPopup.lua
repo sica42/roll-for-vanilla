@@ -69,6 +69,8 @@ function M.new( popup_builder, roll_controller, confirm_award, RollingPopupConte
 
     if rolling_strategy == RS.RaidRoll or not rolling_strategy and current_iteration and current_iteration.rolling_strategy == RS.RaidRoll and winner then
       table.insert( content, RollingPopupContent.raid_roll_winner_content( winning_player ) )
+    elseif rolling_strategy == RS.InstaRaidRoll or not rolling_strategy and current_iteration and current_iteration.rolling_strategy == RS.InstaRaidRoll and winner then
+      table.insert( content, RollingPopupContent.insta_raid_roll_winner_content( winning_player ) )
     else
       table.insert( content,
         RollingPopupContent.roll_winner_content( winning_player, winner and (rolling_strategy or current_iteration and current_iteration.rolling_strategy) ) )

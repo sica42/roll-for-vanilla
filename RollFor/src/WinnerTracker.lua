@@ -19,21 +19,22 @@ function M.new( db )
   db.winners = db.winners or {}
 
   -- roll_type -> Types.RollType
-  local function notify_winner_found( winner_name, item_link, roll_type, winning_roll )
+  local function notify_winner_found( winner_name, item_link, roll_type, winning_roll, rolling_strategy )
     for _, callback in ipairs( callbacks[ EventType.WinnerFound ] ) do
-      callback( winner_name, item_link, winning_roll, roll_type )
+      callback( winner_name, item_link, winning_roll, roll_type, rolling_strategy )
     end
   end
 
   -- roll_type -> Types.RollType
-  local function track( winner_name, item_link, roll_type, winning_roll )
+  local function track( winner_name, item_link, roll_type, winning_roll, rolling_strategy )
     db.winners[ item_link ] = db.winners[ item_link ] or {}
     db.winners[ item_link ][ winner_name ] = {
       winning_roll = winning_roll,
-      roll_type = roll_type
+      roll_type = roll_type,
+      rolling_strategy = rolling_strategy
     }
 
-    notify_winner_found( winner_name, item_link, roll_type, winning_roll )
+    notify_winner_found( winner_name, item_link, roll_type, winning_roll, rolling_strategy )
   end
 
   local function untrack( winner_name, item_link )
@@ -49,7 +50,12 @@ function M.new( db )
     local result = {}
 
     for winner_name, details in pairs( db.winners[ item_link ] or {} ) do
-      table.insert( result, { winner_name = winner_name, roll_type = details.roll_type, winning_roll = details.winning_roll } )
+      table.insert( result, {
+        winner_name = winner_name,
+        roll_type = details.roll_type,
+        winning_roll = details.winning_roll,
+        rolling_strategy = details.rolling_strategy
+      } )
     end
 
     return result

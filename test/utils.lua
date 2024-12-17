@@ -360,6 +360,14 @@ function M.raid_roll_raw( raw_text )
   M.run_command( "RR", raw_text )
 end
 
+function M.insta_raid_roll( item_name, item_id )
+  M.run_command( "IRR", M.item_link( item_name, item_id ) )
+end
+
+function M.insta_raid_roll_raw( raw_text )
+  M.run_command( "IRR", raw_text )
+end
+
 function M.cancel_rolling()
   M.run_command( "CR" )
 end
@@ -757,6 +765,7 @@ function M.load_real_stuff( req )
   r( "src/SoftResRollGuiData" )
   r( "src/RollingPopupContent" )
   r( "src/WelcomePopup" )
+  r( "src/InstaRaidRollRollingLogic" )
   -- r( "Libs/LibDeflate/LibDeflate" )
   r( "src/Json" )
   r( "main" )
@@ -1066,6 +1075,26 @@ function M.modifier_key( keys )
 
   if keys.shift then
     M.mock_shift_key_pressed( true )
+  end
+end
+
+function M.mock_math_random( expected_min, expected_max, value )
+  M.modules().lua.math.random = function( given_min, given_max )
+    if given_min ~= expected_min or given_max ~= expected_max then
+      print(
+        string.format(
+          "Invalid math.random invocation. Expected: random(%s, %s)  Was: random(%s, %s)",
+          expected_min,
+          expected_max,
+          given_min,
+          given_max
+        )
+      )
+
+      return 1337
+    end
+
+    return value
   end
 end
 
