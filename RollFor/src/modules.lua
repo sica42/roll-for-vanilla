@@ -542,4 +542,32 @@ function M.possesive_case( player_name )
   return last_letter == "s" and "'" or "'s"
 end
 
+function M.is_new_version( mine, theirs )
+  local function parse_version( v )
+    local parts = {}
+
+    for part in string.gmatch( v, "%d+" ) do
+      table.insert( parts, tonumber( part ) )
+    end
+
+    return parts
+  end
+
+  local my_version = parse_version( mine )
+  local their_version = parse_version( theirs )
+
+  for i = 1, math.max( getn( my_version ), getn( their_version ) ) do
+    local my_part = my_version[ i ] or 0
+    local their_part = their_version[ i ] or 0
+
+    if their_part > my_part then
+      return true
+    elseif their_part < my_part then
+      return false
+    end
+  end
+
+  return false
+end
+
 return M

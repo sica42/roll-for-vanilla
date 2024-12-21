@@ -5,12 +5,9 @@ if modules.VersionBroadcast then return end
 
 local M = {}
 
-local function strip_dots( v )
-  local result, _ = string.gsub( v, "%.", "" )
-  return result
-end
+local m = modules
 
-function M.new( db, version )
+function M.new( db, my_version )
   local function version_recently_reminded()
     if not db.last_new_version_reminder_timestamp then return false end
 
@@ -25,19 +22,12 @@ function M.new( db, version )
   end
 
   local function broadcast_version( channel )
-    modules.api.SendAddonMessage( "RollFor", "VERSION::" .. version, channel )
+    modules.api.SendAddonMessage( "RollFor", "VERSION::" .. my_version, channel )
   end
 
   local function broadcast_version_to_the_guild()
     if not modules.api.IsInGuild() then return end
     broadcast_version( "GUILD" )
-  end
-
-  local function is_new_version( v )
-    local myVersion = tonumber( strip_dots( version ) )
-    local theirVersion = tonumber( strip_dots( v ) )
-
-    return theirVersion > myVersion
   end
 
   local function broadcast_version_to_the_group()
@@ -55,9 +45,9 @@ function M.new( db, version )
     modules.pretty_print( "https://github.com/obszczymucha/roll-for-vanilla/releases/download/latest/RollFor.zip" )
   end
 
-  local function on_version( ver )
-    if is_new_version( ver ) and not version_recently_reminded() then
-      notify_about_new_version( ver )
+  local function on_version( their_version )
+    if m.is_new_version( my_version, their_version ) and not version_recently_reminded() then
+      notify_about_new_version( their_version )
     end
   end
 
