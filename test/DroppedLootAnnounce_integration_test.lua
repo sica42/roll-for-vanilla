@@ -365,8 +365,8 @@ function DroppedLootAnnounceIntegrationSpec:should_announce_all_sr_items_even_if
   assert_messages(
     r( "6 items dropped:" ),
     r( "1. [Onyxia's Droppings] (HR)" ),
-    r( "2. [Dupa] (SR by Jogobobek)" ),
-    r( "3. [Wirt's Third Leg] (SR by Jogobobek)" ),
+    r( "2. [Wirt's Third Leg] (SR by Jogobobek)" ),
+    r( "3. [Dupa] (SR by Jogobobek)" ),
     r( "4. [Chuj] (SR by Jogobobek)" ),
     r( "5. [Hearthstone] (SR by Obszczymucha and Psikutas)" ),
     r( "6. [Dick] (SR by Obszczymucha, Ponpon and Psikutas)" )
@@ -435,8 +435,8 @@ function DroppedLootAnnounceIntegrationSpec:should_announce_all_sr_items_even_if
   assert_messages(
     r( "7 items dropped:" ),
     r( "1. [Onyxia's Droppings] (HR)" ),
-    r( "2. [Dupa] (SR by Jogobobek)" ),
-    r( "3. [Wirt's Third Leg] (SR by Jogobobek)" ),
+    r( "2. [Wirt's Third Leg] (SR by Jogobobek)" ),
+    r( "3. [Dupa] (SR by Jogobobek)" ),
     r( "4. [Chuj] (SR by Jogobobek)" ),
     r( "5. [Hearthstone] (SR by Obszczymucha and Psikutas)" ),
     r( "6. [Dick] (SR by Obszczymucha, Ponpon and Psikutas)" ),
@@ -477,8 +477,8 @@ function DroppedLootAnnounceIntegrationSpec:should_announce_all_sr_items_even_if
   assert_messages(
     r( "8 items dropped:" ),
     r( "1. [Onyxia's Droppings] (HR)" ),
-    r( "2. [Dupa] (SR by Jogobobek)" ),
-    r( "3. [Wirt's Third Leg] (SR by Jogobobek)" ),
+    r( "2. [Wirt's Third Leg] (SR by Jogobobek)" ),
+    r( "3. [Dupa] (SR by Jogobobek)" ),
     r( "4. [Chuj] (SR by Jogobobek)" ),
     r( "5. [Hearthstone] (SR by Obszczymucha and Psikutas)" ),
     r( "6. [Dick] (SR by Obszczymucha, Ponpon and Psikutas)" ),

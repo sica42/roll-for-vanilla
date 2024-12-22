@@ -136,11 +136,19 @@ local function sort( announcements )
 
   table.sort( sr, function( left, right )
     if left.softres_count == 1 and left.softres_count == right.softres_count then
-      return left.softressers[ 1 ].name < right.softressers[ 1 ].name
+      if left.item_quality == right.item_quality then
+        return left.softressers[ 1 ].name < right.softressers[ 1 ].name
+      else
+        return left.item_quality > right.item_quality
+      end
     elseif left.softres_count ~= right.softres_count then
       return left.softres_count < right.softres_count
     else
-      return left.item_name < right.item_name
+      if left.item_quality == right.item_quality then
+        return left.item_name < right.item_name
+      else
+        return left.item_quality > right.item_quality
+      end
     end
   end )
 
@@ -325,7 +333,8 @@ function M.new( announce, dropped_loot, master_loot_tracker, softres, winner_tra
           announce( announcement.text )
 
           if announcement.entry.softres_count == 1 then
-            winner_tracker.track( announcement.entry.softressers[ 1 ].name, announcement.entry.item_link, m.Types.RollType.SoftRes, m.Types.RollingStrategy.SoftResRoll )
+            winner_tracker.track( announcement.entry.softressers[ 1 ].name, announcement.entry.item_link, m.Types.RollType.SoftRes,
+              m.Types.RollingStrategy.SoftResRoll )
           end
         elseif not trimmed then
           if i > (announce_limit - 1) and item_count > announce_limit then

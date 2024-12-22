@@ -304,6 +304,23 @@ function ItemAnnouncementSpec:should_group_soft_ressers_if_two_sr_items_dropped_
   } )
 end
 
+function ItemAnnouncementSpec:should_sort_soft_ressed_items_by_quality()
+  -- Given
+  local items = { item( "Big mace", 111, 3 ), item( "Hearthstone", 123, 4 ), item( "Small mace", 222 ) }
+  local softresses = { sr( "Psikutas", 123 ), sr( "Obszczymucha", 111 ) }
+  local summary = mod.create_item_summary( items, softres( softresses ) )
+
+  -- When
+  local result = get_text( mod.create_item_announcements( summary ) )
+
+  -- Then
+  lu.assertEquals( result, {
+    "1. [Hearthstone] (SR by Psikutas)",
+    "2. [Big mace] (SR by Obszczymucha)",
+    "3. [Small mace]"
+  } )
+end
+
 ProcessDroppedItemsIntegrationSpec = {}
 
 local function make_link( _item )
