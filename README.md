@@ -44,7 +44,7 @@ The Master Looter then assigns the item directly to the winner.
  * Supports "**two top rolls win**" rolling.
  * Supports **raid rolls**.
  * Supports offspec rolls (`/roll 99`).
- * Supports offspec rolls (`/roll 98`).
+ * Supports transmog rolls (`/roll 98`).
  * Automatically resolves tied rolls.
  * Highly customizable - see `/rf config` and `/rf config help`.
 
