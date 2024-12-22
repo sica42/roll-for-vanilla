@@ -1,10 +1,14 @@
 # RollFor
-A World of Warcraft (1.12.1) addon that automates rolling for items.  
+A World of Warcraft (1.12.1) addon that manages rolling for items.  
 
-The addon **does NOT** distribute loot, it only automates rolling and announces
-winners.  
-It's ulitmately your decision who you'll assign the loot to and how
-you do it (trade or master loot).
+## Demo
+
+In this example, the addon automatically detects that the item is soft-reserved by two players.  
+It restricts rolling for the item to these players only and resolves any tie automatically.  
+The Master Looter then assigns the item directly to the winner.
+
+<img src="docs/gui-sr-tie.gif" alt="soft-res rolling" style="width:1024;height:380">
+
 
 ## Features
 ### Shows the loot that dropped (and who soft reserved)
