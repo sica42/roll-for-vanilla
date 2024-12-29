@@ -11,7 +11,6 @@ local button_width = 85 + icon_width
 local button_height = 16
 local horizontal_padding = 3
 local vertical_padding = 5
-local rows = 5
 
 ---@diagnostic disable-next-line: undefined-field
 local mod = math.mod
@@ -91,13 +90,18 @@ local function create_main_frame()
   return frame
 end
 
-local function create_button( parent, index )
-  local frame = modules.api.CreateFrame( "Button", "RollForLootFrameButton" .. index, parent )
+local function position_button( button, parent, index, rows )
   local width = 5 + horizontal_padding + modules.api.math.floor( (index - 1) / rows ) * (button_width + horizontal_padding)
   local height = -5 - vertical_padding - (mod( index - 1, rows ) * (button_height + vertical_padding))
+  button:ClearAllPoints()
+  button:SetPoint( "TOPLEFT", parent, "TOPLEFT", width, height )
+end
+
+local function create_button( parent, index, rows )
+  local frame = modules.api.CreateFrame( "Button", "RollForLootFrameButton" .. index, parent )
   frame:SetWidth( button_width )
   frame:SetHeight( button_height )
-  frame:SetPoint( "TOPLEFT", parent, "TOPLEFT", width, height )
+  position_button( frame, parent, index, rows )
   frame:SetBackdrop( { bgFile = "Interface\\Buttons\\WHITE8x8" } )
   frame:SetNormalTexture( "" )
   frame.parent = parent
@@ -161,14 +165,19 @@ function M.new( winner_tracker, master_loot_correlation_data, roll_controller, c
     m_frame = create_main_frame()
   end
 
-  local function create_candidate_frames( candidates, item_link )
-    local total = getn( candidates )
-
+  local function resize_frame( total, rows )
     local columns = modules.api.math.ceil( total / rows )
     local total_rows = total < 5 and total or rows
 
     m_frame:SetWidth( (button_width + horizontal_padding) * columns + horizontal_padding + 11 )
     m_frame:SetHeight( (button_height + vertical_padding) * total_rows + vertical_padding + 11 )
+  end
+
+  local function create_candidate_frames( candidates, item_link )
+    local total = getn( candidates )
+    local rows = config.master_loot_frame_rows()
+
+    resize_frame( total, rows )
 
     local function loop( i )
       if i > total then
@@ -179,7 +188,7 @@ function M.new( winner_tracker, master_loot_correlation_data, roll_controller, c
       local candidate = candidates[ i ]
 
       if not m_buttons[ i ] then
-        m_buttons[ i ] = create_button( m_frame, i )
+        m_buttons[ i ] = create_button( m_frame, i, rows )
       end
 
       local button = m_buttons[ i ]
@@ -365,6 +374,20 @@ function M.new( winner_tracker, master_loot_correlation_data, roll_controller, c
 
   winner_tracker.subscribe_for_rolling_started( clear_winners )
   winner_tracker.subscribe_for_winner_found( mark_winner )
+
+  config.subscribe( "master_loot_frame_rows", function()
+    local total = 0
+    local rows = config.master_loot_frame_rows()
+
+    for i = 1, 40 do
+      if m_buttons[ i ] then
+        total = total + 1
+        position_button( m_buttons[ i ], m_frame, i, rows )
+      end
+    end
+
+    resize_frame( total, rows )
+  end )
 
   return {
     hook_loot_buttons = hook_loot_buttons,

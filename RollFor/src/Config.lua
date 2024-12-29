@@ -44,6 +44,7 @@ function M.new( db )
     if db.rolling_popup == nil then db.rolling_popup = true end
     if db.show_ml_warning == nil then db.show_ml_warning = true end
     if db.default_rolling_time_seconds == nil then db.default_rolling_time_seconds = 8 end
+    if db.master_loot_frame_rows == nil then db.master_loot_frame_rows = 5 end
   end
 
   local function print( toggle_key )
@@ -96,9 +97,14 @@ function M.new( db )
     info( string.format( "Default rolling time: %s seconds", hl( db.default_rolling_time_seconds ) ) )
   end
 
+  local function print_master_loot_frame_rows()
+    info( string.format( "Master loot frame rows: %s", hl( db.master_loot_frame_rows ) ) )
+  end
+
   local function print_settings()
     print_header( "RollFor Configuration" )
     print_default_rolling_time()
+    print_master_loot_frame_rows()
     print_roll_thresholds()
     print_transmog_rolling_setting()
     print_pfui_integration_setting()
@@ -136,7 +142,30 @@ function M.new( db )
       return
     end
 
-    info( string.format( "Usage: %s <threshold>", hl( "/rf config ms" ) ) )
+    info( string.format( "Usage: %s <seconds>", hl( "/rf config default-rolling-time" ) ) )
+  end
+
+  local function configure_master_loot_frame_rows( args )
+    if args == "config master-loot-frame-rows" then
+      print_master_loot_frame_rows()
+      return
+    end
+
+    for value in string.gmatch( args, "config master%-loot%-frame%-rows (%d+)" ) do
+      local v = tonumber( value )
+
+      if v < 5 then
+        info( string.format( "Master loot frame rows must be at least %s.", hl( "5" ) ) )
+        return
+      end
+
+      db.master_loot_frame_rows = v
+      print_master_loot_frame_rows()
+      notify_subscribers( "master_loot_frame_rows" )
+      return
+    end
+
+    info( string.format( "Usage: %s <rows>", hl( "/rf config master-loot-frame-rows" ) ) )
   end
 
   local function configure_ms_threshold( args )
@@ -184,6 +213,7 @@ function M.new( db )
     m.print( string.format( "%s - toggle minimap icon", rfc( "minimap" ) ) )
     m.print( string.format( "%s - lock/unlock minimap icon", rfc( "minimap lock" ) ) )
     m.print( string.format( "%s - show default rolling time", rfc( "default-rolling-time" ) ) )
+    m.print( string.format( "%s - show master loot frame rows", rfc( "master-loot-frame-rows" ) ) )
     m.print( string.format( "%s %s - set default rolling time", rfc( "default-rolling-time" ), v( "seconds" ) ) )
     m.print( string.format( "%s - show MS rolling threshold ", rfc( "ms" ) ) )
     m.print( string.format( "%s %s - set MS rolling threshold ", rfc( "ms" ), v( "threshold" ) ) )
@@ -315,6 +345,11 @@ function M.new( db )
       return
     end
 
+    if string.find( args, "^config master%-loot%-frame%-rows" ) then
+      configure_master_loot_frame_rows( args )
+      return
+    end
+
     print_help()
   end
 
@@ -368,6 +403,8 @@ function M.new( db )
     toggle_pfui_integration = toggle( "pfui_integration_enabled" ),
     unlock_minimap_button = unlock_minimap_button,
     default_rolling_time_seconds = get( "default_rolling_time_seconds" ),
+    master_loot_frame_rows = get( "master_loot_frame_rows" ),
+    configure_master_loot_frame_rows = configure_master_loot_frame_rows,
   }
 
   for toggle_key, _ in pairs( toggles ) do
