@@ -1,17 +1,16 @@
----@diagnostic disable-next-line: undefined-global
-local libStub = LibStub
-local modules = libStub( "RollFor-Modules" )
-if modules.RollingTipPopup then return end
+RollFor = RollFor or {}
+local m = RollFor
+
+if m.RollingTipPopup then return end
 
 local M = {}
 
-local m = modules
+local getn = table.getn
 local blue = m.colors.blue
 local green = m.colors.green
 local white = m.colors.white
-local pink = m.colors.pink
 
-function M.new( popup_builder, config )
+function M.new( loot_list, popup_builder, config )
   local popup
 
   local function create_popup()
@@ -22,7 +21,7 @@ function M.new( popup_builder, config )
         :with_bg_file( "Interface/Buttons/WHITE8x8" )
         :with_backdrop_color( 0, 0, 0, 0.6 )
 
-    if modules.uses_pfui() then
+    if m.uses_pfui() then
       builder = builder
           :with_width( 110 )
           :with_height( 39 )
@@ -82,7 +81,7 @@ function M.new( popup_builder, config )
         inner_frame:SetPoint( "CENTER", 0, 0 )
         inner_frame:SetWidth( text3:GetWidth() + 2 )
 
-        if modules.uses_pfui() then
+        if m.uses_pfui() then
           frame:SetWidth( 160 )
           frame:SetHeight( 53 )
         else
@@ -96,7 +95,7 @@ function M.new( popup_builder, config )
         inner_frame:SetHeight( text1:GetHeight() * 2 + 2 )
         inner_frame:SetWidth( text2:GetWidth() + 2 )
 
-        if modules.uses_pfui() then
+        if m.uses_pfui() then
           frame:SetWidth( 110 )
           frame:SetHeight( 39 )
         else
@@ -111,11 +110,11 @@ function M.new( popup_builder, config )
 
   local function show()
     if not config.show_rolling_tip() then return end
-    if modules.uses_pfui() and not config.pfui_integration_enabled() then return end
+    if m.uses_pfui() and not config.pfui_integration_enabled() then return end
 
     if not popup then popup = create_popup() end
 
-    if modules.uses_pfui() and config.pfui_integration_enabled() then
+    if m.uses_pfui() and config.pfui_integration_enabled() then
       popup:ClearAllPoints()
       ---@diagnostic disable-next-line: undefined-global
       popup:SetPoint( "TOPRIGHT", pfLootFrame, "TOPLEFT", -2, 1 )
@@ -132,9 +131,9 @@ function M.new( popup_builder, config )
   end
 
   local function on_loot_opened()
-    if modules.is_player_master_looter() then
-      local count_items_to_loot = modules.count_items_to_master_loot()
-      if count_items_to_loot == 0 then return end
+    if m.is_player_master_looter() then
+      local items_to_loot = getn( loot_list.get_items() )
+      if items_to_loot == 0 then return end
 
       show()
     end
@@ -147,7 +146,7 @@ function M.new( popup_builder, config )
   config.subscribe( "rolling_tip", function( enabled )
     if enabled then
       ---@diagnostic disable-next-line: undefined-global
-      local frame = modules.uses_pfui() and pfLootFrame or LootFrame
+      local frame = m.uses_pfui() and pfLootFrame or LootFrame
 
       if frame and frame:IsVisible() then show() end
     else
@@ -166,5 +165,5 @@ function M.new( popup_builder, config )
   }
 end
 
-modules.RollingTipPopup = M
+m.RollingTipPopup = M
 return M

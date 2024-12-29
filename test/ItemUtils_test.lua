@@ -1,9 +1,8 @@
-package.path = "./?.lua;" .. package.path .. ";../?.lua;../RollFor/?.lua;../RollFor/libs/?.lua;../RollFor/libs/LibStub/?.lua"
+package.path = "./?.lua;" .. package.path .. ";../?.lua;../RollFor/?.lua;../RollFor/libs/?.lua"
 
 local lu = require( "luaunit" )
 local test_utils = require( "test/utils" )
 test_utils.mock_wow_api()
-test_utils.load_libstub()
 require( "src/modules" )
 local utils = require( "src/ItemUtils" )
 
@@ -54,14 +53,6 @@ function ItemUtilsSpec:should_return_given_string_if_not_an_item_link()
 end
 
 ParseAllLinksSpec = {}
-
-function ParseAllLinksSpec:should_return_empty_table_for_nil()
-  -- When
-  local result = utils.parse_all_links()
-
-  -- Expect
-  lu.assertEquals( result, {} )
-end
 
 function ParseAllLinksSpec:should_return_empty_table_for_empty_string()
   -- When

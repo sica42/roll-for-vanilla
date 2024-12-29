@@ -1,9 +1,8 @@
-package.path = "./?.lua;" .. package.path .. ";../?.lua;../RollFor/?.lua;../RollFor/libs/?.lua;../RollFor/libs/LibStub/?.lua"
+package.path = "./?.lua;" .. package.path .. ";../?.lua;../RollFor/?.lua;../RollFor/libs/?.lua"
 
 local lu = require( "luaunit" )
 local eq = lu.assertEquals
 local utils = require( "test/utils" )
-utils.load_libstub()
 
 local player = utils.player
 local soft_res = utils.soft_res
@@ -11,7 +10,6 @@ local sr = utils.soft_res_item
 local is_in_raid = utils.is_in_raid
 local leader = utils.raid_leader
 
-SoftResAwardedLootDecoratorSpec = {}
 SoftResAwardedLootDecoratorSpec = {}
 
 function SoftResAwardedLootDecoratorSpec:should_return_all_softressing_players()

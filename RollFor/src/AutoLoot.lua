@@ -1,11 +1,12 @@
----@diagnostic disable-next-line: undefined-global
-local modules = LibStub( "RollFor-Modules" )
-if modules.AutoLoot then return end
+RollFor = RollFor or {}
+local m = RollFor
 
-local item_utils = modules.ItemUtils
-local info = modules.pretty_print
-local hl = modules.colors.hl
-local grey = modules.colors.grey
+if m.AutoLoot then return end
+
+local item_utils = m.ItemUtils
+local info = m.pretty_print
+local hl = m.colors.hl
+local grey = m.colors.grey
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
@@ -13,7 +14,7 @@ local M = {}
 local button_visible = false
 local _G = getfenv( 0 )
 
-function M.new( api, db, config )
+function M.new( loot_list, api, db, config )
   db.items = db.items or {}
 
   local frame
@@ -21,7 +22,7 @@ function M.new( api, db, config )
 
   local function find_my_candidate_index()
     for i = 1, 40 do
-      local name = modules.api.GetMasterLootCandidate( i )
+      local name = m.api.GetMasterLootCandidate( i )
       if name == api().UnitName( "player" ) then
         return i
       end
@@ -29,24 +30,19 @@ function M.new( api, db, config )
   end
 
   local function on_auto_loot()
-    local item_count = api().GetNumLootItems()
     local zone_name = api().GetRealZoneText()
     local item_ids = items[ zone_name ] or {}
-    local threshold = modules.api.GetLootThreshold()
+    local threshold = m.api.GetLootThreshold()
 
-    for slot = 1, item_count do
-      local link = modules.api.GetLootSlotLink( slot )
-      local _, _, _, quality = modules.api.GetLootSlotInfo( slot )
-      if not quality then quality = 0 end
+    for _, item in ipairs( loot_list.get_items() ) do
+      local quality = item.quality or 0
 
-      if link then
-        local item_id = item_utils.get_item_id( link )
-
-        if quality < threshold or config.auto_loot() and item_ids[ item_id ] then
+      if item.id and item.slot then
+        if quality < threshold or config.auto_loot() and item_ids[ item.id ] then
           local index = find_my_candidate_index()
 
           if index then
-            api().GiveMasterLoot( slot, index )
+            api().GiveMasterLoot( item.slot, index )
           end
         end
       end
@@ -77,7 +73,7 @@ function M.new( api, db, config )
       end
     end
 
-    if not modules.is_shift_key_down() then on_auto_loot() end
+    if not m.is_shift_key_down() then on_auto_loot() end
   end
 
   local function show_usage()
@@ -152,5 +148,5 @@ function M.new( api, db, config )
   }
 end
 
-modules.AutoLoot = M
+m.AutoLoot = M
 return M
