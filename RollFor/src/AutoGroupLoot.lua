@@ -4,6 +4,7 @@ local m = RollFor
 if m.AutoGroupLoot then return end
 
 local M = {}
+---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
 local ignore_zones = {

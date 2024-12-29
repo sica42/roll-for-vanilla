@@ -376,6 +376,8 @@ function M.new( winner_tracker, master_loot_correlation_data, roll_controller, c
   winner_tracker.subscribe_for_winner_found( mark_winner )
 
   config.subscribe( "master_loot_frame_rows", function()
+    if not m_frame then return end
+
     local total = 0
     local rows = config.master_loot_frame_rows()
 

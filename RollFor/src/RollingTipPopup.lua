@@ -5,6 +5,7 @@ if m.RollingTipPopup then return end
 
 local M = {}
 
+---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 local blue = m.colors.blue
 local green = m.colors.green

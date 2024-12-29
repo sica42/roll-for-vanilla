@@ -18,6 +18,7 @@ M.lua = {
   format = format,
   ---@diagnostic disable-next-line: undefined-global
   time = time,
+  ---@diagnostic disable-next-line: undefined-global
   strmatch = strmatch,
   ---@diagnostic disable-next-line: undefined-global
   random = random,
@@ -411,6 +412,7 @@ end
 
 local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
 ----@diagnostic disable-next-line: undefined-field
+---@diagnostic disable-next-line: undefined-field
 local mod = math.mod
 
 function M.decode_base64( data )
