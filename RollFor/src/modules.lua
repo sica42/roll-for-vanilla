@@ -4,14 +4,6 @@ local M = RollFor
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
----@class WowApi
----@field GetLootSlotLink fun( slot: number ): string
----@field GetLootSlotInfo fun( slot: number ):
----    string, -- texture
----    number, -- item
----    number, -- quantity
----    number  -- quality
-
 M.api = getfenv()
 M.lua = {
   ---@diagnostic disable-next-line: undefined-global

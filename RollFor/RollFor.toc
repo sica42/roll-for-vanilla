@@ -19,7 +19,7 @@ src\WowApi.lua
 src\Config.lua
 src\ItemUtils.lua
 src\api\EventFrame.lua
-src\api\LootEventFacade.lua
+src\api\LootFacade.lua
 src\RollingLogicUtils.lua
 src\DroppedLoot.lua
 src\DroppedLootAnnounce.lua

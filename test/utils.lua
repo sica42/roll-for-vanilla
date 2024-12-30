@@ -50,6 +50,8 @@ if not lua50 then
   end
 end
 
+local getn = table.getn
+
 M.debug_enabled = true
 
 function M.princess()
@@ -287,8 +289,14 @@ function M.mock_api()
   M.mock( "UnitName", "Psikutas" )
   M.mock( "UnitClass", "Warrior" )
   M.mock( "GetRealZoneText", "Elwynn Forest" )
+
+  -- Loot Interface
   M.mock( "GetLootSlotLink" )
   M.mock( "GetLootSlotInfo" )
+  M.mock( "LootSlotIsItem" )
+  M.mock( "LootSlotIsCoin" )
+  M.mock( "GetNumLootItems" )
+
   M.loot_threshold( 2 )
   M.mock_messages()
 end
@@ -730,7 +738,7 @@ function M.load_real_stuff( req )
   r( "src/Db" )
   r( "src/Types" )
   r( "src/Interface" )
-  r( "src/api/LootEventFacade" )
+  r( "src/api/LootFacade" )
   r( "src/api/EventFrame" )
   r( "src/WowApi" )
   r( "src/Config" )
@@ -1084,6 +1092,36 @@ function M.luaunit( ... )
   end
 
   return lu, table.unpack( result )
+end
+
+function M.mock_values( values )
+  if type( values ) ~= "table" then error( "Argument is not a table. Use mock_value instead.", 2 ) end
+  local invocation_count = 0
+
+  return function()
+    invocation_count = invocation_count + 1
+
+    if invocation_count > getn( values ) then
+      return nil
+    end
+
+    return values[ invocation_count ]
+  end
+end
+
+function M.mock_value( v1, v2, v3, v4, v5, v6, v7, v8, v9 )
+  local invocation_count = 0
+  local values = { v1, v2, v3, v4, v5, v6, v7, v8, v9 }
+
+  return function()
+    invocation_count = invocation_count + 1
+
+    if invocation_count > getn( values ) then
+      return nil
+    end
+
+    return values[ invocation_count ]
+  end
 end
 
 return M
