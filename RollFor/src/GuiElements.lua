@@ -5,7 +5,27 @@ if m.GuiElements then return end
 
 local M = {}
 
-function M.item( parent )
+local function create_text_in_container( parent, container_width, alignment, text, inner_field )
+  local container = m.api.CreateFrame( "Button", nil, parent )
+  container:SetWidth( container_width )
+  local frame = container:CreateFontString( nil, "ARTWORK", "GameFontNormalSmall" )
+
+  frame:SetTextColor( 1, 1, 1 )
+  if text then frame:SetText( text ) end
+
+  if alignment then frame:SetPoint( alignment, 0, 0 ) end
+  container:SetHeight( frame:GetHeight() )
+
+  if inner_field then
+    container[ inner_field ] = frame
+  else
+    container.inner = frame
+  end
+
+  return container
+end
+
+function M.item_link( parent )
   local result = m.api.CreateFrame( "Button", nil, parent )
 
   result.text = result:CreateFontString( nil, "ARTWORK", "GameFontNormal" )
@@ -25,25 +45,79 @@ function M.item( parent )
     m.api.GameTooltip:Hide()
   end )
 
+  result.SetText = function( _, v )
+    result.text:SetText( v )
+    result:SetWidth( result.text:GetWidth() )
+  end
+
   return result
 end
 
-local function create_text_in_container( parent, container_width, alignment, text, inner_field )
-  local container = m.api.CreateFrame( "Frame", nil, parent )
-  container:SetWidth( container_width )
-  local frame = container:CreateFontString( nil, "ARTWORK", "GameFontNormalSmall" )
+function M.item_link_with_icon( parent, text )
+  local container = create_text_in_container( parent, 20, nil, nil, "text" )
 
-  frame:SetTextColor( 1, 1, 1 )
-  if text then frame:SetText( text ) end
+  local w = 14
+  local h = 14
+  local spacing = 10
+  local texture
 
-  if alignment then frame:SetPoint( alignment, 0, 0 ) end
-  container:SetHeight( frame:GetHeight() )
+  container:SetPoint( "TOP", 0, 0 )
+  container.icon = M.icon( container, true, w, h )
+  container.icon:SetPoint( "LEFT", 0, 0 )
+  container.icon:SetTexCoord( 1 / w, (w - 1) / w, 1 / h, (h - 1) / h )
+  container.text:SetTextColor( 1, 1, 1 )
 
-  if inner_field then
-    container[ inner_field ] = frame
+  if text then
+    container.text:SetText( text )
   else
-    container.inner = frame
+    container.text:SetText( "PrincessKenny" )
   end
+
+  container:SetHeight( container.text:GetHeight() )
+
+  local function resize()
+    if texture then
+      container.icon:Show()
+      container.text:ClearAllPoints()
+      container.text:SetPoint( "LEFT", container.icon, "RIGHT", spacing, 0 )
+      container:SetWidth( container.text:GetWidth() + w + spacing )
+    else
+      container.icon:Hide()
+      container.text:ClearAllPoints()
+      container.text:SetPoint( "LEFT", container, 0, 0 )
+      container:SetWidth( container.text:GetWidth() )
+    end
+  end
+
+  container.SetText = function( _, v )
+    container.text:SetText( v )
+    resize()
+  end
+
+  container.SetTexture = function( _, v )
+    texture = v
+
+    if v then
+      container.icon:SetTexture( v )
+    end
+
+    resize()
+  end
+
+  local function on_enter()
+    ---@diagnostic disable-next-line: undefined-global
+    local self = this
+    m.api.GameTooltip:SetOwner( self, "ANCHOR_CURSOR" )
+    m.api.GameTooltip:SetHyperlink( container.tooltip_link )
+    m.api.GameTooltip:Show()
+  end
+
+  local function on_leave()
+    m.api.GameTooltip:Hide()
+  end
+
+  container:SetScript( "OnEnter", on_enter )
+  container:SetScript( "OnLeave", on_leave )
 
   return container
 end
@@ -57,11 +131,11 @@ function M.text( parent, text )
   return result
 end
 
-function M.icon( parent, show )
+function M.icon( parent, show, width, height )
   local icon = parent:CreateTexture( nil, "BACKGROUND" )
   if not show then icon:Hide() end
-  icon:SetWidth( 16 )
-  icon:SetHeight( 16 )
+  icon:SetWidth( width or 16 )
+  icon:SetHeight( height or 16 )
   icon:SetTexture( "Interface\\AddOns\\RollFor\\assets\\icon-white2.tga" )
 
   return icon

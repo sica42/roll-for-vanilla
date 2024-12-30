@@ -15,6 +15,8 @@ local r = m.roll_type_color
 
 local M = {}
 
+local top_padding = 11
+
 local function article( number )
   local str = tostring( number )
 
@@ -30,12 +32,12 @@ end
 
 function M.raid_roll_winner_content( winner )
   local player = c( winner.name, winner.class )
-  return { type = "text", value = string.format( "%s wins the %s.", player, blue( "raid-roll" ) ), padding = 7 }
+  return { type = "text", value = string.format( "%s wins the %s.", player, blue( "raid-roll" ) ), padding = 8 }
 end
 
 function M.insta_raid_roll_winner_content( winner )
   local player = c( winner.name, winner.class )
-  return { type = "text", value = string.format( "%s wins the %s.", player, blue( "insta raid-roll" ) ), padding = 7 }
+  return { type = "text", value = string.format( "%s wins the %s.", player, blue( "insta raid-roll" ) ), padding = 8 }
 end
 
 function M.roll_winner_content( winner, rolling_strategy )
@@ -44,19 +46,19 @@ function M.roll_winner_content( winner, rolling_strategy )
   local roll = winner.roll and blue( winner.roll )
 
   if roll then
-    return { type = "text", value = string.format( "%s wins the %s roll with %s %s.", player, roll_type, article( winner.roll ), roll ), padding = 10 }
+    return { type = "text", value = string.format( "%s wins the %s roll with %s %s.", player, roll_type, article( winner.roll ), roll ), padding = top_padding }
   elseif rolling_strategy == RS.SoftResRoll then
     local soft_ressing = r( RT.SoftRes, "soft-ressing" )
-    return { type = "text", value = string.format( "%s is the only one %s.", player, soft_ressing ), padding = 10 }
+    return { type = "text", value = string.format( "%s is the only one %s.", player, soft_ressing ), padding = top_padding }
   else
-    return { type = "text", value = string.format( "%s %s win the roll.", player, red( "did not" ) ), padding = 10 }
+    return { type = "text", value = string.format( "%s %s win the roll.", player, red( "did not" ) ), padding = top_padding }
   end
 end
 
 function M.the_only_sr_content( winner )
   local player = c( winner.name, winner.class )
   local soft_ressing = r( RT.SoftRes, "soft-ressing" )
-  return { type = "text", value = string.format( "%s is the only one %s.", player, soft_ressing ), padding = 10 }
+  return { type = "text", value = string.format( "%s is the only one %s.", player, soft_ressing ), padding = top_padding }
 end
 
 function M.new( popup, roll_controller, roll_tracker, config, finish_early, cancel_roll, raid_roll, master_loot_correlation_data )
@@ -70,7 +72,7 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
         player_name = roll.player_name,
         player_class = roll.player_class,
         roll = roll.roll,
-        padding = i == 1 and 10 or nil
+        padding = i == 1 and top_padding or nil
       } )
     end
   end
@@ -80,14 +82,14 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
       if iteration.rolling_strategy == RS.SoftResRoll or iteration.rolling_strategy == RS.NormalRoll then
         rolls_content( result, iteration.rolls )
       elseif iteration.rolling_strategy == RS.TieRoll then
-        table.insert( result, { type = "text", value = string.format( "There was a tie (%s):", blue( iteration.tied_roll ) ), padding = 10 } )
+        table.insert( result, { type = "text", value = string.format( "There was a tie (%s):", blue( iteration.tied_roll ) ), padding = top_padding } )
         rolls_content( result, iteration.rolls )
       end
     end
   end
 
   local function make_item( item )
-    return { type = "item", link = item and item.link }
+    return { type = "item_link_with_icon", link = item and item.link, texture = item and item.texture }
   end
 
   local function raid_roll_winner( data, current_iteration )
@@ -133,7 +135,7 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
     if data.status.type == S.TieFound then return result end
 
     if data.status.type == S.InProgress and current_iteration.rolling_strategy == RS.RaidRoll then
-      table.insert( result, { type = "icon_text", value = "Raid rolling...", padding = 10 } )
+      table.insert( result, { type = "text", value = "Raid rolling...", padding = 8 } )
       return result
     end
 
@@ -173,7 +175,7 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
     end
 
     if data.status.type == S.Canceled then
-      table.insert( result, { type = "text", value = "Rolling has been canceled.", padding = 10 } )
+      table.insert( result, { type = "text", value = "Rolling has been canceled.", padding = top_padding } )
       table.insert( result, { type = "button", label = "Close", width = 90, on_click = function() popup:hide() end } )
 
       return result
@@ -181,7 +183,8 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
 
     if data.status.type == S.InProgress and data.status.seconds_left then
       local seconds = data.status.seconds_left
-      table.insert( result, { type = "text", value = string.format( "Rolling ends in %s second%s.", seconds, seconds == 1 and "" or "s" ), padding = 10 } )
+      table.insert( result,
+        { type = "text", value = string.format( "Rolling ends in %s second%s.", seconds, seconds == 1 and "" or "s" ), padding = top_padding } )
 
       if roll_count == 0 and config.auto_raid_roll() then
         table.insert( result, { type = "text", value = string.format( "Auto %s is %s.", blue( "raid-roll" ), m.msg.enabled ) } )
@@ -212,14 +215,14 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
     end
 
     if data.status.type == S.Finished and not data.status.winner then
-      table.insert( result, { type = "text", value = "Rolling has finished. No one rolled.", padding = 10 } )
+      table.insert( result, { type = "text", value = "Rolling has finished. No one rolled.", padding = top_padding } )
       table.insert( result, { type = "button", label = "Raid roll", width = 90, on_click = function() raid_roll( data.item.link ) end } )
       table.insert( result, { type = "button", label = "Close", width = 90, on_click = function() popup:hide() end } )
       return result
     end
 
     if data.status.type == S.Waiting then
-      table.insert( result, { type = "text", value = "Waiting for remaining rolls...", padding = 10 } )
+      table.insert( result, { type = "text", value = "Waiting for remaining rolls...", padding = top_padding } )
       table.insert( result,
         { type = "button", label = "Finish early", width = 100, on_click = finish_early } )
       table.insert( result,

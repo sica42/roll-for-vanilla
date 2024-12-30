@@ -125,7 +125,9 @@ end
 local function raid_roll_item( item_link )
   local item_id = M.item_utils.get_item_id( item_link )
   local item_name = M.item_utils.get_item_name( item_link )
-  local item = { id = item_id, link = item_link, name = item_name }
+  local texture = m.get_item_texture( item_id )
+
+  local item = { id = item_id, link = item_link, name = item_name, texture = texture }
   m_rolling_logic = raid_roll_rolling_logic( item )
   M.winner_tracker.start_rolling( item.link )
   m_rolling_logic.announce_rolling()
@@ -480,7 +482,9 @@ local function parse_args( args )
     local count = (not item_count or item_count == "") and 1 or tonumber( item_count )
     local item_id = M.item_utils.get_item_id( item_link )
     local item_name = M.item_utils.get_item_name( item_link )
-    local item = { id = item_id, link = item_link, name = item_name }
+    local texture = m.get_item_texture( item_id )
+
+    local item = { id = item_id, link = item_link, name = item_name, texture = texture }
     local secs = seconds and seconds ~= "" and seconds ~= " " and tonumber( seconds ) or M.config.default_rolling_time_seconds()
 
     return item, count, secs < 4 and 4 or secs > 15 and 15 or secs, message

@@ -559,4 +559,9 @@ function M.is_new_version( mine, theirs )
   return false
 end
 
+function M.get_item_texture( item_id )
+  local _, _, _, _, _, _, _, _, texture = M.api.GetItemInfo( item_id )
+  return texture
+end
+
 return M

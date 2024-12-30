@@ -57,7 +57,7 @@ function M.new( popup_builder, roll_controller, confirm_award, RollingPopupConte
   end
 
   local function make_content( item_link, player, rolling_strategy, error )
-    local content                 = { { type = "item", link = item_link } }
+    local content                 = { { type = "item_link", link = item_link } }
     local data, current_iteration = roll_tracker.get()
 
     local winner                  = data and data.status and data.status.winner and
@@ -124,7 +124,7 @@ function M.new( popup_builder, roll_controller, confirm_award, RollingPopupConte
 
     for _, v in ipairs( make_content( data.item_link, data.player, data.rolling_strategy, error ) ) do
       popup.add_line( v.type, function( type, frame )
-        if type == "item" then
+        if type == "item_link" then
           frame.text:SetText( v.link )
           frame:SetWidth( frame.text:GetWidth() )
           frame.tooltip_link = v.link and m.ItemUtils.get_tooltip_link( v.link )

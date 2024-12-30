@@ -20,7 +20,7 @@ function M.builder()
     local edge_size = 20
     local button_padding = 10
     local top_padding = 14
-    local bottom_margin = 33
+    local bottom_margin = 30
     local title_visible = false
 
     local function create_anchor()
@@ -126,7 +126,7 @@ function M.builder()
     local function align_buttons( parent )
       if not parent.buttons_frame then
         local frame = m.api.CreateFrame( "Frame", nil, parent )
-        frame:SetPoint( "BOTTOM", 0, 11 )
+        frame:SetPoint( "BOTTOM", 0, 8 )
         parent.buttons_frame = frame
       end
 
