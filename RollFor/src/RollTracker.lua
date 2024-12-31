@@ -7,20 +7,80 @@ if m.RollTracker then return end
 -- The first iteration starts with either a normal or soft-res rolling.
 -- Then there's either a winner or a tie.
 -- For each tie we have a new iteration, because a tie can result in another tie.
-local M = {}
+local M = m.Module.new( "RollTracker" )
 
 local clear_table = m.clear_table
 local RS = m.Types.RollingStrategy
 local RT = m.Types.RollType
 local S = m.Types.RollingStatus
 
+---@diagnostic disable-next-line: deprecated
+local getn = table.getn
+
+---@class RollData
+---@field player_name string
+---@field player_class string
+---@field roll_type RollType
+---@field roll number?
+
+---@class RollIteration
+---@field rolling_strategy RollingStrategyType
+---@field message string
+---@field rolls RollData[]
+---@field ignored_rolls RollData[]?
+---@field tied_roll number?
+
+-- The status data is different for each type. TODO: split this.
+---@class RollStatus
+---@field type RollingStatus
+---@field seconds_left number?
+---@field winners RollingPlayer[]?
+---@field ml_candidates ItemCandidate[]?
+
+---@alias RollTrackerData {
+---  item: Item|MasterLootDistributableItem,
+---  item_count: number,
+---  status: RollStatus,
+---  iterations: RollIteration[],
+---  winners: Winner[],
+---  ml_candidates: ItemCandidate[] }
+
+---@class RollTracker
+---@field preview fun( item: Item, count: number, ml_candidates: ItemCandidate[], soft_ressers: RollingPlayer[], hard_ressed: boolean )
+---@field start fun( rolling_strategy: RollingStrategyType, item: Item|DroppedItem|SoftRessedDroppedItem, count: number, seconds: number?, message: string?, required_rolling_players: RollingPlayer[]? )
+---@field waiting_for_rolls fun()
+---@field add_winners fun( winners: Winner[] )
+---@field finish fun( ml_candidates: ItemCandidate[] )
+---@field rolling_canceled fun()
+---@field tie fun( required_rolling_players: RollingPlayer[], roll_type: RollType, roll: number )
+---@field tie_start fun()
+---@field add fun( player_name: string, player_class: string, roll_type: RollType, roll: number )
+---@field add_ignored fun( player_name: string, roll_type: RollType, roll: number, reason: string )
+---@field get fun(): RollTrackerData, RollIteration
+---@field tick fun( seconds_left: number )
+---@field clear fun()
+---@field loot_awarded fun( player_name: string, item_id: number )
+---@field create_roll_data fun( players: RollingPlayer[] ): RollData[]
+
 function M.new()
   local status
   local item_on_roll
+  local item_on_roll_count = 0
   local iterations = {}
   local current_iteration = 0
+  local master_loot_candidates = {}
+
+  ---@type Winner[]
+  local winners = {}
+
+  local function lua50_clear_table( t )
+    clear_table( t )
+    t.n = 0
+  end
 
   local function update_roll( rolls, data )
+    M.debug.add( "update_roll" )
+
     for _, line in ipairs( rolls ) do
       if line.player_name == data.player_name and not line.roll then
         line.roll = data.roll
@@ -55,7 +115,9 @@ function M.new()
 
   local function add( player_name, player_class, roll_type, roll )
     if current_iteration == 0 then return end
+    M.debug.add( "add" )
 
+    ---@type RollData
     local data = { player_name = player_name, player_class = player_class, roll_type = roll_type, roll = roll }
     local iteration = iterations[ current_iteration ]
 
@@ -68,18 +130,80 @@ function M.new()
     sort( iteration.rolls )
   end
 
-  -- required_rolling_players should have { name = "", class = "" } structure
-  local function start( rolling_strategy, item, count, info, seconds, required_rolling_players )
-    clear_table( iterations )
-    iterations.n = 0
+  ---@param players RollingPlayer[]
+  local function create_roll_data( players )
+    local result = {}
+
+    for _, player in ipairs( players ) do
+      for _ = 1, player.rolls do
+        ---@type RollData
+        local data = { player_name = player.name, player_class = player.class, roll_type = RT.SoftRes }
+        table.insert( result, data )
+      end
+    end
+
+    return result
+  end
+
+  ---@param item Item
+  ---@param count number
+  ---@param ml_candidates ItemCandidate[]
+  ---@param soft_ressers RollingPlayer[]
+  ---@param hard_ressed boolean
+  local function preview( item, count, ml_candidates, soft_ressers, hard_ressed )
+    M.debug.add( "preview" )
+    lua50_clear_table( iterations )
+    lua50_clear_table( winners )
+    lua50_clear_table( master_loot_candidates )
+    current_iteration = 1
+    status = { type = S.Preview }
+    item_on_roll = item
+    item_on_roll_count = count
+
+    local soft_ressed = getn( soft_ressers ) > 0
+    local ressed_item = soft_ressed or hard_ressed
+
+    table.insert( iterations, {
+      rolling_strategy = ressed_item and RS.SoftResRoll or RS.NormalRoll,
+      rolls = {}
+    } )
+
+    if soft_ressed then
+      status.winners = soft_ressers
+
+      for _, player in ipairs( soft_ressers or {} ) do
+        for _ = 1, player.rolls or 1 do
+          add( player.name, player.class, RT.SoftRes )
+        end
+      end
+    end
+
+    if ressed_item then
+      status.ml_candidates = ml_candidates
+    end
+  end
+
+
+  ---@param rolling_strategy RollingStrategyType
+  ---@param item Item|DroppedItem|SoftRessedDroppedItem
+  ---@param count number
+  ---@param seconds number
+  ---@param message string
+  ---@param required_rolling_players RollingPlayer[]?
+  local function start( rolling_strategy, item, count, seconds, message, required_rolling_players )
+    M.debug.add( "start" )
+    lua50_clear_table( iterations )
+    lua50_clear_table( winners )
+    lua50_clear_table( master_loot_candidates )
     current_iteration = 1
     status = { type = S.InProgress, seconds_left = seconds }
+
     item_on_roll = item
+    item_on_roll_count = count
 
     table.insert( iterations, {
       rolling_strategy = rolling_strategy,
-      count = count,
-      info = info,
+      message = message,
       rolls = {}
     } )
 
@@ -90,15 +214,36 @@ function M.new()
     end
   end
 
-  local function finish( winner )
-    status = { type = S.Finished, winner = winner }
+  ---@param new_winners Winner[]
+  local function add_winners( new_winners )
+    M.debug.add( "add_winners" )
+
+    for _, winner in ipairs( new_winners ) do
+      table.insert( winners, winner )
+    end
   end
 
-  --- Indicates that the there was a tie.
-  --- @param required_rolling_players Player[] The players that are tied.
-  --- @param roll_type RollType The type of the roll.
-  --- @param roll number The roll value.
-  local function tie( required_rolling_players, roll_type, roll )
+  ---@param ml_candidates ItemCandidate[]
+  local function update_ml_candidates( ml_candidates )
+    lua50_clear_table( master_loot_candidates )
+
+    for _, ml_candidate in ipairs( ml_candidates ) do
+      table.insert( master_loot_candidates, ml_candidate )
+    end
+  end
+
+  ---@param ml_candidates ItemCandidate[]
+  local function finish( ml_candidates )
+    M.debug.add( "finish" )
+    status = { type = S.Finished }
+    update_ml_candidates( ml_candidates )
+  end
+
+  --- @param players RollingPlayer[]
+  --- @param roll_type RollType
+  --- @param roll number
+  local function tie( players, roll_type, roll )
+    M.debug.add( "tie" )
     current_iteration = current_iteration + 1
     status = { type = S.TieFound }
 
@@ -108,64 +253,112 @@ function M.new()
       rolls = {}
     } )
 
-    for _, player in ipairs( required_rolling_players or {} ) do
+    for _, player in ipairs( players or {} ) do
       add( player.name, player.class, roll_type )
     end
   end
 
   local function tie_start()
+    M.debug.add( "tie_start" )
     status = { type = S.Waiting }
   end
 
-  local function add_ignored( player_name, player_class, roll_type, roll, reason )
+  local function add_ignored( player_name, roll_type, roll, reason )
+    M.debug.add( "add_ignored" )
     if current_iteration == 0 then return end
     iterations[ current_iteration ].ignored_rolls = iterations[ current_iteration ].ignored_rolls or {}
     local rolls = iterations[ current_iteration ].ignored_rolls
-    local data = { player_name = player_name, player_class = player_class, roll_type = roll_type, roll = roll, reason = reason }
+    local data = { player_name = player_name, roll_type = roll_type, roll = roll, reason = reason }
     table.insert( rolls, data )
   end
 
   local function get()
+    M.debug.add( "get" )
+
     return {
       item = item_on_roll,
+      item_count = item_on_roll_count,
       status = status,
       iterations = iterations,
+      winners = winners,
+      ml_candidates = master_loot_candidates
     }, current_iteration > 0 and iterations[ current_iteration ] or nil
   end
 
   local function tick( seconds_left )
+    M.debug.add( "tick" )
+
     if status.type == S.InProgress then
       status.seconds_left = seconds_left
     end
   end
 
   local function waiting_for_rolls()
+    M.debug.add( "waiting_for_rolls" )
     status.type = S.Waiting
   end
 
-  local function cancel()
+  local function rolling_canceled()
+    M.debug.add( "rolling_canceled" )
+    if not status then return end
     status.type = S.Canceled
   end
 
   local function clear()
-    clear_table( iterations )
-    iterations.n = 0
+    M.debug.add( "clear" )
+    lua50_clear_table( iterations )
+    lua50_clear_table( winners )
+    lua50_clear_table( master_loot_candidates )
     current_iteration = 0
     status = nil
+    item_on_roll = nil
+    item_on_roll_count = 0
+    M.debug.add( "cleared" )
   end
 
+  local function clear_if_no_winners()
+    if item_on_roll_count == 0 then
+      clear()
+    end
+  end
+
+  ---@param player_name string
+  ---@param item_id number
+  local function loot_awarded( player_name, item_id )
+    if not item_on_roll or item_on_roll.id ~= item_id then return end
+
+    item_on_roll_count = item_on_roll_count - 1
+    local w = status.type == S.Preview and status.winners or winners
+
+    for i, winner in ipairs( w ) do
+      if winner.name == player_name then
+        table.remove( w, i )
+        clear_if_no_winners()
+
+        return
+      end
+    end
+
+    clear_if_no_winners()
+  end
+
+  ---@type RollTracker
   return {
+    preview = preview,
     start = start,
     waiting_for_rolls = waiting_for_rolls,
+    add_winners = add_winners,
     finish = finish,
-    cancel = cancel,
+    rolling_canceled = rolling_canceled,
     tie = tie,
     tie_start = tie_start,
     add = add,
     add_ignored = add_ignored,
     get = get,
     tick = tick,
-    clear = clear
+    clear = clear,
+    loot_awarded = loot_awarded,
+    create_roll_data = create_roll_data
   }
 end
 

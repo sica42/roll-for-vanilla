@@ -13,8 +13,6 @@ local m_player_name = nil
 local m_target = nil
 local m_loot_confirm_callback = nil
 
-local eq = require( "luaunit" ).assertEquals
-
 ---@diagnostic disable-next-line: undefined-field
 local lua50 = table.setn and true or false
 
@@ -35,6 +33,7 @@ if not lua50 then
       return t[ i ], unpack( t, i + 1, j )
     end
   end
+
 
   if not table.getn then
     ---@diagnostic disable-next-line: duplicate-set-field
@@ -69,17 +68,24 @@ function M.debugln( message )
   M.debug( message )
 end
 
-function M.party_message( message )
-  return { message = message, chat = "PARTY" }
+---@param message string
+---@param chat_type ChatType|"CONSOLE"
+function M.chat_message( message, chat_type )
+  return { message = message, type = chat_type }
 end
 
+function M.party_message( message )
+  return M.chat_message( message, "PARTY" )
+end
+
+---@return ... ChatMessage[]
 function M.raid_message( ... )
   local args = { ... }
 
   local result = {}
 
   for i = 1, #args do
-    table.insert( result, { message = args[ i ], chat = "RAID" } )
+    table.insert( result, M.chat_message( args[ i ], "RAID" ) )
   end
 
   ---@diagnostic disable-next-line: deprecated
@@ -87,11 +93,11 @@ function M.raid_message( ... )
 end
 
 function M.raid_warning( message )
-  return { message = message, chat = "RAID_WARNING" }
+  return M.chat_message( message, "RAID_WARNING" ) ---@type ChatMessage
 end
 
 function M.console_message( message )
-  return { message = message, chat = "CONSOLE" }
+  return M.chat_message( message, "CONSOLE" ) ---@type ChatMessage
 end
 
 function M.mock_wow_api()
@@ -129,8 +135,9 @@ function M.mock_wow_api()
           self.OnTextChangedCallback = callback
         end
       end,
-      Show = function() end,
+      Show = function( self ) self.visible = true end,
       Hide = function( self )
+        self.visible = false
         if self.OnHideCallback then self.OnHideCallback() end
       end,
       Enable = function() end,
@@ -190,7 +197,7 @@ function M.mock_wow_api()
       GetText = function( self )
         return self.text
       end,
-      IsVisible = function() end,
+      IsVisible = function( self ) return self.visible end,
       CreateFontString = function()
         return {
           Hide = function() end,
@@ -240,6 +247,8 @@ function M.mock_wow_api()
     { r = 1, g = 1, b = 1, a = 1, hex = "kenny" }
   }
   M.modules().api.FONT_COLOR_CODE_CLOSE = "|r"
+
+  return M.modules().api
 end
 
 function M.highlight( word )
@@ -252,6 +261,10 @@ end
 
 function M.parse_item_link( item_link )
   return string.gsub( item_link, "|c%x%x%x%x%x%x%x%x|Hitem:%d+.*|h(.*)|h|r", "%1" )
+end
+
+function M.parse_tooltip_item_link( item_link )
+  return string.gsub( item_link, "^item:(%d+):.*$", "%1" )
 end
 
 local function load_libstub()
@@ -289,6 +302,7 @@ function M.mock_api()
   M.mock( "UnitName", "Psikutas" )
   M.mock( "UnitClass", "Warrior" )
   M.mock( "GetRealZoneText", "Elwynn Forest" )
+  M.mock( "UnitIsPartyLeader", false )
 
   -- Loot Interface
   M.mock( "GetLootSlotLink" )
@@ -298,7 +312,7 @@ function M.mock_api()
   M.mock( "GetNumLootItems" )
 
   M.loot_threshold( 2 )
-  M.mock_messages()
+  M.mock_loot_frame()
 end
 
 function M.modules()
@@ -309,22 +323,6 @@ end
 
 function M.mock_slashcmdlist()
   M.modules().api.SlashCmdList = m_slashcmdlist
-end
-
-function M.mock_messages()
-  m_messages = {}
-
-  M.modules().api.SendChatMessage = function( message, chat )
-    local parsed_message = M.parse_item_link( message )
-    table.insert( m_messages, { message = parsed_message, chat = chat } )
-  end
-
-  M.modules().api.DEFAULT_CHAT_FRAME = {
-    AddMessage = function( _, message )
-      local message_without_colors = M.parse_item_link( M.decolorize( message ) )
-      table.insert( m_messages, { message = message_without_colors, chat = "CONSOLE" } )
-    end
-  }
 end
 
 function M.get_messages()
@@ -374,16 +372,18 @@ function M.roll_for_raw( raw_text )
   M.run_command( "RF", raw_text )
 end
 
-function M.raid_roll( item_name, item_id )
-  M.run_command( "RR", M.item_link( item_name, item_id ) )
+function M.raid_roll( item_name, item_id, count )
+  local link = M.item_link( item_name, item_id )
+  M.run_command( "RR", count and count > 1 and string.format( "%sx%s", count, link ) or link )
 end
 
 function M.raid_roll_raw( raw_text )
   M.run_command( "RR", raw_text )
 end
 
-function M.insta_raid_roll( item_name, item_id )
-  M.run_command( "IRR", M.item_link( item_name, item_id ) )
+function M.insta_raid_roll( item_name, item_id, count )
+  local link = M.item_link( item_name, item_id )
+  M.run_command( "IRR", count and count > 1 and string.format( "%sx%s", count, link ) or link )
 end
 
 function M.insta_raid_roll_raw( raw_text )
@@ -421,23 +421,46 @@ function M.fire_event( name, ... )
   end
 end
 
-function M.roll( player_name, roll, upper_bound )
-  M.fire_event( "CHAT_MSG_SYSTEM", string.format( "%s rolls %d (1-%d)", player_name, roll, upper_bound or 100 ) )
+function M.roll( player_name, roll, lower_bound, upper_bound )
+  M.fire_event(
+    "CHAT_MSG_SYSTEM",
+    string.format( "%s rolls %d (%s-%d)", player_name, roll, upper_bound and lower_bound or 1, not upper_bound and lower_bound or upper_bound or 100 )
+  )
 end
 
 function M.roll_os( player_name, roll )
   M.fire_event( "CHAT_MSG_SYSTEM", string.format( "%s rolls %d (1-99)", player_name, roll ) )
 end
 
-function M.mock_random_roll( player_name, roll, upper_bound )
-  M.mock( "RandomRoll", function() M.roll( player_name, roll, upper_bound ) end )
+function M.mock_random_roll( player_name, roll, upper_bound, f )
+  M.mock( "RandomRoll", function()
+    if f and type( f ) == "function" then f( player_name, roll, 1, upper_bound ) else M.roll( player_name, roll, 1, upper_bound ) end
+  end )
+  M.mock( "GetMasterLootCandidate", function() return {} end )
+end
+
+function M.mock_multiple_random_roll( values )
+  local invocation_count = 0
+
+  M.mock( "RandomRoll", function()
+    invocation_count = invocation_count + 1
+    local value = values[ invocation_count ]
+
+    local f = value[ 4 ]
+
+    if f and type( f ) == "function" then
+      f( value[ 1 ], value[ 2 ], 1, value[ 3 ] )
+    else
+      M.roll( value[ 1 ], value[ 2 ], value[ 3 ] )
+    end
+  end )
+
   M.mock( "GetMasterLootCandidate", function() return {} end )
 end
 
 function M.init()
   M.mock_api()
   M.fire_login_events()
-  M.mock_messages()
   M.import_soft_res( nil )
   m_is_master_looter = false
 end
@@ -467,6 +490,8 @@ function M.mock_table_function( name, values )
   end
 end
 
+---@param name string
+---@param id number?
 function M.item_link( name, id )
   return string.format( "|cff9d9d9d|Hitem:%s::::::::20:257::::::|h[%s]|h|r", id or "3299", name )
 end
@@ -491,6 +516,10 @@ function M.dump( o )
 
   if (entries > 0) then s = s .. " " end
   return s .. "}"
+end
+
+function M.pdump( o )
+  print( M.dump( o ) )
 end
 
 function M.flatten( target, source )
@@ -620,9 +649,24 @@ function M.force_require( name )
   return require( name )
 end
 
+function M.multi_require_src( ... )
+  local modules = { ... }
+
+  for _, module in ipairs( modules ) do
+    require( string.format( "src/%s", module ) )
+  end
+end
+
+function M.mock_loot_frame()
+  M.mock_object( "LootFrame", {
+    GetFrameLevel = function() return 10 end,
+    UnregisterAllEvents = function() end,
+  } )
+end
+
 function M.player( name, config )
   if config then
-    config()
+    RollFor.Config = config
   else
     M.force_require( "src/Config" )
   end
@@ -632,9 +676,8 @@ function M.player( name, config )
   m_target = nil
   M.mock_unit_name()
   M.mock( "IsInGroup", false )
-  M.mock_object( "LootFrame", {
-    GetFrameLevel = function() return 10 end
-  } )
+  M.mock( "GetMasterLootCandidate", nil )
+  M.mock_loot_frame()
   local rf = M.load_roll_for()
   M.fire_event( "PLAYER_ENTERING_WORLD" )
 
@@ -668,14 +711,6 @@ function M.console_and_raid_warning( message )
   end
 end
 
--- Helper functions.
-function M.assert_messages( ... )
-  local args = { ... }
-  local expected = {}
-  M.flatten( expected, args )
-  eq( M.get_messages(), expected )
-end
-
 function M.tick()
   if not m_tick_fn then
     M.debug( "Tick function not set." )
@@ -699,15 +734,12 @@ function M.repeating_tick( times )
   end
 end
 
-function M.mock_libraries()
-  m_tick_fn = nil
-  m_repeating_tick_fn = nil
-  M.mock_wow_api()
-  M.mock_library( "AceConsole-3.0" )
-  M.mock_library( "AceEvent-3.0", { RegisterMessage = function() end } )
-  M.mock_library( "AceTimer-3.0", {
+function M.mock_ace_timer()
+  ---@type AceTimer
+  return {
     ScheduleTimer = function( _, f )
       m_tick_fn = f
+      return 1337
     end,
     ScheduleRepeatingTimer = function( _, f )
       m_repeating_tick_fn = f
@@ -717,16 +749,46 @@ function M.mock_libraries()
       if timer_id == 1 then m_tick_fn = nil end
       if timer_id == 2 then m_repeating_tick_fn = nil end
     end
-  } )
-  M.mock_library( "AceComm-3.0", { RegisterComm = function() end, SendCommMessage = function() end } )
-  M.mock_library( "AceDB-3.0", {
-    New = function( _, _ )
-      return {
-        global = {},
-        char = {}
-      }
+  }
+end
+
+function M.mock_libraries()
+  m_tick_fn = nil
+  m_repeating_tick_fn = nil
+  M.mock_wow_api()
+  M.mock_library( "AceTimer-3.0", M.mock_ace_timer() )
+end
+
+---@alias ModuleRegistryEntry { module_name: string, variable_name: string, mock: (string|function)? }
+---@alias ModuleRegistry ModuleRegistryEntry[]
+
+---@param module_registry ModuleRegistry
+---@param target_table table
+function M.load_real_stuff_and_inject( module_registry, target_table )
+  local wrapper = require( "mocks/ModuleWrapper" )
+
+  M.load_real_stuff( function( module_name )
+    for _, entry in ipairs( module_registry ) do
+      local location = string.format( "src/%s", entry.module_name )
+
+      if module_name == location then
+        local module = entry.mock and type( entry.mock ) == "string" and require( entry.mock --[[@as string]] ) or
+            entry.mock and type( entry.mock ) == "function" and entry.mock() or
+            require( module_name )
+
+        if type( module ) == "function" then
+          error( module_name )
+        end
+
+        local result = wrapper.new( module, function( instance ) if entry.variable_name then target_table[ entry.variable_name ] = instance end end )
+        RollFor[ entry.module_name ] = result
+        target_table[ entry.module_name ] = module
+        return result
+      end
     end
-  } )
+
+    return require( module_name )
+  end )
 end
 
 function M.load_real_stuff( req )
@@ -735,14 +797,19 @@ function M.load_real_stuff( req )
   load_libstub()
   r( "src/modules" )
   M.mock_api()
+  r( "src/DebugBuffer" )
+  r( "src/Module" )
   r( "src/Db" )
   r( "src/Types" )
   r( "src/Interface" )
-  r( "src/api/LootFacade" )
-  r( "src/api/EventFrame" )
-  r( "src/WowApi" )
-  r( "src/Config" )
   r( "src/ItemUtils" )
+  r( "src/LootFacade" )
+  r( "src/EventFrame" )
+  r( "src/WowApi" )
+  r( "src/PlayerInfo" )
+  r( "src/ChatApi" )
+  r( "src/Chat" )
+  r( "src/Config" )
   r( "src/RollingLogicUtils" )
   r( "src/DroppedLoot" )
   r( "src/DroppedLootAnnounce" )
@@ -761,51 +828,57 @@ function M.load_real_stuff( req )
   r( "src/NameMatchReport" )
   r( "src/EventHandler" )
   r( "src/VersionBroadcast" )
+  r( "src/LootAwardCallback" )
   r( "src/MasterLoot" )
   r( "src/SoftResCheck" )
   r( "src/NonSoftResRollingLogic" )
   r( "src/SoftResRollingLogic" )
   r( "src/TieRollingLogic" )
   r( "src/RaidRollRollingLogic" )
-  r( "src/MasterLootTracker" )
-  r( "src/MasterLootFrame" )
+  r( "src/MasterLootCandidateSelectionFrame" )
   r( "src/UsagePrinter" )
   r( "src/MinimapButton" )
   r( "src/MasterLootWarning" )
   r( "src/AutoLoot" )
   r( "src/WinnerTracker" )
-  r( "src/PfUiIntegrationDialog" )
   r( "src/LootAwardPopup" )
-  r( "src/MasterLootCorrelationData" )
   r( "src/MasterLootCandidates" )
-  r( "src/WinnerHistory" )
   r( "src/NewGroupEvent" )
   r( "src/BossList" )
   r( "src/AutoGroupLoot" )
   r( "src/AutoMasterLoot" )
   r( "src/FrameBuilder" )
   r( "src/PopupBuilder" )
-  r( "src/RollingTipPopup" )
   r( "src/RollTracker" )
+  r( "src/LootController" )
   r( "src/RollController" )
   r( "src/RollingPopup" )
   r( "src/TieRollGuiData" )
   r( "src/SoftResRollGuiData" )
-  r( "src/RollingPopupContent" )
+  r( "src/RollingPopupContentTransformer" )
   r( "src/WelcomePopup" )
   r( "src/InstaRaidRollRollingLogic" )
   r( "src/LootList" )
+  r( "src/SoftResLootListDecorator" )
+  r( "src/LootFrame" )
+  r( "src/RollForAd" )
+  r( "src/LootAutoProcess" )
+  r( "src/RollingStrategyFactory" )
+  r( "src/RollingLogic" )
+  r( "src/ArgsParser" )
+  r( "src/RollResultAnnouncer" )
+  r( "src/LootFacadeListener" )
   -- r( "Libs/LibDeflate/LibDeflate" )
   r( "src/Json" )
   r( "main" )
 end
 
 function M.rolling_finished()
-  return M.console_message( string.format( "RollFor: Rolling for [%s] has finished.", m_rolling_item_name ) )
+  return M.console_message( string.format( "RollFor: Rolling for [%s] finished.", m_rolling_item_name ) )
 end
 
 function M.item( name, id, quality )
-  return { name = name, id = id, source_id = 123, quality = quality, link = M.item_link( name, id ) }
+  return { name = name, id = id, source_id = 123, quality = quality or 4, link = M.item_link( name, id ) }
 end
 
 function M.targetting_enemy( name )
@@ -885,7 +958,7 @@ end
 
 function M.award( player, item_name, item_id )
   local rf = M.load_roll_for()
-  rf.award_item( player, item_id, M.item_link( item_name, item_id ) )
+  rf.loot_award_callback.on_loot_awarded( player, item_id, M.item_link( item_name, item_id ) )
 end
 
 function M.load_libstub()
@@ -974,28 +1047,23 @@ function M.recipient_trades_items( trade_tracker, ... )
   end
 end
 
-local function get_player_frame_from_master_looter_frame( player_name )
-  for i = 1, 40 do
-    local button = _G[ "RollForLootFrameButton" .. i ]
-
-    if button and button.player and button.player.name == player_name then
-      return button
-    end
-  end
-end
-
-function M.master_loot( item_link, player_name )
+-- local function get_player_frame_from_master_looter_frame( player_name )
+--   for i = 1, 40 do
+--     local button = _G[ "RollForLootFrameButton" .. i ]
+--
+--     if button and button.player and button.player.name == player_name then
+--       return button
+--     end
+--   end
+-- end
+--
+function M.master_loot( item_link )
   M.mock( "IsModifiedClick", false )
   M.mock( "CloseDropDownMenus", function() end )
   M.mock( "GetLootSlotLink", function() return item_link end )
-  local button = _G[ "LootButton1" ]
-  button.hasItem = true
-  button.quality = M.LootQuality.Epic
-  button.slot = 1
   M.mock_object( "LootFrame", {} )
-  button:Click()
-  local player_frame = get_player_frame_from_master_looter_frame( player_name )
-  player_frame:Click()
+  -- local player_frame = get_player_frame_from_master_looter_frame( player_name )
+  -- player_frame:Click()
 end
 
 function M.mock_softres_gui()
@@ -1084,6 +1152,33 @@ function M.mock_math_random( expected_min, expected_max, value )
   end
 end
 
+function M.mock_multiple_math_random( values )
+  local invocation_count = 0
+
+  M.modules().lua.math.random = function( was_min, was_max )
+    invocation_count = invocation_count + 1
+    local expected_min = values[ invocation_count ][ 1 ]
+    local expected_max = values[ invocation_count ][ 2 ]
+    local value = values[ invocation_count ][ 3 ]
+
+    if was_min ~= expected_min or was_max ~= expected_max then
+      print(
+        string.format(
+          "Invalid math.random invocation. Was: random(%s, %s)  Expected: random(%s, %s)",
+          was_min,
+          was_max,
+          expected_min,
+          expected_max
+        )
+      )
+
+      return 1337
+    end
+
+    return value
+  end
+end
+
 function M.luaunit( ... )
   local result = {}
   local lu = require( "luaunit" )
@@ -1123,6 +1218,37 @@ function M.mock_value( v1, v2, v3, v4, v5, v6, v7, v8, v9 )
 
     return values[ invocation_count ]
   end
+end
+
+function M.info( message )
+  print( "\n" .. message )
+end
+
+function M.noop() end
+
+M.getn = table.getn
+
+function M.clone( t )
+  local result = {}
+
+  if not t then return result end
+
+  for k, v in pairs( t ) do
+    result[ k ] = v
+  end
+
+  return result
+end
+
+function M.table_contains_value( t, value, f )
+  if not t then return false end
+
+  for _, v in pairs( t ) do
+    local val = type( f ) == "function" and f( v ) or v
+    if val == value then return true end
+  end
+
+  return false
 end
 
 return M

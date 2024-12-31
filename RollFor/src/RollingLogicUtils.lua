@@ -5,14 +5,12 @@ if m.RollingLogicUtils then return end
 
 local M = {}
 local map = m.map
-local filter = m.filter
+
+---@type MakeRollingPlayerFn
+local make_rolling_player = m.Types.make_rolling_player
 
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
-
-function M.players_with_available_rolls( rollers )
-  return filter( rollers, function( roller ) return roller.rolls > 0 end )
-end
 
 function M.can_roll( rollers, player_name )
   for _, v in ipairs( rollers ) do
@@ -22,34 +20,20 @@ function M.can_roll( rollers, player_name )
   return false
 end
 
+---@param roller RollingPlayer
 function M.copy_roller( roller )
-  return { name = roller.name, rolls = roller.rolls }
+  return make_rolling_player( roller.name, roller.class, roller.online, roller.rolls )
 end
 
-function M.copy_rollers( t )
+---@param rollers RollingPlayer[]
+function M.copy_rollers( rollers )
   local result = {}
 
-  for k, v in pairs( t ) do
+  for k, v in pairs( rollers ) do
     result[ k ] = M.copy_roller( v )
   end
 
   return result
-end
-
-function M.subtract_roll( rollers, player_name )
-  for _, v in pairs( rollers ) do
-    if v.name == player_name then
-      v.rolls = v.rolls - 1
-      return
-    end
-  end
-end
-
--- TODO: Refactor this and add roll type here.
-function M.record_roll( rolls, player_name, roll )
-  if not rolls[ player_name ] or rolls[ player_name ] < roll then
-    rolls[ player_name ] = roll
-  end
 end
 
 function M.one_roll( player_name )
@@ -129,16 +113,6 @@ function M.has_rolls_left( rollers, player_name )
   end
 
   return false
-end
-
-function M.has_everyone_rolled( rollers, rolls )
-  local players = map( rollers, function( roller ) return roller.name end )
-
-  for _, player_name in ipairs( players ) do
-    if not rolls[ player_name ] then return false end
-  end
-
-  return true
 end
 
 m.RollingLogicUtils = M

@@ -1,0 +1,248 @@
+package.path = "./?.lua;" .. package.path .. ";../?.lua"
+
+local u = require( "test/utils" )
+local lu = u.luaunit()
+local builder = require( "test/IntegrationTestBuilder" )
+local mock_loot_facade, mock_chat, new_roll_for = builder.mock_loot_facade, builder.mock_chat, builder.new_roll_for
+local i, p = builder.i, builder.p
+local gui = require( "test/gui_helpers" )
+local item_link, text, buttons = gui.item_link, gui.text, gui.buttons
+local enabled_item, disabled_item, selected_item = gui.enabled_item, gui.disabled_item, gui.selected_item
+local sr, hr = u.soft_res_item, u.hard_res_item
+local individual_award_button = gui.individual_award_button
+
+LootListSpec = {}
+
+function LootListSpec:should_display_sr_tooltip()
+  -- Given
+  local loot_facade, chat = mock_loot_facade(), mock_chat()
+  local item, p1, p2 = i( "Bag", 123 ), p( "Psikutas" ), p( "Obszczymucha" )
+  local rf = new_roll_for()
+      :loot_facade( loot_facade )
+      :raid_roster( p1, p2 )
+      :chat( chat )
+      :soft_res_data( hr( 123 ), sr( p1.name, 123 ), sr( p2.name, 123 ) )
+      :build()
+
+  -- Then
+  rf.loot_frame.should_be_hidden()
+
+  -- When
+  loot_facade.notify( "LootOpened", item, item )
+
+  -- Then
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Bag", "HR" ),
+    enabled_item( 2, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha", "Psikutas" } )
+  )
+end
+
+function LootListSpec:should_select_hr_item_if_clicked_on_any_item_of_that_id()
+  -- Given
+  local loot_facade, chat = mock_loot_facade(), mock_chat()
+  local item, item2, p1, p2 = i( "Bag", 123 ), i( "Hearthstone", 69 ), p( "Psikutas" ), p( "Obszczymucha" )
+  local rf = new_roll_for()
+      :loot_facade( loot_facade )
+      :raid_roster( p1, p2 )
+      :chat( chat )
+      :soft_res_data( hr( 123 ), sr( p1.name, 123 ), sr( p2.name, 123 ) )
+      :build()
+
+  -- Then
+  rf.loot_frame.should_be_hidden()
+
+  -- When
+  loot_facade.notify( "LootOpened", item, item, item, item, item, item2 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Bag", "HR" ),
+    enabled_item( 2, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha" } ),
+    enabled_item( 3, "Bag", "SR", { "Soft-ressed by:", "Psikutas" } ),
+    enabled_item( 4, "Bag" ),
+    enabled_item( 5, "Bag" ),
+    enabled_item( 6, "Hearthstone" )
+  )
+  chat.raid( "Princess Kenny dropped 6 items:" )
+  chat.raid( "1. [Bag] (HR)" )
+  chat.raid( "2. [Bag] (SR by Obszczymucha)" )
+  chat.raid( "3. [Bag] (SR by Psikutas)" )
+  chat.raid( "4. 2x[Bag]" )
+  chat.raid( "5. [Hearthstone]" )
+  rf.rolling_popup.should_be_hidden()
+
+  ---@param item_index_to_click number
+  local function assert_hr_item_is_selected( item_index_to_click )
+    -- When
+    rf.loot_frame.click( item_index_to_click )
+
+    -- Then
+    rf.loot_frame.should_display(
+      selected_item( 1, "Bag", "HR" ),
+      disabled_item( 2, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha" } ),
+      disabled_item( 3, "Bag", "SR", { "Soft-ressed by:", "Psikutas" } ),
+      disabled_item( 4, "Bag" ),
+      disabled_item( 5, "Bag" ),
+      disabled_item( 6, "Hearthstone" )
+    )
+    rf.rolling_popup.should_display(
+      item_link( item, 1 ),
+      text( "This item is hard-ressed.", 11 ),
+      buttons( "Roll", "AwardOther", "Close" )
+    )
+
+    -- When
+    rf.rolling_popup.click( "Close" )
+
+    -- Then
+    rf.loot_frame.should_display(
+      enabled_item( 1, "Bag", "HR" ),
+      enabled_item( 2, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha" } ),
+      enabled_item( 3, "Bag", "SR", { "Soft-ressed by:", "Psikutas" } ),
+      enabled_item( 4, "Bag" ),
+      enabled_item( 5, "Bag" ),
+      enabled_item( 6, "Hearthstone" )
+    )
+  end
+
+  assert_hr_item_is_selected( 1 )
+  assert_hr_item_is_selected( 2 )
+  assert_hr_item_is_selected( 3 )
+  assert_hr_item_is_selected( 4 )
+  assert_hr_item_is_selected( 5 )
+
+  -- When
+  rf.loot_frame.click( 6 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    disabled_item( 1, "Bag", "HR" ),
+    disabled_item( 2, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha" } ),
+    disabled_item( 3, "Bag", "SR", { "Soft-ressed by:", "Psikutas" } ),
+    disabled_item( 4, "Bag" ),
+    disabled_item( 5, "Bag" ),
+    selected_item( 6, "Hearthstone" )
+  )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    buttons( "Roll", "InstaRaidRoll", "AwardOther", "Close" )
+  )
+
+  -- When
+  rf.rolling_popup.click( "Close" )
+
+  -- Then
+  rf.rolling_popup.should_be_hidden()
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Bag", "HR" ),
+    enabled_item( 2, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha" } ),
+    enabled_item( 3, "Bag", "SR", { "Soft-ressed by:", "Psikutas" } ),
+    enabled_item( 4, "Bag" ),
+    enabled_item( 5, "Bag" ),
+    enabled_item( 6, "Hearthstone" )
+  )
+end
+
+function LootListSpec:should_select_both_sr_items_if_clicked_on_any_item_of_that_id()
+  -- Given
+  local loot_facade, chat = mock_loot_facade(), mock_chat()
+  local item, item2, p1, p2 = i( "Bag", 123 ), i( "Hearthstone", 69 ), p( "Psikutas" ), p( "Obszczymucha" )
+  local rf = new_roll_for()
+      :loot_facade( loot_facade )
+      :raid_roster( p1, p2 )
+      :chat( chat )
+      :soft_res_data( sr( p1.name, 123 ), sr( p2.name, 123 ) )
+      :build()
+
+  -- Then
+  rf.loot_frame.should_be_hidden()
+
+  -- When
+  loot_facade.notify( "LootOpened", item, item, item, item, item2 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha" } ),
+    enabled_item( 2, "Bag", "SR", { "Soft-ressed by:", "Psikutas" } ),
+    enabled_item( 3, "Bag" ),
+    enabled_item( 4, "Bag" ),
+    enabled_item( 5, "Hearthstone" )
+  )
+  chat.raid( "Princess Kenny dropped 5 items:" )
+  chat.raid( "1. [Bag] (SR by Obszczymucha)" )
+  chat.raid( "2. [Bag] (SR by Psikutas)" )
+  chat.raid( "3. 2x[Bag]" )
+  chat.raid( "4. [Hearthstone]" )
+  rf.rolling_popup.should_be_hidden()
+
+  ---@param item_index_to_click number
+  local function assert_sr_items_are_selected( item_index_to_click )
+    -- When
+    rf.loot_frame.click( item_index_to_click )
+
+    -- Then
+    rf.loot_frame.should_display(
+      selected_item( 1, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha" } ),
+      selected_item( 2, "Bag", "SR", { "Soft-ressed by:", "Psikutas" } ),
+      disabled_item( 3, "Bag" ),
+      disabled_item( 4, "Bag" ),
+      disabled_item( 5, "Hearthstone" )
+    )
+    rf.rolling_popup.should_display(
+      item_link( item, 2 ),
+      text( "Obszczymucha soft-ressed this item.", 11 ),
+      individual_award_button,
+      text( "Psikutas soft-ressed this item.", 8 ),
+      individual_award_button,
+      buttons( "AwardOther", "Close" )
+    )
+
+    -- When
+    rf.rolling_popup.click( "Close" )
+
+    -- Then
+    rf.loot_frame.should_display(
+      enabled_item( 1, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha" } ),
+      enabled_item( 2, "Bag", "SR", { "Soft-ressed by:", "Psikutas" } ),
+      enabled_item( 3, "Bag" ),
+      enabled_item( 4, "Bag" ),
+      enabled_item( 5, "Hearthstone" )
+    )
+  end
+
+  assert_sr_items_are_selected( 1 )
+  assert_sr_items_are_selected( 2 )
+  assert_sr_items_are_selected( 3 )
+  assert_sr_items_are_selected( 4 )
+
+  -- When
+  rf.loot_frame.click( 5 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    disabled_item( 1, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha" } ),
+    disabled_item( 2, "Bag", "SR", { "Soft-ressed by:", "Psikutas" } ),
+    disabled_item( 3, "Bag" ),
+    disabled_item( 4, "Bag" ),
+    selected_item( 5, "Hearthstone" )
+  )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    buttons( "Roll", "InstaRaidRoll", "AwardOther", "Close" )
+  )
+
+  -- When
+  rf.rolling_popup.click( "Close" )
+
+  -- Then
+  rf.rolling_popup.should_be_hidden()
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha" } ),
+    enabled_item( 2, "Bag", "SR", { "Soft-ressed by:", "Psikutas" } ),
+    enabled_item( 3, "Bag" ),
+    enabled_item( 4, "Bag" ),
+    enabled_item( 5, "Hearthstone" )
+  )
+end
+
+os.exit( lu.LuaUnit.run() )

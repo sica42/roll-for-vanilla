@@ -187,7 +187,7 @@ function M.create_item_announcements( summary )
   return stringify( sort( result ) )
 end
 
-function M.process_dropped_items( loot_list, master_loot_tracker, softres )
+function M.process_dropped_items( loot_list, softres )
   local source_guid = loot_list.get_source_guid()
   local threshold = m.api.GetLootThreshold()
   local items = filter( loot_list.get_items(), function( item )
@@ -195,37 +195,11 @@ function M.process_dropped_items( loot_list, master_loot_tracker, softres )
     return quality >= threshold and item.id ~= 29434
   end )
 
-  for _, item in ipairs( items ) do
-    master_loot_tracker.add( item.slot, item ) -- TODO: Get rid of MasterLootTracker
-  end
-
   local summary = M.create_item_summary( items, softres )
   return source_guid or "unknown", items, M.create_item_announcements( summary )
 end
 
--- Ideally, I'd like a data structure like this:
--- local items = {
---   [item_id] = {
---     count = 1, // How many dropped.
---     hard_ressed = true,
---   },
---   [item_id2] = {
---     count = 1,
---     soft_ressed = true,
---     soft_ressers = {
---       { player_name = "Ohhaimark", rolls = 2 },
---       { player_name = "Jogobobek", rolls = 1 }
---     }
---   }
---   [item_id3] = {
---     count = 1
---   }
--- }
---
--- I could then enrich soft_ressers with their class names using GroupRoster.
--- I could then filter the data to get only soft-ressed items.
-
--- The result is a list of unique items with the counts how many dropped and how many players reserve them.
+-- SoftResLootListDecorator?
 function M.create_item_summary( items, softres )
   local result = {}
   local distinct_items = distinct( items )
@@ -249,11 +223,19 @@ function M.create_item_summary( items, softres )
     table.sort( softressers, function( l, r ) return l.name < r.name end )
     local hardressed = softres.is_item_hardressed( item.id )
 
-    if item_count > softres_count and softres_count > 0 then
-      table.insert( result, { item = item, how_many_dropped = softres_count, softressers = softressers, is_hardressed = hardressed } )
-      table.insert( result, { item = item, how_many_dropped = item_count - softres_count, softressers = {}, is_hardressed = hardressed } )
-    else
-      table.insert( result, { item = item, how_many_dropped = item_count, softressers = softressers, is_hardressed = hardressed } )
+
+    if hardressed then
+      table.insert( result, { item = item, how_many_dropped = 1, softressers = {}, is_hardressed = hardressed } )
+      item_count = item_count - 1
+    end
+
+    if item_count > 0 then
+      if item_count > softres_count and softres_count > 0 then
+        table.insert( result, { item = item, how_many_dropped = softres_count, softressers = softressers, is_hardressed = false } )
+        table.insert( result, { item = item, how_many_dropped = item_count - softres_count, softressers = {}, is_hardressed = false } )
+      else
+        table.insert( result, { item = item, how_many_dropped = item_count, softressers = softressers, is_hardressed = false } )
+      end
     end
   end
 
@@ -273,12 +255,22 @@ local function should_announce( i, item_count, announcement )
   return false
 end
 
-function M.new( loot_list, announce, dropped_loot, master_loot_tracker, softres, winner_tracker )
+---@class DroppedLootAnnounce
+---@field on_loot_opened fun()
+---@field reset fun()
+
+---@param loot_list LootList
+---@param chat Chat
+---@param dropped_loot DroppedLoot
+---@param softres GroupAwareSoftRes
+---@param winner_tracker WinnerTracker
+---@param player_info PlayerInfo
+function M.new( loot_list, chat, dropped_loot, softres, winner_tracker, player_info )
   local announcing = false
   local announced_source_ids = {}
 
   local function on_loot_opened()
-    if not m.is_player_master_looter() or announcing then
+    if not player_info.is_master_looter() or announcing then
       -- Wtf is this?
       if m.real_api then
         m.api = m.real_api
@@ -288,7 +280,7 @@ function M.new( loot_list, announce, dropped_loot, master_loot_tracker, softres,
       return
     end
 
-    local source_guid, items, announcements = M.process_dropped_items( loot_list, master_loot_tracker, softres )
+    local source_guid, items, announcements = M.process_dropped_items( loot_list, softres )
     local was_announced = announced_source_ids[ source_guid ]
     if was_announced then return end
 
@@ -299,7 +291,7 @@ function M.new( loot_list, announce, dropped_loot, master_loot_tracker, softres,
     local target_msg = target and not m.api.UnitIsFriend( "player", "target" ) and string.format( "%s dropped ", target ) or ""
 
     if item_count > 0 then
-      announce(
+      chat.announce(
         string.format( "%s%s item%s%s", target_msg, item_count, item_count > 1 and "s" or "", target_msg == "" and " dropped:" or ":" ) )
 
       for i = 1, item_count do
@@ -311,16 +303,16 @@ function M.new( loot_list, announce, dropped_loot, master_loot_tracker, softres,
 
       for i, announcement in ipairs( announcements ) do
         if not trimmed and should_announce( i, item_count, announcement ) then
-          announce( announcement.text )
+          chat.announce( announcement.text )
 
           if announcement.entry.softres_count == 1 then
             winner_tracker.track( announcement.entry.softressers[ 1 ].name, announcement.entry.item_link, m.Types.RollType.SoftRes,
-              m.Types.RollingStrategy.SoftResRoll )
+              nil, m.Types.RollingStrategy.SoftResRoll )
           end
         elseif not trimmed then
           if i > (announce_limit - 1) and item_count > announce_limit then
             local count = item_count - i + 1
-            announce( string.format( "and %s more item%s...", count, count > 1 and "s" or "" ) )
+            chat.announce( string.format( "and %s more item%s...", count, count > 1 and "s" or "" ) )
             trimmed = true
           end
         end
@@ -341,6 +333,7 @@ function M.new( loot_list, announce, dropped_loot, master_loot_tracker, softres,
     end
   end
 
+  ---@type DroppedLootAnnounce
   return {
     on_loot_opened = on_loot_opened,
     reset = reset

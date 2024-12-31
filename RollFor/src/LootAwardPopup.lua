@@ -3,13 +3,18 @@ local m = RollFor
 
 if m.LootAwardPopup then return end
 
-local M = {}
+local M = m.Module.new( "LootAwardPopup" )
 
 local RS = m.Types.RollingStrategy
+local RT = m.Types.RollType
 local LAE = m.Types.LootAwardError
 local red = m.colors.red
+local blue = m.colors.blue
 local c = m.colorize_player_by_class
+local r = m.roll_type_color
 local possesive_case = m.possesive_case
+local article = m.article
+
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
@@ -19,28 +24,34 @@ local button_defaults = {
   scale = 0.76
 }
 
-function M.new( popup_builder, roll_controller, confirm_award, RollingPopupContent, db, center_point, master_loot_candidates, roll_tracker )
+---@class LootAwardPopup
+---@field show fun( data: MasterLootConfirmationData )
+---@field hide fun()
+
+---@param popup_builder table
+---@param db table
+---@param center_point table
+function M.new( popup_builder, db, center_point )
   local popup
-  local data_for_error
   local top_padding = 14
+  local on_hide ---@type fun()?
 
   local function create_popup()
     local frame = popup_builder
-        :with_name( "RollForLootAssignmentFrame" )
-        :with_width( 280 )
-        :with_height( 100 )
-        :with_sound()
-        :with_border_size( 16 )
-        :with_esc()
-        :with_gui_elements( m.GuiElements )
-        :with_frame_style( "PrincessKenny" )
-        :with_on_show( function()
-          ---@diagnostic disable-next-line: undefined-global
-          local rolling_frame = RollForRollingFrame
-          if rolling_frame then
-            rolling_frame:Hide()
+        :name( "RollForLootAssignmentFrame" )
+        :width( 280 )
+        :height( 100 )
+        :sound()
+        :border_size( 16 )
+        :esc()
+        :gui_elements( m.GuiElements )
+        :frame_style( "PrincessKenny" )
+        :on_hide( function()
+          if on_hide then
+            on_hide()
           end
         end )
+        :self_centered_anchor()
         :build()
 
     frame:SetFrameStrata( "DIALOG" )
@@ -58,78 +69,109 @@ function M.new( popup_builder, roll_controller, confirm_award, RollingPopupConte
     popup:border_color( color.r * multiplier, color.g * multiplier, color.b * multiplier, alpha )
   end
 
-  local function make_content( item, player, rolling_strategy, error )
-    local content                 = { { type = "item_link_with_icon", link = item.link, texture = item.texture } }
-    local data, current_iteration = roll_tracker.get()
+  ---@param content table
+  ---@param winners Winner[]
+  ---@param receiver ItemCandidate
+  ---@diagnostic disable-next-line: unused-local
+  local function add_raid_roll_winners( content, winners, receiver ) -- TODO: To fix the popup display.
+    for i, winner in ipairs( winners ) do
+      local padding = i > 1 and 2 or 8
+      local player = c( winner.name, winner.class )
+      table.insert( content, { type = "text", value = string.format( "%s wins the %s.", player, blue( "raid-roll" ) ), padding = padding } )
+    end
+  end
 
-    local winner                  = data and data.status and data.status.winner and
-        data.item and data.status.winner.name == player.name and
-        data.item.link == item.link and data.status.winner
+  ---@param winner Winner
+  ---@param padding number?
+  local function sr_content( winner, padding )
+    M.debug.add( "sr_content" )
+    local player = c( winner.name, winner.class )
+    local soft_ressed = r( RT.MainSpec, "soft-ressed" )
+    return { type = "text", value = string.format( "%s %s this item.", player, soft_ressed ), padding = padding or top_padding }
+  end
 
-    local winning_player          = winner or player
+  ---@param content table
+  ---@param winners Winner[]
+  ---@param strategy_type RollingStrategyType
+  local function add_roll_winners( content, winners, strategy_type )
+    local last_award_button_visible = false
 
-    if rolling_strategy == RS.RaidRoll or not rolling_strategy and current_iteration and current_iteration.rolling_strategy == RS.RaidRoll and winner then
-      table.insert( content, RollingPopupContent.raid_roll_winner_content( winning_player ) )
-    elseif rolling_strategy == RS.InstaRaidRoll or not rolling_strategy and current_iteration and current_iteration.rolling_strategy == RS.InstaRaidRoll and winner then
-      table.insert( content, RollingPopupContent.insta_raid_roll_winner_content( winning_player ) )
+    for i, winner in ipairs( winners ) do
+      local player = c( winner.name, winner.class )
+      local roll_type = winner.roll_type and r( winner.roll_type )
+      local roll = winner.winning_roll and blue( winner.winning_roll )
+      local padding = last_award_button_visible and 8 or i == 1 and top_padding or (top_padding - 6)
+
+      if roll then
+        table.insert( content,
+          { type = "text", value = string.format( "%s wins the %s roll with %s %s.", player, roll_type, article( winner.winning_roll ), roll ), padding = padding } )
+      elseif strategy_type == RS.SoftResRoll then
+        m.trace( "Chuj" )
+        table.insert( content, sr_content( winner, padding ) )
+      else
+        table.insert( content, { type = "text", value = string.format( "%s %s win the roll.", player, red( "did not" ) ), padding = padding } )
+      end
+    end
+  end
+
+  ---@param content table
+  ---@param data MasterLootConfirmationData
+  local function add_winners( content, data )
+    if data.strategy_type == RS.InstaRaidRoll or data.strategy_type == RS.RaidRoll then
+      add_raid_roll_winners( content, data.winners, data.receiver )
     else
-      table.insert( content,
-        RollingPopupContent.roll_winner_content( winning_player, winner and (rolling_strategy or current_iteration and current_iteration.rolling_strategy) ) )
+      add_roll_winners( content, data.winners, data.strategy_type )
+    end
+  end
+
+  ---@param data MasterLootConfirmationData
+  local function make_content( data )
+    local content = { { type = "item_link_with_icon", link = data.item.link, texture = data.item.texture } }
+    local winner_count = getn( data.winners )
+
+    if winner_count > 0 then
+      add_winners( content, data )
     end
 
-    table.insert( content, { type = "text", value = "Would you like to award this item?" } )
+    local name = c( data.receiver.name, data.receiver.class )
+    -- TODO: check if receiver is a winner and add a warning if not.
+    table.insert( content, { type = "text", value = string.format( "Award this item to %s?", name ), padding = 6 } )
 
-    if error then
-      local name = c( winning_player.name, winning_player.class )
-      local message = error == LAE.FullBags and string.format( "%s%s %s", name, red( possesive_case( winning_player.name ) ), red( "bags are full." ) ) or
-          error == LAE.AlreadyOwnsUniqueItem and string.format( "%s %s", name, red( "already owns this unique item." ) ) or
-          error == LAE.PlayerNotFound and string.format( "%s %s", name, red( "cannot be found." ) ) or
-          error == LAE.CantAssignItemToThatPlayer and string.format( "%s %s.", red( "Can't assign this item to" ), name ) or nil
+    if data.error then
+      local message = data.error == LAE.FullBags and string.format( "%s%s %s", name, red( possesive_case( data.receiver.name ) ), red( "bags are full." ) ) or
+          data.error == LAE.AlreadyOwnsUniqueItem and string.format( "%s %s", name, red( "already owns this unique item." ) ) or
+          data.error == LAE.PlayerNotFound and string.format( "%s %s", name, red( "cannot be found." ) ) or
+          data.error == LAE.CantAssignItemToThatPlayer and string.format( "%s %s.", red( "Can't assign this item to" ), name ) or nil
 
       if message then
         table.insert( content, { type = "text", value = message, padding = 7 } )
       end
     end
 
-    table.insert( content, {
-      type = "button",
-      label = "Yes",
-      width = 90,
-      on_click = function()
-        if not winning_player.value then
-          local p = master_loot_candidates.find( winning_player.name )
-          winning_player.value = p and p.value
-        end
-
-        if confirm_award then confirm_award( winning_player, item.link ) end
-      end
-    } )
-
+    table.insert( content, { type = "button", label = "Yes", width = 80, on_click = data.confirm_fn } )
     table.insert( content, {
       type = "button",
       label = "No",
-      width = 90,
+      width = 80,
       on_click = function()
-        popup:Hide()
-        roll_controller.award_aborted()
+        on_hide = nil
+        data.abort_fn()
       end
     } )
 
     return content
   end
 
-  local function show( data, error )
-    data_for_error = data
-
+  ---@param data MasterLootConfirmationData
+  local function show( data )
     if not popup then popup = create_popup() end
     popup:clear()
+    on_hide = data.abort_fn
 
-    for _, v in ipairs( make_content( data.item, data.player, data.rolling_strategy, error ) ) do
+    for _, v in ipairs( make_content( data ) ) do
       popup.add_line( v.type, function( type, frame, lines )
         if type == "item_link_with_icon" then
-          frame:SetText( v.link )
-          frame:SetTexture( v.texture )
-          frame.tooltip_link = v.link and m.ItemUtils.get_tooltip_link( v.link )
+          frame:SetItem( v, v.link and m.ItemUtils.get_tooltip_link( v.link ) )
         elseif type == "text" then
           frame:SetText( v.value )
         elseif type == "button" then
@@ -172,46 +214,16 @@ function M.new( popup_builder, roll_controller, confirm_award, RollingPopupConte
   end
 
   local function hide()
-    data_for_error = nil
-    if popup then popup:Hide() end
-  end
-
-  local function player_already_has_unique_item()
-    if data_for_error and popup:IsVisible() then
-      show( data_for_error, LAE.AlreadyOwnsUniqueItem )
+    if popup then
+      on_hide = nil
+      popup:Hide()
     end
   end
 
-  local function player_has_full_bags()
-    if data_for_error and popup:IsVisible() then
-      show( data_for_error, LAE.FullBags )
-    end
-  end
-
-  local function player_not_found()
-    if data_for_error and popup:IsVisible() then
-      show( data_for_error, LAE.PlayerNotFound )
-    end
-  end
-
-  local function cant_assign_item_to_that_player()
-    if data_for_error and popup:IsVisible() then
-      show( data_for_error, LAE.CantAssignItemToThatPlayer )
-    end
-  end
-
-  roll_controller.subscribe( "start", hide )
-  roll_controller.subscribe( "loot_closed", hide )
-  roll_controller.subscribe( "loot_awarded", hide )
-  roll_controller.subscribe( "award_loot", show )
-  roll_controller.subscribe( "player_already_has_unique_item", player_already_has_unique_item )
-  roll_controller.subscribe( "player_has_full_bags", player_has_full_bags )
-  roll_controller.subscribe( "player_not_found", player_not_found )
-  roll_controller.subscribe( "cant_assign_item_to_that_player", cant_assign_item_to_that_player )
-
+  ---@type LootAwardPopup
   return {
     show = show,
-    hide = hide,
+    hide = hide
   }
 end
 

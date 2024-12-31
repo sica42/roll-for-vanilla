@@ -14,6 +14,17 @@ local M = {}
 local button_visible = false
 local _G = getfenv( 0 )
 
+---@class AutoLoot
+---@field on_loot_opened fun()
+---@field add fun( item_link: string )
+---@field remove fun( item_link: string )
+---@field clear fun()
+---@field loot_item fun( slot: number )
+
+---@param loot_list LootList
+---@param api table
+---@param db table
+---@param config Config
 function M.new( loot_list, api, db, config )
   db.items = db.items or {}
 
@@ -36,13 +47,14 @@ function M.new( loot_list, api, db, config )
 
     for _, item in ipairs( loot_list.get_items() ) do
       local quality = item.quality or 0
+      local slot = loot_list.get_slot( item.id )
 
-      if item.id and item.slot then
+      if item.id and slot then
         if quality < threshold or config.auto_loot() and item_ids[ item.id ] then
           local index = find_my_candidate_index()
 
           if index then
-            api().GiveMasterLoot( item.slot, index )
+            api().GiveMasterLoot( slot, index )
           end
         end
       end
@@ -137,14 +149,24 @@ function M.new( loot_list, api, db, config )
     show_usage()
   end
 
+  local function loot_item( slot )
+    local index = find_my_candidate_index()
+
+    if index then
+      api().GiveMasterLoot( slot, index )
+    end
+  end
+
   _G[ "SLASH_RFAL1" ] = "/rfal"
   _G[ "SlashCmdList" ][ "RFAL" ] = on_command
 
+  ---@type AutoLoot
   return {
     on_loot_opened = on_loot_opened,
     add = add,
     remove = remove,
-    clear = clear
+    clear = clear,
+    loot_item = loot_item
   }
 end
 

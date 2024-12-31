@@ -3,7 +3,9 @@ package.path = "./?.lua;" .. package.path .. ";../?.lua;./../RollFor/?.lua;../Ro
 local utils = require( "test/utils" )
 local lu, eq = utils.luaunit( "assertEquals" )
 local m = require( "src/modules" )
-require( "src/api/EventFrame" )
+require( "src/DebugBuffer" )
+require( "src/Module" )
+require( "src/EventFrame" )
 
 EventFrameSpec = {}
 

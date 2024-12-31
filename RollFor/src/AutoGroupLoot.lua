@@ -11,7 +11,15 @@ local ignore_zones = {
   "Blackwing Lair"
 }
 
-function M.new( loot_list, config, boss_list )
+---@class AutoGroupLoot
+---@field on_loot_opened fun()
+---@field on_loot_slot_cleared fun()
+
+---@param loot_list LootList
+---@param config Config
+---@param boss_list BossList
+---@param player_info PlayerInfo
+function M.new( loot_list, config, boss_list, player_info )
   local m_target_name
   local m_item_count
 
@@ -30,11 +38,12 @@ function M.new( loot_list, config, boss_list )
     local bosses = boss_list[ zone_name ] or {}
     local is_a_boss = m.table_contains_value( bosses, m_target_name )
 
-    if is_a_boss and config.auto_group_loot() and m.is_master_loot() and m.is_player_a_leader() then
+    if is_a_boss and config.auto_group_loot() and m.is_master_loot() and player_info.is_leader() then
       m.api.SetLootMethod( "group" )
     end
   end
 
+  ---@type AutoGroupLoot
   return {
     on_loot_opened = on_loot_opened,
     on_loot_slot_cleared = on_loot_slot_cleared

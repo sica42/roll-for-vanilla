@@ -2,104 +2,77 @@ package.path = "./?.lua;" .. package.path .. ";../?.lua;../RollFor/?.lua;../Roll
 
 local lu = require( "luaunit" )
 local eq = lu.assertEquals
-local utils = require( "test/utils" )
-local fr = utils.force_require
-local m = require( "src/modules" )
+local u = require( "test/utils" )
+local mods = require( "src/modules" )
 
-local player = utils.player
-local master_looter = utils.master_looter
-local leader = utils.raid_leader
-local is_in_raid = utils.is_in_raid
-local rw = utils.raid_warning
-local cr = utils.console_and_raid_message
-local c = utils.console_message
-local r = utils.raid_message
-local rolling_not_in_progress = utils.rolling_not_in_progress
-local rolling_finished = utils.rolling_finished
-local roll_for = utils.roll_for
-local finish_rolling = utils.finish_rolling
-local roll = utils.roll
-local roll_os = utils.roll_os
-local assert_messages = utils.assert_messages
-local soft_res = utils.soft_res
-local sr = utils.soft_res_item
-local repeating_tick = utils.repeating_tick
-local tick = utils.tick
-local item = utils.item
-local item_link = utils.item_link
-local award = utils.award
-local trade_with = utils.trade_with
-local trade_items = utils.trade_items
-local trade_complete = utils.trade_complete
-local master_loot = utils.master_loot
-local confirm_master_looting = utils.confirm_master_looting
-local clear_dropped_items_db = utils.clear_dropped_items_db
-local loot_threshold = utils.loot_threshold
-local LootQuality = utils.LootQuality
-local mock_blizzard_loot_buttons = utils.mock_blizzard_loot_buttons
-local mock_shift_key_pressed = utils.mock_shift_key_pressed
-local mock_alt_key_pressed = utils.mock_alt_key_pressed
-local mock_control_key_pressed = utils.mock_control_key_pressed
-local run_command = utils.run_command
-local modifier_keys_not_pressed = utils.modifier_keys_not_pressed
-local targetting_enemy = utils.targetting_enemy
-
-local loot_event_facade
-local loot_list
-
-local function loot()
-  loot_event_facade.notify( "LootOpened" )
-end
-
-local function dropped( ... )
-  RollFor.LootList = nil
-  loot_list = fr( "mocks/LootList" )
-
-  local slot = 1
-  local items = m.map( { ... }, function( i )
-    if not i.slot then
-      i.slot = slot
-      slot = slot + 1
-    end
-
-    if not i.quality then i.quality = 4 end
-
-    return i
-  end )
-
-  loot_list.items = items
-end
+local player, leader, master_looter = u.player, u.raid_leader, u.master_looter
+local is_in_raid = u.is_in_raid
+local r, rw = u.raid_message, u.raid_warning
+local c, cr = u.console_message, u.console_and_raid_message
+local rolling_finished, rolling_not_in_progress = u.rolling_finished, u.rolling_not_in_progress
+local roll_for, roll, roll_os = u.roll_for, u.roll, u.roll_os
+local finish_rolling = u.finish_rolling
+local sr, soft_res = u.soft_res_item, u.soft_res
+local tick, repeating_tick = u.tick, u.repeating_tick
+local item, item_link = u.item, u.item_link
+local award = u.award
+local trade_with, trade_items, trade_complete = u.trade_with, u.trade_items, u.trade_complete
+local confirm_master_looting = u.confirm_master_looting
+local clear_dropped_items_db = u.clear_dropped_items_db
+local loot_threshold = u.loot_threshold
+local mock_shift_key_pressed = u.mock_shift_key_pressed
+local mock_alt_key_pressed = u.mock_alt_key_pressed
+local mock_control_key_pressed = u.mock_control_key_pressed
+local modifier_keys_not_pressed = u.modifier_keys_not_pressed
+local run_command = u.run_command
+local targetting_enemy = u.targetting_enemy
+local LootQuality = u.LootQuality
 
 local mock_config = function( config )
-  local defaults = {
-    auto_raid_roll = function() return config and config.auto_raid_roll end,
-    minimap_button_hidden = function() return false end,
-    minimap_button_locked = function() return false end,
-    subscribe = function() end,
-    rolling_popup_lock = function() return true end,
-    ms_roll_threshold = function() return 100 end,
-    os_roll_threshold = function() return 99 end,
-    tmog_roll_threshold = function() return 98 end,
-    roll_threshold = function()
-      return {
-        value = 100,
-        str = "/roll"
-      }
-    end,
-    auto_loot = function() return true end,
-    show_rolling_tip = function() return true end,
-    tmog_rolling_enabled = function() return true end,
-    rolling_popup = function() return true end,
-    insta_raid_roll = function() return true end,
-    default_rolling_time_seconds = function() return 8 end,
-    master_loot_frame_rows = function() return 5 end,
-  }
-
-  m.Config = {
+  return {
     new = function()
-      return defaults
+      return {
+        auto_raid_roll = function() return config and config.auto_raid_roll end,
+        minimap_button_hidden = function() return false end,
+        minimap_button_locked = function() return false end,
+        subscribe = function() end,
+        rolling_popup_lock = function() return true end,
+        ms_roll_threshold = function() return 100 end,
+        os_roll_threshold = function() return 99 end,
+        tmog_roll_threshold = function() return 98 end,
+        roll_threshold = function()
+          return {
+            value = 100,
+            str = "/roll"
+          }
+        end,
+        auto_loot = function() return true end,
+        show_rolling_tip = function() return true end,
+        tmog_rolling_enabled = function() return true end,
+        rolling_popup = function() return true end,
+        insta_raid_roll = function() return true end,
+        default_rolling_time_seconds = function() return 8 end,
+        master_loot_frame_rows = function() return 5 end,
+        auto_process_loot = function() return true end,
+        autostart_loot_process = function() return true end
+      }
     end
   }
+end
+
+---@type ModuleRegistry
+local module_registry = {
+  { module_name = "LootAwardPopup", mock = "mocks/LootAwardPopup" },
+  { module_name = "Config",         mock = mock_config },
+  { module_name = "LootFacade",     mock = "mocks/LootFacade",    variable_name = "loot_facade" },
+  { module_name = "ChatApi",        mock = "mocks/ChatApi",       variable_name = "chat" },
+  { module_name = "LootList",       mock = "mocks/LootList",      variable_name = "loot_list" }
+}
+
+local m = {}
+
+local function loot( ... )
+  m.loot_facade.notify( "LootOpened", ... )
 end
 
 SoftResIntegrationSpec = {}
@@ -118,9 +91,9 @@ function SoftResIntegrationSpec:should_announce_sr_and_ignore_all_rolls_if_item_
   finish_rolling()
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Psikutas soft-ressed [Hearthstone]." ),
-    c( "RollFor[ Tip ]: Use /arf [Hearthstone] to roll the item and ignore the softres." ),
+    -- c( "RollFor [Tip]: Use /arf [Hearthstone] to roll the item and ignore the softres." ),
     rolling_not_in_progress()
   )
 end
@@ -139,7 +112,7 @@ function SoftResIntegrationSpec:should_only_process_rolls_from_players_who_soft_
   roll( "Ponpon", 42 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon and Psikutas)" ),
     c( "RollFor: Rikus did not SR [Hearthstone]. This roll (100) is ignored." ),
     c( "RollFor: Obszczymucha did not SR [Hearthstone]. This roll (42) is ignored." ),
@@ -162,7 +135,7 @@ function SoftResIntegrationSpec:should_ignore_offspec_rolls_by_players_who_soft_
   roll( "Psikutas", 99 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon and Psikutas)" ),
     c( "RollFor: Psikutas did SR [Hearthstone], but didn't roll MS. This roll (69) is ignored." ),
     r( "Stopping rolls in 3", "2", "1" ),
@@ -186,7 +159,7 @@ function SoftResIntegrationSpec:should_announce_current_highest_roller_if_a_play
   finish_rolling()
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon and Psikutas)" ),
     c( "RollFor: Psikutas did SR [Hearthstone], but didn't roll MS. This roll (69) is ignored." ),
     r( "Stopping rolls in 3", "2", "1" ),
@@ -208,7 +181,7 @@ function SoftResIntegrationSpec:should_announce_all_missing_sr_rolls_if_players_
   repeating_tick( 8 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon [2 rolls], Psikutas [2 rolls] and Rikus)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     r( "SR rolls remaining: Ponpon (1 roll), Psikutas (2 rolls) and Rikus (1 roll)" )
@@ -226,7 +199,7 @@ function SoftResIntegrationSpec:should_announce_all_missing_sr_rolls_if_none_of_
   repeating_tick( 8 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon [2 rolls], Psikutas [2 rolls] and Rikus)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     r( "SR rolls remaining: Ponpon (2 rolls), Psikutas (2 rolls) and Rikus (1 roll)" )
@@ -244,7 +217,7 @@ function SoftResIntegrationSpec:should_announce_all_missing_sr_rolls_if_none_of_
   repeating_tick( 8 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon [2 rolls], Psikutas [2 rolls] and Rikus)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     r( "SR rolls remaining: Ponpon (2 rolls), Psikutas (2 rolls) and Rikus (1 roll)" )
@@ -265,7 +238,7 @@ function SoftResIntegrationSpec:should_allow_multiple_rolls_if_a_player_soft_res
   roll( "Psikutas", 99 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon and Psikutas [2 rolls])" ),
     c( "RollFor: Ponpon exhausted their rolls. This roll (100) is ignored." ),
     cr( "Psikutas rolled the highest (99) for [Hearthstone] (SR)." ),
@@ -292,11 +265,11 @@ function SoftResIntegrationSpec:should_ask_for_a_reroll_if_there_is_a_tie_and_ig
   roll( "Pimp", 1 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Pimp, Ponpon, Psikutas and Rikus)" ),
-    cr( "The highest roll was 69 by Pimp, Ponpon and Psikutas (SR)." ),
+    cr( "Pimp, Ponpon and Psikutas rolled the highest (69) for [Hearthstone] (SR)." ),
     r( "Pimp, Ponpon and Psikutas /roll for [Hearthstone] now." ),
-    c( "RollFor: Rikus exhausted their rolls. This roll (100) is ignored." ),
+    c( "RollFor: Rikus is not allowed to re-roll. This roll (100) is ignored." ),
     cr( "Psikutas re-rolled the highest (100) for [Hearthstone] (SR)." ),
     rolling_finished()
   )
@@ -321,7 +294,7 @@ function SoftResIntegrationSpec:should_not_ask_for_a_reroll_if_there_is_a_tie_an
   roll( "Psikutas", 70 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Pimp, Ponpon, Psikutas [2 rolls] and Rikus)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     r( "SR rolls remaining: Psikutas (1 roll)" ),
@@ -332,15 +305,13 @@ end
 
 function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_ressed_already_received_the_item()
   -- Given
-  dropped( item( "Hearthstone", 123 ), item( "Hearthstone", 123 ) )
   master_looter( "Psikutas" )
   is_in_raid( leader( "Psikutas" ), "Ponpon" )
   soft_res( sr( "Psikutas", 123 ) )
   loot_threshold( LootQuality.Epic )
-  mock_blizzard_loot_buttons()
 
   -- When
-  loot()
+  loot( item( "Hearthstone", 123 ), item( "Hearthstone", 123 ) )
   roll_for( "Hearthstone", 1, 123 )
   award( "Psikutas", "Hearthstone", 123 )
   roll_for( "Hearthstone", 1, 123 )
@@ -348,10 +319,10 @@ function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_r
   repeating_tick( 8 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     r( "2 items dropped:", "1. [Hearthstone] (SR by Psikutas)", "2. [Hearthstone]" ),
     rw( "Psikutas soft-ressed [Hearthstone]." ),
-    c( "RollFor[ Tip ]: Use /arf [Hearthstone] to roll the item and ignore the softres." ),
+    -- c( "RollFor [Tip]: Use /arf [Hearthstone] to roll the item and ignore the softres." ),
     c( "RollFor: Psikutas received [Hearthstone]." ),
     rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2", "1" ),
@@ -363,7 +334,6 @@ end
 --Disabling due to fucking 2.4.3 hack with delayed trade check.
 function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_ressed_already_received_the_item_via_trade()
   -- Given
-  dropped( item( "Hearthstone", 123 ), item( "Hearthstone", 123 ) )
   local trade_mod = require( "src/TradeTracker" )
   trade_mod.debug_enabled = true
   master_looter( "Psikutas" )
@@ -371,10 +341,10 @@ function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_r
   soft_res( sr( "Obszczymucha", 123 ) )
 
   -- When
-  loot()
+  loot( item( "Hearthstone", 123 ), item( "Hearthstone", 123 ) )
   roll_for( "Hearthstone", 1, 123 )
   trade_with( "Obszczymucha" )
-  trade_items( nil, { item_link = utils.item_link( "Hearthstone", 123 ), quantity = 1 } )
+  trade_items( nil, { item_link = u.item_link( "Hearthstone", 123 ), quantity = 1 } )
   trade_complete()
   tick()
   roll_for( "Hearthstone", 1, 123 )
@@ -382,10 +352,10 @@ function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_r
   repeating_tick( 8 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     r( "2 items dropped:", "1. [Hearthstone] (SR by Obszczymucha)", "2. [Hearthstone]" ),
     rw( "Obszczymucha soft-ressed [Hearthstone]." ),
-    c( "RollFor[ Tip ]: Use /arf [Hearthstone] to roll the item and ignore the softres." ),
+    -- c( "RollFor [Tip]: Use /arf [Hearthstone] to roll the item and ignore the softres." ),
     c( "RollFor: Started trading with Obszczymucha." ),
     c( "RollFor: Giving in slot 1: 1x[Hearthstone]" ),
     c( "RollFor: Trading with Obszczymucha complete." ),
@@ -400,31 +370,35 @@ end
 
 function SoftResIntegrationSpec:should_allow_others_to_roll_if_player_who_soft_ressed_already_received_the_item_via_master_loot()
   -- Given
-  dropped( item( "Hearthstone", 123 ), item( "Hearthstone", 123 ) )
+  local dropped_item = item( "Hearthstone", 123 )
   clear_dropped_items_db()
   master_looter( "Psikutas" )
   is_in_raid( leader( "Psikutas" ), "Obszczymucha", "Ponpon" )
   soft_res( sr( "Obszczymucha", 123 ) )
-  mock_blizzard_loot_buttons()
   mock_shift_key_pressed( false )
   mock_alt_key_pressed( false )
   mock_control_key_pressed( false )
   local link = item_link( "Heartstone", 123 )
+  local rf = clear_dropped_items_db()
+  rf.db.awarded_loot = {}
 
   -- When
-  loot()
+  loot( dropped_item, item( "Hearthstone", 123 ) )
   roll_for( "Hearthstone", 1, 123 )
-  master_loot( link, "Obszczymucha" )
-  confirm_master_looting( loot_event_facade, { name = "Obszczymucha", value = 12 }, link )
+  u.mock( "GiveMasterLoot", function() end )
+  local candidate = mods.Types.make_item_candidate( "Obszczymucha", "Warrior", true )
+  rf.roll_controller.award_confirmed( candidate, dropped_item )
+  m.loot_facade.notify( "LootSlotCleared", 1 )
+  confirm_master_looting( m.loot_facade, candidate, link )
   roll_for( "Hearthstone", 1, 123 )
   roll( "Ponpon", 1 )
   repeating_tick( 8 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     r( "2 items dropped:", "1. [Hearthstone] (SR by Obszczymucha)", "2. [Hearthstone]" ),
     rw( "Obszczymucha soft-ressed [Hearthstone]." ),
-    c( "RollFor[ Tip ]: Use /arf [Hearthstone] to roll the item and ignore the softres." ),
+    -- c( "RollFor [Tip]: Use /arf [Hearthstone] to roll the item and ignore the softres." ),
     c( "RollFor: Obszczymucha received [Hearthstone]." ),
     rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2", "1" ),
@@ -435,13 +409,11 @@ end
 
 function SoftResIntegrationSpec:should_not_subtract_rolls_from_softres_data()
   -- Given
-  dropped( item( "Primal Hakkari Idol", 22637 ) )
   local rf = clear_dropped_items_db()
   rf.db.awarded_loot = {}
   master_looter( "Jogobobek" )
   is_in_raid( leader( "Jogobobek" ), "Trololoo", "Bomanz", "Elizalee" )
   soft_res( sr( "Trololoo", 22637 ), sr( "Elizalee", 22637 ), sr( "Elizalee", 22637 ), sr( "Bomanz", 22637 ) )
-  mock_blizzard_loot_buttons()
   modifier_keys_not_pressed()
 
   -- Then
@@ -450,7 +422,7 @@ function SoftResIntegrationSpec:should_not_subtract_rolls_from_softres_data()
 
   -- And
   targetting_enemy( "Jin'do the Hexxer" )
-  loot()
+  loot( item( "Primal Hakkari Idol", 22637 ) )
   roll_for( "Primal Hakkari Idol", 1, 22637 )
   roll( "Elizalee", 96 )
   roll( "Bomanz", 100 )
@@ -462,21 +434,19 @@ end
 
 function SoftResIntegrationSpec:should_not_allow_a_sr_winner_to_roll_again_if_the_same_item_drops()
   -- Given
-  loot_list.source_guid = "Jin'do the Hexxer"
-  dropped( item( "Primal Hakkari Idol", 22637 ) )
+  m.LootList.source_guid = "Jin'do the Hexxer"
+  local dropped_item = item( "Primal Hakkari Idol", 22637 )
   local rf = clear_dropped_items_db()
   rf.db.awarded_loot = {}
   master_looter( "Jogobobek" )
   is_in_raid( leader( "Jogobobek" ), "Trololoo", "Bomanz", "Elizalee" )
   soft_res( sr( "Trololoo", 22637 ), sr( "Elizalee", 22637 ), sr( "Elizalee", 22637 ), sr( "Bomanz", 22637 ) )
-  mock_blizzard_loot_buttons()
   modifier_keys_not_pressed()
-  local link = item_link( "Primal Hakkari Idol", 22637 )
 
   -- When the first idol drops.
   -- Trololoo 100, Elizalee 35, Elizalee 27, Bomanz - passed
   targetting_enemy( "Jin'do the Hexxer" )
-  loot()
+  loot( dropped_item )
   roll_for( "Primal Hakkari Idol", 1, 22637 )
   repeating_tick( 1 )
   roll( "Elizalee", 35 )
@@ -485,17 +455,17 @@ function SoftResIntegrationSpec:should_not_allow_a_sr_winner_to_roll_again_if_th
   roll( "Elizalee", 27 )
   repeating_tick( 6 )
   run_command( "FR" )
-  rf.master_loot_correlation_data.set( link, 1 )
-  rf.master_loot.on_confirm( { name = "Trololoo", value = 12 }, link )
-  utils.mock( "GiveMasterLoot", function() end )
-  loot_event_facade.notify( "LootSlotCleared", 1 )
-  loot_event_facade.notify( "LootClosed" )
+  u.mock( "GiveMasterLoot", function() end )
+  local candidate = mods.Types.make_item_candidate( "Trololoo", "Warlock", true )
+  rf.roll_controller.award_confirmed( candidate, dropped_item )
+  m.loot_facade.notify( "LootSlotCleared", 1 )
+  m.loot_facade.notify( "LootClosed" )
 
   -- And then another idol drops.
   -- Bomanz 94, Eliza 81, Eliza 66, Trololoo - passed
-  loot_list.source_guid = "Bloodlord Mandokir"
+  m.LootList.source_guid = "Bloodlord Mandokir"
   targetting_enemy( "Bloodlord Mandokir" )
-  loot()
+  loot( dropped_item )
   roll_for( "Primal Hakkari Idol", 1, 22637 )
   repeating_tick( 2 )
   roll( "Bomanz", 94 )
@@ -503,7 +473,7 @@ function SoftResIntegrationSpec:should_not_allow_a_sr_winner_to_roll_again_if_th
   roll( "Elizalee", 66 )
 
   -- Then it should not count Trololoo in the list of SRers, because he already got one.
-  assert_messages(
+  m.chat.assert(
     r( "Jin'do the Hexxer dropped 1 item:", "1. [Primal Hakkari Idol] (SR by Bomanz, Elizalee [2 rolls] and Trololoo)" ),
     rw( "Roll for [Primal Hakkari Idol]: (SR by Bomanz, Elizalee [2 rolls] and Trololoo)" ),
     r( "Stopping rolls in 3", "2", "1" ),
@@ -513,6 +483,59 @@ function SoftResIntegrationSpec:should_not_allow_a_sr_winner_to_roll_again_if_th
     c( "RollFor: Trololoo received [Primal Hakkari Idol]." ),
     r( "Bloodlord Mandokir dropped 1 item:", "1. [Primal Hakkari Idol] (SR by Bomanz and Elizalee [2 rolls])" ),
     rw( "Roll for [Primal Hakkari Idol]: (SR by Bomanz and Elizalee [2 rolls])" ),
+    cr( "Bomanz rolled the highest (94) for [Primal Hakkari Idol] (SR)." ),
+    rolling_finished()
+  )
+end
+
+function SoftResIntegrationSpec:should_not_allow_a_double_sr_winner_to_roll_again_if_the_same_item_drops()
+  -- Given
+  m.LootList.source_guid = "Jin'do the Hexxer"
+  local dropped_item = item( "Primal Hakkari Idol", 22637 )
+  local rf = clear_dropped_items_db()
+  rf.db.awarded_loot = {}
+  master_looter( "Jogobobek" )
+  is_in_raid( leader( "Jogobobek" ), "Trololoo", "Bomanz", "Elizalee" )
+  soft_res( sr( "Trololoo", 22637 ), sr( "Elizalee", 22637 ), sr( "Elizalee", 22637 ), sr( "Bomanz", 22637 ) )
+  modifier_keys_not_pressed()
+
+  -- When the first idol drops.
+  targetting_enemy( "Jin'do the Hexxer" )
+  loot( dropped_item )
+  roll_for( "Primal Hakkari Idol", 1, 22637 )
+  repeating_tick( 1 )
+  roll( "Trololoo", 35 )
+  roll( "Elizalee", 100 )
+  repeating_tick( 1 )
+  roll( "Elizalee", 27 )
+  repeating_tick( 6 )
+  run_command( "FR" )
+  u.mock( "GiveMasterLoot", function() end )
+  local candidate = mods.Types.make_item_candidate( "Elizalee", "Paladin", true )
+  rf.roll_controller.award_confirmed( candidate, dropped_item )
+  m.loot_facade.notify( "LootSlotCleared", 1 )
+  m.loot_facade.notify( "LootClosed" )
+
+  -- And then another idol drops.
+  m.LootList.source_guid = "Bloodlord Mandokir"
+  targetting_enemy( "Bloodlord Mandokir" )
+  loot( dropped_item )
+  roll_for( "Primal Hakkari Idol", 1, 22637 )
+  repeating_tick( 2 )
+  roll( "Bomanz", 94 )
+  roll( "Trololoo", 81 )
+
+  -- Then it should not count Elizalee in the list of SRers, because he already got one.
+  m.chat.assert(
+    r( "Jin'do the Hexxer dropped 1 item:", "1. [Primal Hakkari Idol] (SR by Bomanz, Elizalee [2 rolls] and Trololoo)" ),
+    rw( "Roll for [Primal Hakkari Idol]: (SR by Bomanz, Elizalee [2 rolls] and Trololoo)" ),
+    r( "Stopping rolls in 3", "2", "1" ),
+    r( "SR rolls remaining: Bomanz (1 roll)" ),
+    cr( "Elizalee rolled the highest (100) for [Primal Hakkari Idol] (SR)." ),
+    rolling_finished(),
+    c( "RollFor: Elizalee received [Primal Hakkari Idol]." ),
+    r( "Bloodlord Mandokir dropped 1 item:", "1. [Primal Hakkari Idol] (SR by Bomanz and Trololoo)" ),
+    rw( "Roll for [Primal Hakkari Idol]: (SR by Bomanz and Trololoo)" ),
     cr( "Bomanz rolled the highest (94) for [Primal Hakkari Idol] (SR)." ),
     rolling_finished()
   )
@@ -534,7 +557,7 @@ function SoftResIntegrationSpec:should_only_process_rolls_from_players_who_soft_
   repeating_tick( 1 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon, Psikutas and Sälvatrucha)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Sälvatrucha rolled the highest (69) for [Hearthstone] (SR)." ),
@@ -554,25 +577,14 @@ function SoftResIntegrationSpec:should_stop_rolling_if_player_who_won_still_has_
   roll( "Ponpon", 42 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon and Psikutas [2 rolls])" ),
     cr( "Psikutas rolled the highest (69) for [Hearthstone] (SR)." ),
     rolling_finished()
   )
 end
 
-utils.mock_libraries()
-utils.load_real_stuff( function( module_name )
-  if module_name == "src/LootAwardPopup" then return require( "mocks/LootAwardPopupMock" ) end
-  if module_name == "src/Config" then return mock_config() end
-  if module_name == "src/LootList" then require( "mocks/LootList" ) end
-  if module_name == "src/api/LootFacade" then
-    ---@diagnostic disable-next-line: different-requires
-    loot_event_facade = require( "mocks/LootFacade" )
-    return loot_event_facade
-  end
-
-  return require( module_name )
-end )
+u.mock_libraries()
+u.load_real_stuff_and_inject( module_registry, m )
 
 os.exit( lu.LuaUnit.run() )

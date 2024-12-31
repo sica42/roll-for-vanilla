@@ -12,6 +12,8 @@ local RollType = m.Types.RollType
 
 local M = {}
 
+---@alias Config table
+
 function M.new( db )
   local callbacks = {}
   local toggles = {
@@ -20,11 +22,11 @@ function M.new( db )
     [ "auto_raid_roll" ] = { cmd = "auto-rr", display = "Auto raid-roll", help = "toggle auto raid-roll" },
     [ "auto_group_loot" ] = { cmd = "auto-group-loot", display = "Auto group loot", help = "toggle auto group loot" },
     [ "auto_master_loot" ] = { cmd = "auto-master-loot", display = "Auto master loot", help = "toggle auto master loot" },
-    [ "rolling_tip" ] = { cmd = "rolling-tip", display = "Rolling tip", help = "toggle rolling tip window" },
     [ "rolling_popup_lock" ] = { cmd = "rolling-popup-lock", display = "Rolling popup lock", help = "toggle rolling popup lock" },
     [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },
-    [ "rolling_popup" ] = { cmd = "rolling-popup", display = "Rolling popup", help = "toggle rolling popup" },
     [ "insta_raid_roll" ] = { cmd = "insta-rr", display = "Insta raid-roll", help = "toggle insta raid-roll" },
+    [ "auto_process_loot" ] = { cmd = "auto-process-loot", display = "Auto process loot", help = "toggle auto loot processing" },
+    [ "autostart_loot_process" ] = { cmd = "autostart-loot-process", display = "Autostart loot process on loot open", help = "toggle autostart loot processing" },
   }
 
   local function notify_subscribers( event, value )
@@ -40,11 +42,10 @@ function M.new( db )
     if not db.os_roll_threshold then db.os_roll_threshold = 99 end
     if not db.tmog_roll_threshold then db.tmog_roll_threshold = 98 end
     if db.tmog_rolling_enabled == nil then db.tmog_rolling_enabled = true end
-    if db.rolling_tip == nil then db.rolling_tip = true end
-    if db.rolling_popup == nil then db.rolling_popup = true end
     if db.show_ml_warning == nil then db.show_ml_warning = true end
     if db.default_rolling_time_seconds == nil then db.default_rolling_time_seconds = 8 end
     if db.master_loot_frame_rows == nil then db.master_loot_frame_rows = 5 end
+    if db.auto_process_loot == nil then db.auto_process_loot = true end
   end
 
   local function print( toggle_key )
@@ -73,6 +74,11 @@ function M.new( db )
     notify_subscribers( "reset_rolling_popup" )
   end
 
+  local function reset_loot_frame()
+    info( "Loot frame position has been reset." )
+    notify_subscribers( "reset_loot_frame" )
+  end
+
   local function print_roll_thresholds()
     local ms_threshold = db.ms_roll_threshold
     local os_threshold = db.os_roll_threshold
@@ -86,11 +92,6 @@ function M.new( db )
     local tmog_rolling_enabled = db.tmog_rolling_enabled
     local threshold = show_threshold and tmog_rolling_enabled and string.format( " (%s)", hl( db.tmog_roll_threshold ) ) or ""
     info( string.format( "Transmog rolling is %s%s.", tmog_rolling_enabled and m.msg.enabled or m.msg.disabled, threshold ) )
-  end
-
-  local function print_pfui_integration_setting()
-    if not m.uses_pfui() then return end
-    info( string.format( "%s integration is %s.", m.msg.pfui, db.pfui_integration_enabled and m.msg.enabled or m.msg.disabled ) )
   end
 
   local function print_default_rolling_time()
@@ -107,7 +108,6 @@ function M.new( db )
     print_master_loot_frame_rows()
     print_roll_thresholds()
     print_transmog_rolling_setting()
-    print_pfui_integration_setting()
 
     for toggle_key, setting in pairs( toggles ) do
       if not setting.hidden then
@@ -222,10 +222,6 @@ function M.new( db )
     m.print( string.format( "%s - toggle TMOG rolling", rfc( "tmog" ) ) )
     m.print( string.format( "%s %s - set TMOG rolling threshold", rfc( "tmog" ), v( "threshold" ) ) )
 
-    if m.uses_pfui() then
-      m.print( string.format( "%s - toggle %s integration", rfc( "pfui" ), m.msg.pfui ) )
-    end
-
     for _, setting in pairs( toggles ) do
       if not setting.hidden then
         m.print( string.format( "%s - %s", rfc( setting.cmd ), setting.help ) )
@@ -233,26 +229,7 @@ function M.new( db )
     end
 
     m.print( string.format( "%s - reset rolling popup position", rfc( "reset-rolling-popup" ) ) )
-  end
-
-  local function toggle_pfui_integration()
-    if db.pfui_integration_enabled then
-      db.pfui_integration_enabled = false
-    else
-      db.pfui_integration_enabled = true
-    end
-
-    print_pfui_integration_setting()
-  end
-
-  local function enable_pfui_integration()
-    db.pfui_integration_enabled = true
-    db.pfui_integration_info_showed = true
-  end
-
-  local function disable_pfui_integration()
-    db.pfui_integration_enabled = false
-    db.pfui_integration_info_showed = true
+    m.print( string.format( "%s - reset loot frame position", rfc( "reset-loot-frame" ) ) )
   end
 
   local function lock_minimap_button()
@@ -300,6 +277,11 @@ function M.new( db )
       return
     end
 
+    if args == "config reset-loot-frame" then
+      reset_loot_frame()
+      return
+    end
+
     if args == "config minimap" then
       if db.minimap_button_hidden then
         show_minimap_button()
@@ -332,11 +314,6 @@ function M.new( db )
 
     if string.find( args, "^config tmog" ) then
       configure_tmog_threshold( args )
-      return
-    end
-
-    if args == "config pfui" and m.uses_pfui() then
-      toggle_pfui_integration()
       return
     end
 
@@ -379,8 +356,6 @@ function M.new( db )
     configure_ms_threshold = configure_ms_threshold,
     configure_os_threshold = configure_os_threshold,
     configure_tmog_threshold = configure_tmog_threshold,
-    disable_pfui_integration = disable_pfui_integration,
-    enable_pfui_integration = enable_pfui_integration,
     hide_minimap_button = hide_minimap_button,
     lock_minimap_button = lock_minimap_button,
     minimap_button_hidden = get( "minimap_button_hidden" ),
@@ -388,19 +363,16 @@ function M.new( db )
     ms_roll_threshold = get( "ms_roll_threshold" ),
     on_command = on_command,
     os_roll_threshold = get( "os_roll_threshold" ),
-    pf_integration_info_showed = get( "pfui_integration_info_showed" ),
-    pfui_integration_enabled = get( "pfui_integration_enabled" ),
     print = print,
     print_help = print_help,
     print_raid_roll_settings = printfn( "auto_raid_roll" ),
     reset_rolling_popup = reset_rolling_popup,
+    reset_loot_frame = reset_loot_frame,
     roll_threshold = roll_threshold,
     show_minimap_button = show_minimap_button,
-    show_rolling_tip = get( "rolling_tip" ),
     subscribe = subscribe,
     tmog_roll_threshold = get( "tmog_roll_threshold" ),
     tmog_rolling_enabled = get( "tmog_rolling_enabled" ),
-    toggle_pfui_integration = toggle( "pfui_integration_enabled" ),
     unlock_minimap_button = unlock_minimap_button,
     default_rolling_time_seconds = get( "default_rolling_time_seconds" ),
     master_loot_frame_rows = get( "master_loot_frame_rows" ),

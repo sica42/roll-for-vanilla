@@ -1,8 +1,13 @@
 RollFor = RollFor or {}
 local M = RollFor
 
+---@diagnostic disable-next-line: undefined-global
+local debugstack = debugstack
+
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
+
+---@alias ColorFn fun( text: string ): string
 
 M.api = getfenv()
 M.lua = {
@@ -19,28 +24,28 @@ M.lua = {
 
 M.colors = {
   highlight = function( text )
-    return string.format( "|cffff9f69%s|r", text )
+    return string.format( "|cffff9f69%s|r", text ) ---@type ColorFn
   end,
   blue = function( text )
-    return string.format( "|cff209ff9%s|r", text )
+    return string.format( "|cff209ff9%s|r", text ) ---@type ColorFn
   end,
   white = function( text )
-    return string.format( "|cffffffff%s|r", text )
+    return string.format( "|cffffffff%s|r", text ) ---@type ColorFn
   end,
   red = function( text )
-    return string.format( "|cffff2f2f%s|r", text )
+    return string.format( "|cffff2f2f%s|r", text ) ---@type ColorFn
   end,
   orange = function( text )
-    return string.format( "|cffff8f2f%s|r", text )
+    return string.format( "|cffff8f2f%s|r", text ) ---@type ColorFn
   end,
   grey = function( text )
-    return string.format( "|cff9f9f9f%s|r", text )
+    return string.format( "|cff9f9f9f%s|r", text ) ---@type ColorFn
   end,
   green = function( text )
-    return string.format( "|cff2fff5f%s|r", text )
+    return string.format( "|cff2fff5f%s|r", text ) ---@type ColorFn
   end,
   pink = function( text )
-    return string.format( "|cffdf8eed%s|r", text )
+    return string.format( "|cffdf8eed%s|r", text ) ---@type ColorFn
   end
 }
 
@@ -49,7 +54,6 @@ M.msg = {
   enabled = M.colors.green( "enabled" ),
   locked = M.colors.red( "locked" ),
   unlocked = M.colors.green( "unlocked" ),
-  pfui = "|cff33ffccpf|cffffffffUI"
 }
 
 if M.api.RAID_CLASS_COLORS then
@@ -77,8 +81,26 @@ function M.pretty_print( message, color_fn, module_name )
   if not message then return end
 
   local c = color_fn and type( color_fn ) == "function" and color_fn or color_fn and type( color_fn ) == "string" and M.colors[ color_fn ] or M.colors.blue
-  local module_str = module_name and string.format( "%s%s%s", c( "[ " ), M.colors.white( module_name ), c( " ]" ) ) or ""
-  M.api.DEFAULT_CHAT_FRAME:AddMessage( string.format( "%s%s: %s", c( "RollFor" ), module_str, message ) )
+  local module_str = module_name and string.format( "%s%s%s", c( " [" ), M.colors.white( module_name ), c( "]" ) ) or ""
+
+  local frame = M.api.DEFAULT_CHAT_FRAME
+  if frame then frame:AddMessage( string.format( "%s%s: %s", c( "RollFor" ), module_str, message ) ) end
+end
+
+function M.err( message, module_name )
+  M.pretty_print( message, M.colors.red, module_name )
+end
+
+function M.trace( message, object_to_dump )
+  local stacktrace = debugstack or debug.traceback
+  if not stacktrace then return end
+
+  if object_to_dump then
+    print( "\n" .. message .. ":" )
+    M.pdump( object_to_dump )
+  end
+
+  error( message .. "\n" .. stacktrace(), 2 )
 end
 
 function M.print_header( text, color_fn )
@@ -118,31 +140,8 @@ function M.clone( t )
   return result
 end
 
-function M.is_player_master_looter()
-  if not M.api.IsInGroup() then return false end
-
-  local loot_method, id = M.api.GetLootMethod()
-  if loot_method ~= "master" or not id then return false end
-  if id == 0 then return true end
-
-  if M.api.IsInRaid() then
-    local name = M.api.GetRaidRosterInfo( id )
-    return name == M.my_name()
-  end
-
-  return M.api.UnitName( "party" .. id ) == M.my_name()
-end
-
 function M.is_master_loot()
   return M.api.GetLootMethod() == "master"
-end
-
-function M.is_player_a_leader()
-  return M.api.UnitIsPartyLeader( "player" )
-end
-
-function M.my_name()
-  return M.api.UnitName( "player" )
 end
 
 function M.target_name()
@@ -151,10 +150,6 @@ end
 
 function M.target_dead()
   return M.api.UnitIsDead( "target" )
-end
-
-function M.get_group_chat_type()
-  return M.api.IsInRaid() and "RAID" or "PARTY"
 end
 
 function M.decolorize( input )
@@ -253,18 +248,6 @@ function M.take( t, n )
   end
 
   return result
-end
-
-function M.my_raid_rank()
-  for i = 1, 40 do
-    local name, rank = M.api.GetRaidRosterInfo( i )
-
-    if name and name == M.my_name() then
-      return rank
-    end
-  end
-
-  return 0
 end
 
 function M.table_contains_value( t, value, f )
@@ -456,11 +439,6 @@ function M.get_addon_version()
   return result
 end
 
-function M.uses_pfui()
-  ---@diagnostic disable-next-line: undefined-global
-  return pfUI and pfUI.version and true or false
-end
-
 function M.clear_table( t )
   for k in pairs( t ) do
     t[ k ] = nil
@@ -562,6 +540,31 @@ end
 function M.get_item_texture( item_id )
   local _, _, _, _, _, _, _, _, texture = M.api.GetItemInfo( item_id )
   return texture
+end
+
+function M.get_item_quality_and_texture( item_id )
+  local _, _, quality, _, _, _, _, _, texture = M.api.GetItemInfo( item_id )
+  return quality, texture
+end
+
+function M.pdump( o )
+  print( "\n" .. M.dump( o ) )
+end
+
+function M.noop() end
+
+---@param number number
+function M.article( number )
+  local str = tostring( number )
+
+  local first_digit = tonumber( string.sub( str, 1, 1 ) )
+  local first_two = tonumber( string.sub( str, 1, 2 ) )
+
+  if first_digit == 8 or first_two == 11 or first_two == 18 then
+    return "an"
+  end
+
+  return "a"
 end
 
 return M

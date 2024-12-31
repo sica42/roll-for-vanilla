@@ -1,18 +1,18 @@
 package.path = "./?.lua;" .. package.path .. ";../?.lua;../RollFor/?.lua;../RollFor/libs/?.lua"
 
-local lu = require( "luaunit" )
+local u = require( "test/utils" )
+local lu, eq = u.luaunit( "assertEquals" )
 local mocking = require( "test/mocking" )
-local mock_api = mocking.mock_api
-local mock = mocking.mock
-local smart_table = mocking.smart_table
-local packed_value = mocking.packed_value
+local mock, mock_api = mocking.mock, mocking.mock_api
+local smart_table, packed_value = mocking.smart_table, mocking.packed_value
 
 require( "test/utils" ) -- Need to load this before modules to load lua50 stuff.
 require( "src/modules" )
+require( "src/Types" )
+
+local mock_player_info = require( "mocks/PlayerInfo" ).new
 local gr = require( "src/GroupRoster" )
 
--- mock_api() checks if the type is a function and then ungroups the result.
--- This allows us mocking multiple functions at the same time.
 local function player( name )
   return function()
     return {
@@ -63,61 +63,48 @@ local function raid( _player, ... )
   return group( _player, true, ... )
 end
 
-MyNameSpec = {}
-
-function MyNameSpec:should_return_my_name()
-  -- Given
-  local api = mock_api( player( "Psikutas" ) )
-  local mod = gr.new( api )
-
-  -- When
-  local result = mod.my_name()
-
-  -- Then
-  lu.assertEquals( result, "Psikutas" )
-end
-
 GetAllPlayersInMyGroupSpec = {}
 
 function GetAllPlayersInMyGroupSpec:should_return_my_name_if_not_in_group()
   -- Given
-  local api = mock_api( player( "Psikutas" ) )
-  local mod = gr.new( api )
+  local my_name = "Psikutas"
+  local api = mock_api( player( my_name ) )
+  local mod = gr.new( api(), mock_player_info( my_name ) )
 
   -- When
   local result = mod.get_all_players_in_my_group()
 
   -- Then
-  lu.assertEquals( result, { { class = "Warrior", name = "Psikutas" } } )
+  eq( result, { { class = "Warrior", name = "Psikutas" } } )
 end
 
-function GetAllPlayersInMyGroupSpec:should_return_all_players_in_party()
+function GetAllPlayersInMyGroupSpec:should_return_all_players_in_party_sorted()
   -- Given
   local api = mock_api( party( "Psikutas", "Obszczymucha" ) )
-  local mod = gr.new( api )
+  local mod = gr.new( api(), mock_player_info() )
 
   -- When
   local result = mod.get_all_players_in_my_group()
 
   -- Then
-  lu.assertEquals( result, {
-    { class = "Warrior", name = "Psikutas",     online = true },
-    { class = "Warrior", name = "Obszczymucha", online = true }
+  eq( result, {
+    { class = "Warrior", name = "Obszczymucha", online = true, type = "Player" },
+    { class = "Warrior", name = "Psikutas",     online = true, type = "Player" }
   } )
 end
 
-function GetAllPlayersInMyGroupSpec:should_return_all_players_in_raid()
+function GetAllPlayersInMyGroupSpec:should_return_all_players_in_raid_sorted()
   -- Given
   local api = mock_api( raid( "Psikutas", "Obszczymucha" ) )
-  local mod = gr.new( api )
+  local mod = gr.new( api(), mock_player_info() )
 
   -- When
   local result = mod.get_all_players_in_my_group()
 
   -- Then
-  lu.assertEquals( result, {
-    { class = "Warrior", name = "Psikutas",     online = true },
-    { class = "Warrior", name = "Obszczymucha", online = true }
+  eq( result, {
+    { class = "Warrior", name = "Obszczymucha", online = true },
+    { class = "Warrior", name = "Psikutas",     online = true }
   } )
 end
 
@@ -125,100 +112,101 @@ IsPlayerInMyGroupSpec = {}
 
 function IsPlayerInMyGroupSpec:should_return_true_for_myself()
   -- Given
-  local api = mock_api( player( "Psikutas" ) )
-  local mod = gr.new( api )
+  local my_name = "Psikutas"
+  local api = mock_api( player( my_name ) )
+  local mod = gr.new( api(), mock_player_info( my_name ) )
 
   -- When
-  local result = mod.is_player_in_my_group( "Psikutas" )
+  local result = mod.is_player_in_my_group( my_name )
 
   -- Then
-  lu.assertEquals( result, true )
+  eq( result, true )
 end
 
 function IsPlayerInMyGroupSpec:should_return_false_for_someone_else_if_not_in_group()
   -- Given
   local api = mock_api( player( "Psikutas" ) )
-  local mod = gr.new( api )
+  local mod = gr.new( api(), mock_player_info() )
 
   -- When
   local result = mod.is_player_in_my_group( "Obszczymucha" )
 
   -- Then
-  lu.assertEquals( result, false )
+  eq( result, false )
 end
 
 function IsPlayerInMyGroupSpec:should_return_true_for_myself_if_in_party()
   -- Given
-  local api = mock_api( party( "Psikutas", "Obszczymucha" ) )
-  local mod = gr.new( api )
+  local my_name = "Psikutas"
+  local api = mock_api( party( my_name, "Obszczymucha" ) )
+  local mod = gr.new( api(), mock_player_info( my_name ) )
 
   -- When
-  local result = mod.is_player_in_my_group( "Psikutas" )
+  local result = mod.is_player_in_my_group( my_name )
 
   -- Then
-  lu.assertEquals( mod.my_name(), "Psikutas" )
-  lu.assertEquals( result, true )
+  eq( result, true )
 end
 
 function IsPlayerInMyGroupSpec:should_return_true_for_myself_if_in_raid()
   -- Given
-  local api = mock_api( raid( "Psikutas", "Obszczymucha" ) )
-  local mod = gr.new( api )
+  local my_name = "Psikutas"
+  local api = mock_api( raid( my_name, "Obszczymucha" ) )
+  local mod = gr.new( api(), mock_player_info( my_name ) )
 
   -- When
-  local result = mod.is_player_in_my_group( "Psikutas" )
+  local result = mod.is_player_in_my_group( my_name )
 
   -- Then
-  lu.assertEquals( mod.my_name(), "Psikutas" )
-  lu.assertEquals( result, true )
+  eq( result, true )
 end
 
 function IsPlayerInMyGroupSpec:should_return_true_for_someone_else_in_party()
   -- Given
   local api = mock_api( party( "Psikutas", "Obszczymucha" ) )
-  local mod = gr.new( api )
+  local mod = gr.new( api(), mock_player_info() )
 
   -- When
   local result = mod.is_player_in_my_group( "Obszczymucha" )
 
   -- Then
-  lu.assertEquals( result, true )
+  eq( result, true )
 end
 
 function IsPlayerInMyGroupSpec:should_return_true_for_someone_else_in_raid()
   -- Given
   local api = mock_api( raid( "Psikutas", "Obszczymucha" ) )
-  local mod = gr.new( api )
+  local mod = gr.new( api(), mock_player_info() )
 
   -- When
   local result = mod.is_player_in_my_group( "Obszczymucha" )
 
   -- Then
-  lu.assertEquals( result, true )
+  eq( result, true )
 end
 
 function IsPlayerInMyGroupSpec:should_return_true_for_someone_else_not_in_party()
   -- Given
   local api = mock_api( party( "Psikutas", "Obszczymucha" ) )
-  local mod = gr.new( api )
+  local mod = gr.new( api(), mock_player_info() )
 
   -- When
   local result = mod.is_player_in_my_group( "Ponpon" )
 
   -- Then
-  lu.assertEquals( result, false )
+  eq( result, false )
 end
 
 function IsPlayerInMyGroupSpec:should_return_true_for_someone_else_not_in_raid()
   -- Given
   local api = mock_api( raid( "Psikutas", "Obszczymucha" ) )
-  local mod = gr.new( api )
+  local mod = gr.new( api(), mock_player_info() )
 
   -- When
   local result = mod.is_player_in_my_group( "Ponpon" )
 
   -- Then
-  lu.assertEquals( result, false )
+  eq( result, false )
 end
 
 AmIInGroupSpec = {}
@@ -228,12 +216,12 @@ function AmIInGroupSpec:should_return_false_if_not_in_group()
   local api = mock_api( player( "Psikutas" ) )
 
   -- When
-  local mod = gr.new( api )
+  local mod = gr.new( api(), mock_player_info() )
 
   -- Then
-  lu.assertEquals( mod.am_i_in_group(), false )
-  lu.assertEquals( mod.am_i_in_party(), false )
-  lu.assertEquals( mod.am_i_in_raid(), false )
+  eq( mod.am_i_in_group(), false )
+  eq( mod.am_i_in_party(), false )
+  eq( mod.am_i_in_raid(), false )
 end
 
 function AmIInGroupSpec:should_return_true_if_in_party()
@@ -241,12 +229,12 @@ function AmIInGroupSpec:should_return_true_if_in_party()
   local api = mock_api( party( "Psikutas", "Obszczymucha" ) )
 
   -- When
-  local mod = gr.new( api )
+  local mod = gr.new( api(), mock_player_info() )
 
   -- Then
-  lu.assertEquals( mod.am_i_in_group(), true )
-  lu.assertEquals( mod.am_i_in_party(), true )
-  lu.assertEquals( mod.am_i_in_raid(), false )
+  eq( mod.am_i_in_group(), true )
+  eq( mod.am_i_in_party(), true )
+  eq( mod.am_i_in_raid(), false )
 end
 
 function AmIInGroupSpec:should_return_true_if_in_raid()
@@ -254,12 +242,12 @@ function AmIInGroupSpec:should_return_true_if_in_raid()
   local api = mock_api( raid( "Psikutas", "Obszczymucha" ) )
 
   -- When
-  local mod = gr.new( api )
+  local mod = gr.new( api(), mock_player_info() )
 
   -- Then
-  lu.assertEquals( mod.am_i_in_group(), true )
-  lu.assertEquals( mod.am_i_in_party(), false )
-  lu.assertEquals( mod.am_i_in_raid(), true )
+  eq( mod.am_i_in_group(), true )
+  eq( mod.am_i_in_party(), false )
+  eq( mod.am_i_in_raid(), true )
 end
 
 os.exit( lu.LuaUnit.run() )

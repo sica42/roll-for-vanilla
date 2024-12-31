@@ -3,148 +3,98 @@ local m = RollFor
 
 if m.MasterLoot then return end
 
-local M = {}
-local _G = getfenv()
+local M = m.Module.new( "MasterLoot" )
 local pretty_print = m.pretty_print
 local hl = m.colors.hl
-local buttons_hooked = false
-local original_toggle_dropdown_menu
-local bypass_dropdown_menu = false
+local clear_table = m.clear_table
+local err = m.err
 
----@diagnostic disable-next-line: deprecated
-local getn = table.getn
+---@class MasterLoot
+---@field on_loot_opened fun()
+---@field on_recipient_inventory_full fun()
+---@field on_player_is_too_far fun()
+---@field on_unknown_error_message fun( message: string )
+---@field on_loot_slot_cleared fun( slot: number )
+---@field on_loot_received fun( player_name: string, item_id: number, item_link: string )
 
-function M.new( master_loot_candidates, award_item, master_loot_frame, master_loot_tracker, config, master_loot_correlation_data )
+---@param master_loot_candidates MasterLootCandidates
+---@param loot_award_callback LootAwardCallback
+---@param loot_list LootList
+---@param roll_controller RollController
+function M.new( master_loot_candidates, loot_award_callback, loot_list, roll_controller )
+  ---@type { player: ItemCandidate|Winner, item: Item }?
   local m_confirmed = nil
+  local m_slot_cache = {}
 
   local function reset_confirmation()
+    M.debug.add( "reset_confirmation" )
     m_confirmed = nil
   end
 
-  local function hook_toggle_dropdown_menu()
-    original_toggle_dropdown_menu = m.api.ToggleDropDownMenu
-
-    _G[ "ToggleDropDownMenu" ] = function( level, value, dropDownFrame, anchorName, xOffset, yOffset, menuList )
-      if config.pfui_integration_enabled() and bypass_dropdown_menu then return end
-      original_toggle_dropdown_menu( level, value, dropDownFrame, anchorName, xOffset, yOffset, menuList )
-    end
-  end
-
+  -- We are storing the item in the slot cache (m_slot_cache) and ML confirmation (m_confirmed).
+  -- This is to correlate the loot award event which we have to do using LOOT_SLOT_CLEARED,
+  -- because CHAT_MSG_LOOT doesn't seem to be synced with LOOT_ events.
+  -- Normally one would expect CHAT_MSG_LOOT to happen before LOOT_SLOT_CLEARED, or at least
+  -- before LOOT_CLOSED, but this is what happened once:
+  -- LOOT_OPENED -> LOOT_SLOT_CLEARED -> LOOT_CLOSED -> CHAT_MSG_LOOT.
+  -- It's safer and simpler to just rely on LOOT_ events.
   local function on_loot_slot_cleared( slot )
-    if not m_confirmed then
-      master_loot_tracker.remove( slot )
+    M.debug.add( string.format( "on_loot_slot_cleared(%s)", slot or nil ) )
+    if not m_slot_cache[ slot ] or not m_confirmed then return end
+
+    local cached_item = m_slot_cache[ slot ]
+
+    if cached_item.id == m_confirmed.item.id then
+      loot_award_callback.on_loot_awarded( m_confirmed.player.name, m_confirmed.item.id, m_confirmed.item.link )
+      reset_confirmation()
+    end
+
+    m_slot_cache[ slot ] = nil
+  end
+
+  ---@param data AwardConfirmedData
+  local function on_confirm( data )
+    local player = data.player
+    local item = data.item
+
+    M.debug.add( string.format( "on_confirm(%s [%s], %s)", player and player.name or "nil", player and player.type or "nil", item and item.id or "nil" ) )
+    local slot = loot_list.get_slot( item.id )
+    if not slot then return end
+
+    if player.type ~= "ItemCandidate" and not (player.type == "Winner" and player.is_on_master_loot_candidate_list) then
+      err( "Player is not eligible for this item." )
       return
     end
 
-    local item = master_loot_tracker.get( slot )
-    if item then
-      award_item( m_confirmed.player.name, item.id, item.link )
-      master_loot_tracker.remove( slot )
-    end
+    m_confirmed = { item = item, player = player }
+    m_slot_cache[ slot ] = item
 
-    reset_confirmation()
-    master_loot_frame.hide()
-  end
+    local index = master_loot_candidates.get_index( player.name )
 
-  local function on_confirm( player, item_link )
-    local data = master_loot_correlation_data.get( item_link )
-    if not data then return end
-
-    local candidate = master_loot_candidates.find( player.name )
-
-    if not candidate then
-      pretty_print( string.format( "%s is not on loot candidate list.", player.name ) )
+    if not index then
+      err( "Player is not in the loot candidates list." )
       return
     end
 
-    m_confirmed = { slot = data.slot, player = player }
-    m.api.GiveMasterLoot( data.slot, candidate.value )
-    master_loot_frame.hide()
-  end
-
-  local function normal_loot( button )
-    reset_confirmation()
-    button:OriginalOnClick()
-  end
-
-  local function show_loot_candidates_frame( slot, item, button )
-    m.api.LootFrame.selectedSlot = slot
-    m.api.LootFrame.selectedItemLink = item.link
-    master_loot_correlation_data.set( item.link, slot )
-    -- m.api.LootFrame.selectedItemName = item_name
-
-    m.api.CloseDropDownMenus()
-    master_loot_frame.create()
-    master_loot_frame.hide()
-
-    local candidates = master_loot_candidates.get()
-
-    if getn( candidates ) == 0 then
-      -- This happened before.
-      m.pretty_print( "Game API didn't return any loot candidates. Restoring original button hook." )
-      normal_loot( button )
-      return
-    end
-
-    master_loot_frame.create_candidate_frames( candidates, item )
-    master_loot_frame.anchor( button )
-    master_loot_frame.show( item.link )
+    m.api.GiveMasterLoot( slot, index )
   end
 
   local function on_loot_opened()
-    if not m.is_player_master_looter() then
-      if buttons_hooked then
-        master_loot_frame.restore_loot_buttons()
-        buttons_hooked = false
-      end
-
-      return
-    end
-
+    M.debug.add( "on_loot_opened" )
+    clear_table( m_slot_cache )
     reset_confirmation()
-
-    if not original_toggle_dropdown_menu then hook_toggle_dropdown_menu() end
-    bypass_dropdown_menu = true
-
-    if m.uses_pfui() and config.pfui_integration_enabled() then
-      master_loot_frame.hook_pfui_loot_buttons( reset_confirmation, normal_loot, show_loot_candidates_frame, master_loot_frame.hide )
-    else
-      master_loot_frame.hook_loot_buttons( reset_confirmation, normal_loot, show_loot_candidates_frame, master_loot_frame.hide )
-    end
-
-    buttons_hooked = true
   end
 
-  local function on_loot_closed()
-    bypass_dropdown_menu = false
-    master_loot_frame.hide()
-    if not m.is_player_master_looter() then return end
+  local function on_loot_received( player_name, item_id, item_link )
+    M.debug.add( string.format( "on_loot_received(%s, %s, %s)", player_name or "nil", item_id or "nil", item_link or "nil" ) )
+    local is_looting = loot_list.is_looting()
+    if m_confirmed and is_looting then return end
+    if not m_confirmed then return end
 
-    local items_left_count = master_loot_tracker.count()
+    -- This isn't tested, because it's hard to reproduce. Not sure if it can happen. Let's keep it here to be safe.
+    if m_confirmed.item.id ~= item_id then return end
 
-    if not m_confirmed then
-      if items_left_count > 0 then pretty_print( "Not all items were distributed." ) end
-      return
-    end
-
-    if items_left_count == 0 then
-      return
-    end
-
-    local item = master_loot_tracker.get( m_confirmed.slot )
-
-    if items_left_count > 1 then
-      pretty_print( string.format( "%s (slot %s) was supposed to be given to %s.", item and item.link or "Item", m_confirmed.slot, m_confirmed.player.name ) )
-      return
-    end
-
-    if item == nil then
-      pretty_print( "A different slot left in the tracker.", "red" )
-      return
-    end
-
-    award_item( m_confirmed.player.name, item.id, item.link )
-    master_loot_tracker.remove( m_confirmed.slot )
+    loot_award_callback.on_loot_awarded( player_name, item_id, item_link )
     reset_confirmation()
   end
 
@@ -172,14 +122,16 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
     end
   end
 
+  roll_controller.subscribe( "award_confirmed", on_confirm )
+
+  ---@type MasterLoot
   return {
-    on_loot_slot_cleared = on_loot_slot_cleared,
     on_loot_opened = on_loot_opened,
-    on_loot_closed = on_loot_closed,
     on_recipient_inventory_full = on_recipient_inventory_full,
     on_player_is_too_far = on_player_is_too_far,
     on_unknown_error_message = on_unknown_error_message,
-    on_confirm = on_confirm
+    on_loot_slot_cleared = on_loot_slot_cleared,
+    on_loot_received = on_loot_received
   }
 end
 

@@ -10,6 +10,16 @@ local EventType = {
   WinnerFound = "WinnerFound"
 }
 
+---@class WinnerTracker
+---@field start_rolling fun( item_link: string )
+---@field track fun( winner_name: string, item_link: string, roll_type: RollType, winning_roll: number?, rolling_strategy: RollingStrategyType )
+---@field untrack fun( winner_name: string, item_link: string )
+---@field find_winners fun( item_link: string ): table[]
+---@field subscribe_for_rolling_started fun( callback: fun() )
+---@field subscribe_for_winner_found fun( callback: fun( winner_name: string, item_link: string, winning_roll: number, roll_type: RollType, rolling_strategy: RollingStrategyType ) )
+---@field clear fun()
+
+---@param db table
 function M.new( db )
   local callbacks = {
     [ EventType.RollingStarted ] = {},
@@ -18,14 +28,12 @@ function M.new( db )
 
   db.winners = db.winners or {}
 
-  -- roll_type -> Types.RollType
   local function notify_winner_found( winner_name, item_link, roll_type, winning_roll, rolling_strategy )
     for _, callback in ipairs( callbacks[ EventType.WinnerFound ] ) do
       callback( winner_name, item_link, winning_roll, roll_type, rolling_strategy )
     end
   end
 
-  -- roll_type -> Types.RollType
   local function track( winner_name, item_link, roll_type, winning_roll, rolling_strategy )
     db.winners[ item_link ] = db.winners[ item_link ] or {}
     db.winners[ item_link ][ winner_name ] = {
@@ -81,13 +89,14 @@ function M.new( db )
     m.clear_table( db.winners )
   end
 
+  ---@type WinnerTracker
   return {
     start_rolling = start_rolling,
     track = track,
     untrack = untrack,
     find_winners = find_winners,
-    subscribe_for_rolling_started = subscribe_for_rolling_started,
-    subscribe_for_winner_found = subscribe_for_winner_found,
+    subscribe_for_rolling_started = subscribe_for_rolling_started, -- TODO: remove these from here - use RollController
+    subscribe_for_winner_found = subscribe_for_winner_found,       -- TODO: remove these from here - use RollController
     clear = clear
   }
 end

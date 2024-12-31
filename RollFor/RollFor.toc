@@ -1,7 +1,7 @@
 ## Interface: 11200
 ## Title: RollFor
 ## Author: Obszczymucha
-## Version: 3.18
+## Version: 4.0
 ## Notes: An automated item roller with soft ressing support via raidres.fly.dev.
 ## SavedVariables: RollForDb
 ## SavedVariablesPerCharacter: RollForCharDb
@@ -12,14 +12,16 @@ libs\Libs.xml
 src\Backport.lua
 settings.lua
 src\modules.lua
+src\DebugBuffer.lua
+src\Module.lua
 src\Db.lua
 src\Types.lua
 src\Interface.lua
 src\WowApi.lua
 src\Config.lua
 src\ItemUtils.lua
-src\api\EventFrame.lua
-src\api\LootFacade.lua
+src\EventFrame.lua
+src\LootFacade.lua
 src\RollingLogicUtils.lua
 src\DroppedLoot.lua
 src\DroppedLootAnnounce.lua
@@ -40,40 +42,48 @@ src\EventHandler.lua
 src\SoftResGui.lua
 src\VersionBroadcast.lua
 src\MasterLoot.lua
-src\MasterLootFrame.lua
+src\MasterLootCandidateSelectionFrame.lua
 src\SoftResCheck.lua
 src\SoftResRollingLogic.lua
 src\NonSoftResRollingLogic.lua
 src\TieRollingLogic.lua
 src\RaidRollRollingLogic.lua
-src\MasterLootTracker.lua
 src\UsagePrinter.lua
 src\MinimapButton.lua
 src\MasterLootWarning.lua
 src\AutoLoot.lua
 src\WinnerTracker.lua
-src\PfUiIntegrationDialog.lua
 src\FrameBuilder.lua
 src\PopupBuilder.lua
 src\LootAwardPopup.lua
-src\MasterLootCorrelationData.lua
 src\MasterLootCandidates.lua
-src\WinnerHistory.lua
 src\NewGroupEvent.lua
 src\AutoGroupLoot.lua
 src\BossList.lua
 src\AutoMasterLoot.lua
-src\RollingTipPopup.lua
 src\RollTracker.lua
 src\RollController.lua
 src\RollingPopup.lua
 src\SoftResRollGuiData.lua
 src\TieRollGuiData.lua
-src\RollingPopupContent.lua
+src\RollingPopupContentTransformer.lua
 src\GuiElements.lua
 src\WelcomePopup.lua
 src\InstaRaidRollRollingLogic.lua
 src\EventBus.lua
 src\LootList.lua
-src\LootListSoftresDecorator.lua
+src\SoftResLootListDecorator.lua
+src\LootFrame.lua
+src\RollForAd.lua
+src\LootAutoProcess.lua
+src\RollingStrategyFactory.lua
+src\RollingLogic.lua
+src\ArgsParser.lua
+src\RollResultAnnouncer.lua
+src\ChatApi.lua
+src\Chat.lua
+src\PlayerInfo.lua
+src\LootAwardCallback.lua
+src\LootFacadeListener.lua
+src\LootController.lua
 main.lua

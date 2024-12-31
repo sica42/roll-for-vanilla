@@ -4,47 +4,83 @@ local m = RollFor
 if m.InstaRaidRollRollingLogic then return end
 
 local M = {}
-local pp = m.pretty_print
 local hl = m.colors.hl
-local RollingStrategy = m.Types.RollingStrategy
+local strategy = m.Types.RollingStrategy.InstaRaidRoll
+local roll_type = m.Types.RollType.MainSpec
+local clear_table = m.clear_table
+
+---@type MakeWinnerFn
+local make_winner = m.Types.make_winner
 
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
-function M.new( announce, group_roster, item, winner_tracker, roll_controller )
-  local m_players
-  local m_winner
+-- TODO: Lots of similarity with RaidRollRollingLogic. Perhaps refactor.
+
+---@param chat Chat
+---@param item Item|MasterLootDistributableItem
+---@param item_count number
+---@param winner_tracker WinnerTracker
+---@param controller RollControllerFacade
+---@param candidates ItemCandidate[]|Player[]
+function M.new(
+    chat,
+    _,
+    item,
+    item_count,
+    winner_tracker,
+    controller,
+    candidates
+)
+  local m_winners = {}
+
+  local function clear_winners()
+    clear_table( m_winners )
+    m_winners.n = 0
+  end
 
   local function start_rolling()
-    m_winner = nil
+    clear_winners()
 
-    roll_controller.start( RollingStrategy.InstaRaidRoll, item )
-    m_players = group_roster.get_all_players_in_my_group( function( p )
-      return p.online == true
-    end )
+    for _ = 1, item_count do
+      local roll = m.lua.math.random( 1, getn( candidates ) )
+      table.insert( m_winners, candidates[ roll ] )
+    end
 
-    local roll = m.lua.math.random( 1, getn( m_players ) )
-    m_winner = m_players[ roll ]
-    roll_controller.finish( { name = m_winner.name, class = m_winner.class } )
-    announce( string.format( "%s wins %s via insta raid-roll.", m_winner.name, item.link ) )
-    winner_tracker.track( m_winner.name, item.link, nil, nil, m.Types.RollingStrategy.InstaRaidRoll )
+    local winners = m.map( m_winners,
+      ---@param player ItemCandidate|Player
+      function( player )
+        if type( player ) == "table" then -- Fucking lua50 and its n.
+          local winner = make_winner( player.name, player.class, item, player.type == "ItemCandidate" or false, roll_type, nil )
+          winner_tracker.track( winner.name, item.link, roll_type, nil, m.Types.RollingStrategy.InstaRaidRoll )
+          return winner
+        end
+      end )
+
+    controller.winners_found( item, item_count, winners, strategy )
+    controller.finish()
   end
 
   local function show_sorted_rolls()
-    if not m_winner then
-      pp( "There is no winner yet.", nil, "RaidRoll" )
+    if getn( m_winners ) == 0 then
+      chat.info( "There is no winner yet.", nil, "RaidRoll" )
       return
     end
 
-    pp( string.format( "%s won %s.", hl( m_winner.name ), item.link ), nil, "InstaRaidRoll" )
+    for _, winner in ipairs( m_winners ) do
+      chat.info( string.format( "%s won %s.", hl( winner.name ), item.link ), nil, "InstaRaidRoll" )
+    end
   end
 
+  ---@type RollingStrategy
   return {
-    announce_rolling = start_rolling, -- This probably doesn't belong here either.
+    start_rolling = start_rolling, -- This probably doesn't belong here either.
     on_roll = function() end,
     is_rolling = function() return false end,
     show_sorted_rolls = show_sorted_rolls,
-    get_rolling_strategy = function() return m.Types.RollingStrategy.InstaRaidRoll end
+    get_type = function() return m.Types.RollingStrategy.InstaRaidRoll end,
+    stop_accepting_rolls = m.noop(),
+    cancel_rolling = m.noop()
   }
 end
 

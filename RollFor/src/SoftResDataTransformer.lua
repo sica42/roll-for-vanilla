@@ -5,46 +5,77 @@ if m.SoftResDataTransformer then return end
 
 local M = {}
 
--- The input is a data from softres.it/raidres.fly.dev format.
--- The output is a map of item_ids.
--- If the item is soft ressed the map contains a list of players
--- including their player_name and the number of rolls.
--- The item data can be enriched with item link and name.
--- The player data can then be enriched with player_class or
--- any additional information needed to process rolls.
+local make_roller = m.Types.make_roller
+
+---@class RaidResData
+---@field metadata RaidResMetadata
+---@field hardreserves RaidResHardRessedItem[]
+---@field softreserves RaidResSoftResEntry[]
+
+---@class RaidResMetadata
+---@field id string -- The id from the url.
+---@field instance number -- Internal RaidRes' id.
+---@field instances string[] -- Instance names.
+---@field origin "raidres"
+
+---@class RaidResHardRessedItem
+---@field id number
+---@field quality ItemQuality
+
+---@class RaidResSoftResEntry
+---@field name string -- Player name.
+---@field items RaidResSoftRessedItem[]
+
+---@class RaidResSoftRessedItem
+---@field id number
+---@field quality ItemQuality
+
+---@class SoftRessedItem
+---@field rollers Roller[]
+---@field quality number
+
+---@class HardRessedItem
+---@field quality number
+
+---@alias SoftResData table<ItemId, SoftRessedItem>
+---@alias HardResData table<ItemId, HardRessedItem>
+
+---@param data RaidResData
+---@return SoftResData
+---@return HardResData
 function M.transform( data )
-  local result = {}
+  local sr_result = {}
+  local hr_result = {}
   local hard_reserves = data.hardreserves or {}
   local soft_reserves = data.softreserves or {}
 
-  local function find_player( player_name, players )
-    for _, player in ipairs( players ) do
-      if player.name == player_name then
-        return player
+  local function find_roller( roller_name, rollers )
+    for _, roller in ipairs( rollers ) do
+      if roller.name == roller_name then
+        return roller
       end
     end
   end
 
   for _, sr in ipairs( soft_reserves or {} ) do
-    local player_name = sr.name
+    local roller_name = sr.name
     local item_ids = sr.items or {}
 
     for _, item in ipairs( item_ids ) do
       local item_id = item.id
 
       if item_id then
-        result[ item_id ] = result[ item_id ] or {
-          soft_ressed = true,
+        sr_result[ item_id ] = sr_result[ item_id ] or {
           quality = item.quality,
-          players = {}
+          rollers = {}
         }
 
-        local player = find_player( player_name, result[ item_id ].players )
+        local roller = find_roller( roller_name, sr_result[ item_id ].rollers )
 
-        if not player then
-          table.insert( result[ item_id ].players, { name = player_name, rolls = 1 } )
+        if not roller then
+          table.insert( sr_result[ item_id ].rollers, make_roller( roller_name, 1 ) )
         else
-          player.rolls = player.rolls + 1
+          roller.rolls = roller.rolls + 1
         end
       end
     end
@@ -54,14 +85,13 @@ function M.transform( data )
     local item_id = item.id
 
     if item_id then
-      result[ item_id ] = {
-        hard_ressed = true,
+      hr_result[ item_id ] = {
         quality = item.quality
       }
     end
   end
 
-  return result
+  return sr_result, hr_result
 end
 
 m.SoftResDataTransformer = M

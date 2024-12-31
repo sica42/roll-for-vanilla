@@ -5,6 +5,11 @@ if m.MasterLootCandidates then return end
 
 local M = {}
 
+---@type MakeItemCandidateFn
+local make_item_candidate = m.Types.make_item_candidate
+---@type MakeWinnerFn
+local make_winner = m.Types.make_winner
+
 local function get_dummy_candidates()
   return {
     { name = "Ohhaimark",    class = "Warrior", value = 1 },
@@ -25,19 +30,18 @@ local function get_dummy_candidates()
   }
 end
 
-function M.new( group_roster )
-  local function sort( candidates )
-    table.sort( candidates, function( lhs, rhs )
-      if lhs.class < rhs.class then
-        return true
-      elseif lhs.class > rhs.class then
-        return false
-      end
+---@class MasterLootCandidatesApi
+---@field GetMasterLootCandidate fun( index: number ): string
 
-      return lhs.name < rhs.name
-    end )
-  end
+---@class MasterLootCandidates
+---@field get fun(): ItemCandidate[]
+---@field find fun( player_name: string ): ItemCandidate?
+---@field get_index fun( player_name: string ): number?
+---@field transform_to_winner fun( player: RollingPlayer, item: Item|MasterLootDistributableItem, roll_type: RollType, winning_roll: number?, rerolling: boolean? ): Winner
 
+---@param api MasterLootCandidatesApi
+---@param group_roster GroupRoster
+function M.new( api, group_roster )
   local function get()
     if not group_roster then return get_dummy_candidates() end
 
@@ -45,16 +49,14 @@ function M.new( group_roster )
     local players = group_roster.get_all_players_in_my_group()
 
     for i = 1, 40 do
-      local name = m.api.GetMasterLootCandidate( i )
+      local name = api.GetMasterLootCandidate( i )
 
       for _, p in ipairs( players ) do
         if name == p.name then
-          table.insert( result, { name = name, class = p.class, value = i } )
+          table.insert( result, make_item_candidate( name, p.class, p.online ) )
         end
       end
     end
-
-    sort( result )
 
     return result
   end
@@ -65,9 +67,30 @@ function M.new( group_roster )
     return m.find_value_in_table( candidates, player_name, function( v ) return v.name end )
   end
 
+  ---@param player RollingPlayer
+  ---@param item Item|MasterLootDistributableItem
+  ---@param roll_type RollType
+  ---@param winning_roll number?
+  ---@param rerolling boolean?
+  ---@return Winner
+  local function transform_to_winner( player, item, roll_type, winning_roll, rerolling )
+    local candidate = find( player.name )
+    return make_winner( player.name, player.class, item, candidate and true or false, roll_type, winning_roll and winning_roll, rerolling )
+  end
+
+  local function get_index( player_name )
+    for i = 1, 40 do
+      local name = api.GetMasterLootCandidate( i )
+      if name == player_name then return i end
+    end
+  end
+
+  ---@type MasterLootCandidates
   return {
     get = get,
-    find = find
+    find = find,
+    get_index = get_index,
+    transform_to_winner = transform_to_winner
   }
 end
 

@@ -14,45 +14,70 @@ local button_defaults = {
   scale = 0.76
 }
 
+---@alias RollingPopupData RollingPopupPreviewData|RollingPopupRaidRollData|RollingPopupRollData|RollingPopupRollingCanceledData|RollingPopupRaidRollingData|RollingPopupTieData
+
+---@class RollingPopup
+---@field show fun()
+---@field refresh fun( _, content: RollingPopupData )
+---@field hide fun()
+---@field border_color fun( _, color: RgbaColor )
+---@field backdrop_color fun( _, color: RgbaColor )
+---@field get_frame fun(): table
+---@field ping fun()
+
 local M = {}
 
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
-function M.new( popup_builder, db, config )
+---@param popup_builder PopupBuilder
+---@param content_transformer RollingPopupContentTransformer
+---@param db table
+---@param config Config
+function M.new( popup_builder, content_transformer, db, config )
+  ---@type Popup?
   local popup
   db.point = db.point or M.center_point
 
   local top_padding = 14
+  local on_hide ---@type fun()?
+
+  ---@param frame_name string?
+  ---@param close_button_callback fun()?
+  local function toggle_esc( frame_name, close_button_callback )
+    if not frame_name then return end
+
+    ---@diagnostic disable-next-line: undefined-global
+    local f = UISpecialFrames
+
+    local function disable_esc()
+      ---@diagnostic disable-next-line: undefined-global
+      for i, v in ipairs( f ) do
+        if v == frame_name then table.remove( f, i ) end
+      end
+    end
+
+    local function enable_esc()
+      disable_esc()
+      table.insert( f, frame_name )
+    end
+
+    if close_button_callback then
+      on_hide = close_button_callback
+      enable_esc()
+    else
+      on_hide = nil
+      disable_esc()
+    end
+  end
 
   local function create_popup()
-    local function is_out_of_bounds( point, x, y, frame_width, frame_height, screen_width, screen_height )
-      local left, right, top, bottom
+    local function is_out_of_bounds( x, y, frame_width, frame_height, screen_width, screen_height )
       local width = frame_width / 2
       local height = frame_height / 2
-
-      if point == "TOPLEFT" then
-        left = x - width
-        right = x + width
-        top = y + height
-        bottom = y - height
-      elseif point == "TOPRIGHT" then
-        left = x - width
-        right = x + width
-        top = y + height
-        bottom = y - height
-      elseif point == "BOTTOMLEFT" then
-        left = x - width
-        right = x + width
-        top = y + height
-        bottom = y - height
-      elseif point == "BOTTOMRIGHT" then
-        left = x - width
-        right = x + width
-        top = y + height
-        bottom = y - height
-      else
-        return false
-      end
+      local left = x - width
+      local right = x + width
+      local top = y + height
+      local bottom = y - height
 
       return left < 0 or
           right > screen_width or
@@ -61,11 +86,12 @@ function M.new( popup_builder, db, config )
     end
 
     local function on_drag_stop()
+      if not popup then return end
       local width, height = popup:GetWidth(), popup:GetHeight()
       local screen_width, screen_height = m.api.GetScreenWidth(), m.api.GetScreenHeight()
-      local point, _, _, x, y = popup:get_anchor_point()
+      local _, _, _, x, y = popup:get_anchor_point()
 
-      if is_out_of_bounds( point, x, y, width, height, screen_width, screen_height ) then
+      if is_out_of_bounds( x, y, width, height, screen_width, screen_height ) then
         db.point = M.center_point
         popup:position( M.center_point )
 
@@ -93,50 +119,69 @@ function M.new( popup_builder, db, config )
     end
 
     local builder = popup_builder
-        :with_name( "RollForRollingFrame" )
-        :with_width( 180 )
-        :with_height( 100 )
-        :with_point( get_point() )
-        :with_bg_file( "Interface/Buttons/WHITE8x8" )
-        :with_sound()
-        :with_esc()
-        :with_backdrop_color( 0, 0, 0, 0.6 )
-        :with_gui_elements( m.GuiElements )
-        :with_frame_style( "PrincessKenny" )
-        :with_on_drag_stop( on_drag_stop )
+        :name( "RollForRollingFrame" )
+        :width( 180 )
+        :height( 100 )
+        :point( get_point() )
+        :bg_file( "Interface/Buttons/WHITE8x8" )
+        :sound()
+        :backdrop_color( 0, 0, 0, 0.6 )
+        :gui_elements( m.GuiElements )
+        :frame_style( "PrincessKenny" )
+        :movable()
+        :on_drag_stop( on_drag_stop )
+        :on_hide( function()
+          if on_hide then
+            on_hide()
+          end
+        end )
+        :self_centered_anchor()
 
-    popup = builder:build()
+    local result = builder:build()
 
     if config.rolling_popup_lock() then
-      popup:lock()
+      result:lock()
     else
-      popup:unlock()
+      result:unlock()
     end
 
     config.subscribe( "rolling_popup_lock", function( enabled )
       if enabled then
-        popup:lock()
+        result:lock()
       else
-        popup:unlock()
+        result:unlock()
       end
     end )
 
     config.subscribe( "reset_rolling_popup", function()
       db.point = nil
-      popup:position( M.center_point )
+      if result then result:position( M.center_point ) end
     end )
+
+    return result
   end
 
-  local function refresh( _, content )
-    if not popup then return end
+  ---@param buttons RollingPopupButtonWithCallback[]
+  ---@return fun()?
+  local function find_close_button_callback( buttons )
+    for _, button in ipairs( buttons or {} ) do
+      if button.type == "Close" then
+        return button.callback
+      end
+    end
+  end
+
+  local function refresh( _, data )
+    if not popup then popup = create_popup() end
     popup:clear()
 
-    for _, v in ipairs( content ) do
+    local close_button_callback = find_close_button_callback( data.buttons )
+    toggle_esc( popup:GetName(), close_button_callback )
+
+    for _, v in ipairs( content_transformer.transform( data ) ) do
       popup.add_line( v.type, function( type, frame, lines )
         if type == "item_link_with_icon" then
-          frame:SetText( v.link )
-          frame:SetTexture( v.texture )
-          frame.tooltip_link = v.link and m.ItemUtils.get_tooltip_link( v.link )
+          frame:SetItem( v, v.link and m.ItemUtils.get_tooltip_link( v.link ) )
         elseif type == "text" then
           frame:SetText( v.value )
         elseif type == "icon_text" then
@@ -166,11 +211,37 @@ function M.new( popup_builder, db, config )
           frame:SetHeight( v.height or button_defaults.height )
           frame:SetText( v.label or "" )
           frame:SetScale( v.scale or button_defaults.scale )
+
+          local f = v.on_click and close_button_callback and v.on_click == close_button_callback and function()
+            on_hide = nil
+            close_button_callback()
+          end or v.on_click or function() end
+
+          frame:SetScript( "OnClick", f )
+
+          if v.disabled then
+            frame:Disable()
+          else
+            frame:Enable()
+          end
+        elseif type == "award_button" then
+          frame:SetWidth( v.width or button_defaults.width )
+          frame:SetHeight( v.height or button_defaults.height )
+          frame:SetText( v.label or "" )
+          frame:SetScale( v.scale or button_defaults.scale )
           frame:SetScript( "OnClick", v.on_click or function() end )
+
+          if v.disabled then
+            frame:Disable()
+          else
+            frame:Enable()
+          end
         elseif type == "info" then
           frame.tooltip_info = v.value
           frame:ClearAllPoints()
           frame:SetPoint( "TOPRIGHT", v.anchor, "TOPRIGHT", -5, -5 )
+        elseif type == "empty_line" then
+          frame:SetHeight( v.height or 4 )
         end
 
         if type ~= "button" then
@@ -191,10 +262,8 @@ function M.new( popup_builder, db, config )
   end
 
   local function show()
-    if not config.rolling_popup() then return end
-
     if not popup then
-      create_popup()
+      popup = create_popup()
     else
       popup:clear()
     end
@@ -203,22 +272,53 @@ function M.new( popup_builder, db, config )
   end
 
   local function hide()
-    popup:Hide()
+    if popup then
+      on_hide = nil
+      popup:Hide()
+    end
   end
 
-  local function border_color( _, r, g, b, a )
+  ---@param color RgbaColor
+  local function border_color( _, color )
+    if not popup then
+      popup = create_popup()
+    end
+
+    popup:border_color( color.r, color.g, color.b, color.a )
+  end
+
+  ---@param color RgbaColor
+  local function backdrop_color( _, color )
+    if not popup then
+      popup = create_popup()
+    end
+
+    popup:backdrop_color( color.r, color.g, color.b, color.a )
+  end
+
+  -- roll_controller.subscribe( "all_items_awarded", hide )
+
+  local function get_frame()
     if not popup then
       create_popup()
     end
 
-    popup:border_color( r, g, b, a )
+    return popup
   end
 
+  local function ping()
+    m.api.PlaySound( "igMainMenuOpen" )
+  end
+
+  ---@type RollingPopup
   return {
     show = show,
     refresh = refresh,
     hide = hide,
-    border_color = border_color
+    border_color = border_color,
+    backdrop_color = backdrop_color,
+    get_frame = get_frame,
+    ping = ping
   }
 end
 

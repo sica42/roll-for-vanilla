@@ -1,19 +1,21 @@
 package.path = "./?.lua;" .. package.path .. ";../?.lua;../RollFor/?.lua;../RollFor/libs/?.lua"
 
-local lu = require( "luaunit" )
-local utils = require( "test/utils" )
-local player = utils.player
-local leader = utils.raid_leader
-local is_in_raid = utils.is_in_raid
-local c = utils.console_message
-local r = utils.raid_message
-local cr = utils.console_and_raid_message
-local rw = utils.raid_warning
-local rolling_finished = utils.rolling_finished
-local roll_for = utils.roll_for
-local roll_os = utils.roll_os
-local assert_messages = utils.assert_messages
-local tick = utils.repeating_tick
+local u = require( "test/utils" )
+local lu = u.luaunit()
+local player, leader, is_in_raid = u.player, u.raid_leader, u.is_in_raid
+local c, r = u.console_message, u.raid_message
+local cr, rw = u.console_and_raid_message, u.raid_warning
+local rolling_finished = u.rolling_finished
+local roll_for, roll_os = u.roll_for, u.roll_os
+local tick = u.repeating_tick
+
+---@type ModuleRegistry
+local module_registry = {
+  { module_name = "ChatApi", mock = "mocks/ChatApi", variable_name = "chat" }
+}
+
+-- The modules will be injected here using the above module_registry.
+local m = {}
 
 OffspecRollsSpec = {}
 
@@ -30,7 +32,7 @@ function OffspecRollsSpec:should_not_finish_rolling_automatically_if_all_players
   tick( 8 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Psikutas rolled the highest (69) for [Hearthstone] (OS)." ),
@@ -49,7 +51,7 @@ function OffspecRollsSpec:should_finish_rolling_automatically_if_number_of_items
   roll_os( "Obszczymucha", 100 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     cr( "Obszczymucha rolled the highest (100) for [Hearthstone] (OS)." ),
     cr( "Psikutas rolled the next highest (69) for [Hearthstone] (OS)." ),
@@ -71,7 +73,7 @@ function OffspecRollsSpec:should_not_finish_rolling_automatically_if_number_of_i
   tick( 2 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for 2x[Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG). 2 top rolls win." ),
     r( "Stopping rolls in 3", "2", "1" ),
     cr( "Obszczymucha rolled the highest (100) for [Hearthstone] (OS)." ),
@@ -94,7 +96,7 @@ function OffspecRollsSpec:should_detect_and_ignore_double_rolls()
   tick( 2 )
 
   -- Then
-  assert_messages(
+  m.chat.assert(
     rw( "Roll for [Hearthstone]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" ),
     r( "Stopping rolls in 3", "2" ),
     c( "RollFor: Obszczymucha exhausted their rolls. This roll (100) is ignored." ),
@@ -104,7 +106,7 @@ function OffspecRollsSpec:should_detect_and_ignore_double_rolls()
   )
 end
 
-utils.mock_libraries()
-utils.load_real_stuff()
+u.mock_libraries()
+u.load_real_stuff_and_inject( module_registry, m )
 
 os.exit( lu.LuaUnit.run() )

@@ -23,7 +23,7 @@ M.interface = {
 ---@field quality number
 
 ---@class LootFacade
----@field subscribe fun( event_name: LootEventName, callback: fun() )
+---@field subscribe fun( event_name: LootEventName, callback: fun( arg: any? ) )
 ---@field get_item_count fun(): number
 ---@field get_source_guid fun(): string
 ---@field get_link fun( slot: number ): ItemLink
@@ -35,8 +35,8 @@ M.interface = {
 ---| "LootOpened"
 ---| "LootClosed"
 ---| "LootSlotCleared"
+---| "ChatMsgLoot"
 
----@return LootFacade
 function M.new( event_frame, api )
   interface.validate( api, m.WowApi.LootInterface )
 
@@ -46,7 +46,8 @@ function M.new( event_frame, api )
     local blizz_event =
         event_name == "LootOpened" and "LOOT_OPENED" or
         event_name == "LootClosed" and "LOOT_CLOSED" or
-        event_name == "LootSlotCleared" and "LOOT_SLOT_CLEARED"
+        event_name == "LootSlotCleared" and "LOOT_SLOT_CLEARED" or
+        event_name == "ChatMsgLoot" and "CHAT_MSG_LOOT"
 
     if blizz_event then
       event_frame.subscribe( blizz_event, callback )
@@ -58,19 +59,19 @@ function M.new( event_frame, api )
     return api.GetNumLootItems()
   end
 
-  ---@return string | nil
+  ---@return string?
   local function get_source_guid()
     return api.UnitName( "target" )
   end
 
   ---@param slot number
-  ---@return ItemLink | nil
+  ---@return ItemLink?
   local function get_link( slot )
     return api.GetLootSlotLink( slot )
   end
 
   ---@param slot number
-  ---@return LootSlotInfo | nil
+  ---@return LootSlotInfo?
   local function get_info( slot )
     local texture, name, quantity, quality = api.GetLootSlotInfo( slot )
 
@@ -94,6 +95,7 @@ function M.new( event_frame, api )
     return api.LootSlotIsCoin( slot ) == 1 or false
   end
 
+  ---@type LootFacade
   return {
     subscribe = subscribe,
     get_item_count = get_item_count,

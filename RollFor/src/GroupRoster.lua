@@ -5,38 +5,74 @@ if m.GroupRoster then return end
 
 local M = {}
 
-function M.new( api )
-  local function my_name()
-    return api().UnitName( "player" )
+---@type MakePlayerFn
+local make_player = m.Types.make_player
+
+---@class GroupRosterApi
+---@field IsInParty fun(): number?
+---@field IsInRaid fun(): number?
+---@field IsInGroup fun(): number?
+---@field UnitName fun( unit: string ): string?
+---@field UnitClass fun( unit: string ): string?
+---@field UnitIsConnected fun( unit: string ): number?
+---@field GetRaidRosterInfo fun( index: number ): string?, string, number, number, PlayerClass, string, string
+
+---@class GroupRoster
+---@field get_all_players_in_my_group fun( f: (fun( player: Player ): boolean)? ): Player[]
+---@field is_player_in_my_group fun( player_name: string ): boolean
+---@field am_i_in_group fun(): boolean
+---@field am_i_in_party fun(): boolean
+---@field am_i_in_raid fun(): boolean
+---@field find_player fun( player_name: string ): Player?
+
+---@param api GroupRosterApi
+---@param player_info PlayerInfo
+function M.new( api, player_info )
+  local function sort( candidates )
+    table.sort( candidates, function( lhs, rhs )
+      if lhs.class < rhs.class then
+        return true
+      elseif lhs.class > rhs.class then
+        return false
+      end
+
+      return lhs.name < rhs.name
+    end )
   end
 
   local function get_all_players_in_my_group( f )
     local result = {}
 
-    if not api().IsInGroup() then
-      local name = my_name() -- This breaks in game if we dont assign it to the variable.
-      local class = api().UnitClass( "player" )
+    if not api.IsInGroup() then
+      local name = player_info.get_name()
+      local class = api.UnitClass( "player" )
       table.insert( result, { name = name, class = class } )
+
       return result
     end
 
-    if api().IsInRaid() then
+    if api.IsInRaid() then
       for i = 1, 40 do
-        local name, _, _, _, class, _, location = api().GetRaidRosterInfo( i )
+        local name, _, _, _, class, _, location = api.GetRaidRosterInfo( i )
         local player = { name = name, class = class, online = location ~= "Offline" and true or false }
         if name and (not f or f( player )) then table.insert( result, player ) end
       end
-    else
-      local party = { "player", "party1", "party2", "party3", "party4" }
-      for _, v in ipairs( party ) do
-        local name = api().UnitName( v )
-        local class = api().UnitClass( v )
-        local online = api().UnitIsConnected( v ) and true or false
-        local player = { name = name, class = class, online = online }
-        if name and (not f or f( player )) and class then table.insert( result, player ) end
-      end
+
+      sort( result )
+      return result
     end
 
+    local party = { "player", "party1", "party2", "party3", "party4" }
+
+    for _, v in ipairs( party ) do
+      local name = api.UnitName( v )
+      local class = api.UnitClass( v )
+      local online = api.UnitIsConnected( v ) and true or false
+      local player = name and class and make_player( name, class, online )
+      if player and (not f or f( player )) then table.insert( result, player ) end
+    end
+
+    sort( result )
     return result
   end
 
@@ -51,15 +87,15 @@ function M.new( api )
   end
 
   local function am_i_in_group()
-    return api().IsInGroup()
+    return api.IsInGroup()
   end
 
   local function am_i_in_party()
-    return api().IsInGroup() and not api().IsInRaid()
+    return api.IsInGroup() and not api.IsInRaid()
   end
 
   local function am_i_in_raid()
-    return api().IsInGroup() and api().IsInRaid()
+    return api.IsInGroup() and api.IsInRaid()
   end
 
   local function find_player( player_name )
@@ -70,8 +106,8 @@ function M.new( api )
     end
   end
 
+  ---@type GroupRoster
   return {
-    my_name = my_name,
     get_all_players_in_my_group = get_all_players_in_my_group,
     is_player_in_my_group = is_player_in_my_group,
     am_i_in_group = am_i_in_group,
