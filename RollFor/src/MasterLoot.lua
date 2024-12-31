@@ -66,10 +66,10 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
     button:OriginalOnClick()
   end
 
-  local function show_loot_candidates_frame( slot, item_link, button )
+  local function show_loot_candidates_frame( slot, item, button )
     m.api.LootFrame.selectedSlot = slot
-    m.api.LootFrame.selectedItemLink = item_link
-    master_loot_correlation_data.set( item_link, slot )
+    m.api.LootFrame.selectedItemLink = item.link
+    master_loot_correlation_data.set( item.link, slot )
     -- m.api.LootFrame.selectedItemName = item_name
 
     m.api.CloseDropDownMenus()
@@ -85,9 +85,9 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
       return
     end
 
-    master_loot_frame.create_candidate_frames( candidates, item_link )
+    master_loot_frame.create_candidate_frames( candidates, item )
     master_loot_frame.anchor( button )
-    master_loot_frame.show( item_link )
+    master_loot_frame.show( item.link )
   end
 
   local function on_loot_opened()

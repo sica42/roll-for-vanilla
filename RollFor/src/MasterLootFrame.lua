@@ -173,7 +173,7 @@ function M.new( winner_tracker, master_loot_correlation_data, roll_controller, c
     m_frame:SetHeight( (button_height + vertical_padding) * total_rows + vertical_padding + 11 )
   end
 
-  local function create_candidate_frames( candidates, item_link )
+  local function create_candidate_frames( candidates, item )
     local total = getn( candidates )
     local rows = config.master_loot_frame_rows()
 
@@ -207,7 +207,7 @@ function M.new( winner_tracker, master_loot_correlation_data, roll_controller, c
       button:SetScript( "OnClick", function()
         ---@diagnostic disable-next-line: undefined-global
         local self = button
-        roll_controller.award_loot( self.player, item_link )
+        roll_controller.award_loot( self.player, item )
       end )
 
       button:Show()
@@ -307,7 +307,12 @@ function M.new( winner_tracker, master_loot_correlation_data, roll_controller, c
 
         if m.api.LootSlotIsItem( slot ) then
           local item_link = m.api.GetLootSlotLink( slot )
-          show_loot_candidates_frame( slot, item_link, button )
+          local texture = m.api.GetLootSlotInfo( slot )
+          local item_id = m.ItemUtils.get_item_id( item_link )
+          local item_name = m.ItemUtils.get_item_name( item_link )
+          local item = { id = item_id, link = item_link, name = item_name, texture = texture }
+
+          show_loot_candidates_frame( slot, item, button )
           return
         end
 
@@ -361,7 +366,12 @@ function M.new( winner_tracker, master_loot_correlation_data, roll_controller, c
 
           if m.api.LootSlotIsItem( slot ) then
             local item_link = m.api.GetLootSlotLink( slot )
-            show_loot_candidates_frame( slot, item_link, button )
+            local texture = m.api.GetLootSlotInfo( slot )
+            local item_id = m.ItemUtils.get_item_id( item_link )
+            local item_name = m.ItemUtils.get_item_name( item_link )
+            local item = { id = item_id, link = item_link, name = item_name, texture = texture }
+
+            show_loot_candidates_frame( slot, item, button )
             return
           end
 

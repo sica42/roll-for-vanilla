@@ -85,8 +85,8 @@ function M.new( roll_tracker )
     notify_subscribers( "loot_awarded", item_link )
   end
 
-  local function award_loot( player, item_link, rolling_strategy )
-    notify_subscribers( "award_loot", { player = player, item_link = item_link, rolling_strategy = rolling_strategy } )
+  local function award_loot( player, item, rolling_strategy )
+    notify_subscribers( "award_loot", { player = player, item = item, rolling_strategy = rolling_strategy } )
   end
 
   local function loot_closed()

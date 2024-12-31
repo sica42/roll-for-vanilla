@@ -12,7 +12,7 @@ local blue = m.colors.blue
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 
-function M.new( popup_builder, ace_timer, db )
+function M.new( frame_builder, ace_timer, db )
   local popup
   local messages = {
     { text = "Welcome to version 3.",                    color = white },
@@ -50,7 +50,7 @@ function M.new( popup_builder, ace_timer, db )
   end
 
   local function create_popup()
-    local builder = popup_builder()
+    local builder = frame_builder.new()
         :with_name( "RollForWelcomePopup" )
         :with_width( 260 )
         :with_height( 28 )

@@ -11,11 +11,11 @@ local blue = m.colors.blue
 local green = m.colors.green
 local white = m.colors.white
 
-function M.new( loot_list, popup_builder, config )
+function M.new( loot_list, frame_builder, config )
   local popup
 
   local function create_popup()
-    local builder = popup_builder()
+    local builder = frame_builder.new()
         :with_name( "RollForTipFrame" )
         ---@diagnostic disable-next-line: undefined-global
         :with_frame_level( LootFrame:GetFrameLevel() )
@@ -32,6 +32,7 @@ function M.new( loot_list, popup_builder, config )
       builder = builder
           :with_width( 130 )
           :with_height( 49 )
+          :with_border_size( 14 )
     end
 
     local frame = builder:build()

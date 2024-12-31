@@ -5,6 +5,8 @@ if m.RollingPopup then return end
 
 local c = m.colorize_player_by_class
 local blue = m.colors.blue
+---@diagnostic disable-next-line: deprecated
+local getn = table.getn
 
 local button_defaults = {
   width = 80,
@@ -16,9 +18,11 @@ local M = {}
 
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
-function M.new( custom_popup_builder, db, config )
+function M.new( popup_builder, db, config )
   local popup
   db.point = db.point or M.center_point
+
+  local top_padding = 14
 
   local function create_popup()
     local function is_out_of_bounds( point, x, y, frame_width, frame_height, screen_width, screen_height )
@@ -88,7 +92,7 @@ function M.new( custom_popup_builder, db, config )
       end
     end
 
-    local builder = custom_popup_builder()
+    local builder = popup_builder
         :with_name( "RollForRollingFrame" )
         :with_width( 180 )
         :with_height( 100 )
@@ -128,7 +132,7 @@ function M.new( custom_popup_builder, db, config )
     popup:clear()
 
     for _, v in ipairs( content ) do
-      popup.add_line( v.type, function( type, frame )
+      popup.add_line( v.type, function( type, frame, lines )
         if type == "item_link_with_icon" then
           frame:SetText( v.link )
           frame:SetTexture( v.texture )
@@ -167,6 +171,20 @@ function M.new( custom_popup_builder, db, config )
           frame.tooltip_info = v.value
           frame:ClearAllPoints()
           frame:SetPoint( "TOPRIGHT", v.anchor, "TOPRIGHT", -5, -5 )
+        end
+
+        if type ~= "button" then
+          local count = getn( lines )
+
+          if count == 0 then
+            local y = -top_padding - (v.padding or 0)
+            frame:ClearAllPoints()
+            frame:SetPoint( "TOP", popup, "TOP", 0, y )
+          else
+            local line_anchor = lines[ count ].frame
+            frame:ClearAllPoints()
+            frame:SetPoint( "TOP", line_anchor, "BOTTOM", 0, v.padding and -v.padding or 0 )
+          end
         end
       end, v.padding )
     end

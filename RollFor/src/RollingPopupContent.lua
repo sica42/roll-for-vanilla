@@ -123,7 +123,7 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
 
       if award_button then
         table.insert( result,
-          { type = "button", label = "Award", width = 90, on_click = function() roll_controller.award_loot( data.status.winner, data.item.link ) end } )
+          { type = "button", label = "Award", width = 90, on_click = function() roll_controller.award_loot( data.status.winner, data.item ) end } )
       end
 
       table.insert( result, { type = "button", label = "Close", width = 90, on_click = function() popup:hide() end } )
@@ -149,7 +149,7 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
 
       if award_button then
         table.insert( result,
-          { type = "button", label = "Award", width = 90, on_click = function() roll_controller.award_loot( data.status.winner, data.item.link ) end } )
+          { type = "button", label = "Award", width = 90, on_click = function() roll_controller.award_loot( data.status.winner, data.item ) end } )
       end
 
       if config.raid_roll_again() then
@@ -166,7 +166,7 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
 
       if award_button then
         table.insert( result,
-          { type = "button", label = "Award", width = 90, on_click = function() roll_controller.award_loot( data.status.winner, data.item.link ) end } )
+          { type = "button", label = "Award", width = 90, on_click = function() roll_controller.award_loot( data.status.winner, data.item ) end } )
       end
 
       table.insert( result, { type = "button", label = "Close", width = 90, on_click = function() popup:hide() end } )
@@ -202,7 +202,7 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
 
       if award_button then
         table.insert( result,
-          { type = "button", label = "Award", width = 90, on_click = function() roll_controller.award_loot( data.status.winner, data.item.link ) end } )
+          { type = "button", label = "Award", width = 90, on_click = function() roll_controller.award_loot( data.status.winner, data.item ) end } )
       end
 
       if not softres_roll( current_iteration ) then
@@ -249,7 +249,7 @@ function M.new( popup, roll_controller, roll_tracker, config, finish_early, canc
       -- This confirms that we can safely distribute the item.
       if slot then
         popup:hide()
-        roll_controller.award_loot( data.status.winner, data.item.link, current_iteration.rolling_strategy )
+        roll_controller.award_loot( data.status.winner, data.item, current_iteration.rolling_strategy )
         return
       end
     end

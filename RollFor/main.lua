@@ -201,13 +201,13 @@ local function create_components()
   M.new_group_event.subscribe( M.winner_history.start_session )
   M.auto_group_loot = m.AutoGroupLoot.new( M.loot_list, M.config, m.BossList.zones )
   M.auto_master_loot = m.AutoMasterLoot.new( M.config, m.BossList.zones )
-  M.rolling_tip_popup = m.RollingTipPopup.new( M.loot_list, m.CustomPopup.builder, M.config )
+  M.rolling_tip_popup = m.RollingTipPopup.new( M.loot_list, m.FrameBuilder, M.config )
   M.softres_roll_gui_data = m.SoftResRollGuiData.new( M.softres, M.group_roster )
   M.tie_roll_gui_data = m.TieRollGuiData.new( M.group_roster )
 
   local rolling_popup_db = db( "rolling_popup" )
 
-  M.rolling_popup = m.RollingPopup.new( m.CustomPopup.builder, rolling_popup_db, M.config )
+  M.rolling_popup = m.RollingPopup.new( m.PopupBuilder.new( m.FrameBuilder ), rolling_popup_db, M.config )
   M.rolling_popup_content = m.RollingPopupContent.new(
     M.rolling_popup,
     M.roll_controller,
@@ -220,7 +220,7 @@ local function create_components()
   )
 
   M.loot_award_popup = m.LootAwardPopup.new(
-    m.CustomPopup.builder,
+    m.PopupBuilder.new( m.FrameBuilder ),
     M.roll_controller,
     M.master_loot.on_confirm,
     m.RollingPopupContent,
@@ -230,7 +230,7 @@ local function create_components()
     M.roll_tracker
   )
 
-  M.welcome_popup = m.WelcomePopup.new( m.CustomPopup.builder, M.ace_timer, db( "welcome_popup" ) )
+  M.welcome_popup = m.WelcomePopup.new( m.FrameBuilder, M.ace_timer, db( "welcome_popup" ) )
 
   M.config.subscribe( "show_ml_warning", function( enabled )
     if enabled then

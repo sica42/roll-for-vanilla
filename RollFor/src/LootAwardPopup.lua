@@ -10,6 +10,8 @@ local LAE = m.Types.LootAwardError
 local red = m.colors.red
 local c = m.colorize_player_by_class
 local possesive_case = m.possesive_case
+---@diagnostic disable-next-line: deprecated
+local getn = table.getn
 
 local button_defaults = {
   width = 80,
@@ -20,9 +22,10 @@ local button_defaults = {
 function M.new( popup_builder, roll_controller, confirm_award, RollingPopupContent, db, center_point, master_loot_candidates, roll_tracker )
   local popup
   local data_for_error
+  local top_padding = 14
 
   local function create_popup()
-    local frame = popup_builder()
+    local frame = popup_builder
         :with_name( "RollForLootAssignmentFrame" )
         :with_width( 280 )
         :with_height( 100 )
@@ -45,8 +48,7 @@ function M.new( popup_builder, roll_controller, confirm_award, RollingPopupConte
     return frame
   end
 
-  local function border_color( item_link )
-    local item_id = m.ItemUtils.get_item_id( item_link )
+  local function border_color( item_id )
     local _, _, quality = m.api.GetItemInfo( string.format( "item:%s:0:0:0", item_id ) )
     local color = m.api.ITEM_QUALITY_COLORS[ quality ] or { r = 0, g = 0, b = 0, a = 1 }
 
@@ -56,13 +58,13 @@ function M.new( popup_builder, roll_controller, confirm_award, RollingPopupConte
     popup:border_color( color.r * multiplier, color.g * multiplier, color.b * multiplier, alpha )
   end
 
-  local function make_content( item_link, player, rolling_strategy, error )
-    local content                 = { { type = "item_link", link = item_link } }
+  local function make_content( item, player, rolling_strategy, error )
+    local content                 = { { type = "item_link_with_icon", link = item.link, texture = item.texture } }
     local data, current_iteration = roll_tracker.get()
 
     local winner                  = data and data.status and data.status.winner and
         data.item and data.status.winner.name == player.name and
-        data.item.link == item_link and data.status.winner
+        data.item.link == item.link and data.status.winner
 
     local winning_player          = winner or player
 
@@ -99,7 +101,7 @@ function M.new( popup_builder, roll_controller, confirm_award, RollingPopupConte
           winning_player.value = p and p.value
         end
 
-        if confirm_award then confirm_award( winning_player, item_link ) end
+        if confirm_award then confirm_award( winning_player, item.link ) end
       end
     } )
 
@@ -122,11 +124,11 @@ function M.new( popup_builder, roll_controller, confirm_award, RollingPopupConte
     if not popup then popup = create_popup() end
     popup:clear()
 
-    for _, v in ipairs( make_content( data.item_link, data.player, data.rolling_strategy, error ) ) do
-      popup.add_line( v.type, function( type, frame )
-        if type == "item_link" then
-          frame.text:SetText( v.link )
-          frame:SetWidth( frame.text:GetWidth() )
+    for _, v in ipairs( make_content( data.item, data.player, data.rolling_strategy, error ) ) do
+      popup.add_line( v.type, function( type, frame, lines )
+        if type == "item_link_with_icon" then
+          frame:SetText( v.link )
+          frame:SetTexture( v.texture )
           frame.tooltip_link = v.link and m.ItemUtils.get_tooltip_link( v.link )
         elseif type == "text" then
           frame:SetText( v.value )
@@ -138,10 +140,24 @@ function M.new( popup_builder, roll_controller, confirm_award, RollingPopupConte
           frame:SetScript( "OnClick", v.on_click or function() end )
           frame:SetFrameLevel( popup:GetFrameLevel() + 1 )
         end
+
+        if type ~= "button" then
+          local count = getn( lines )
+
+          if count == 0 then
+            local y = -top_padding - (v.padding or 0)
+            frame:ClearAllPoints()
+            frame:SetPoint( "TOP", popup, "TOP", 0, y )
+          else
+            local line_anchor = lines[ count ].frame
+            frame:ClearAllPoints()
+            frame:SetPoint( "TOP", line_anchor, "BOTTOM", 0, v.padding and -v.padding or 0 )
+          end
+        end
       end, v.padding )
     end
 
-    border_color( data.item_link )
+    border_color( data.item.id )
 
     local point = db.point or center_point
     ---@diagnostic disable-next-line: undefined-global
