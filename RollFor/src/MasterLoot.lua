@@ -37,7 +37,6 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
     end
 
     local item = master_loot_tracker.get( slot )
-
     if item then
       award_item( m_confirmed.player.name, item.id, item.link )
       master_loot_tracker.remove( slot )
@@ -51,13 +50,15 @@ function M.new( master_loot_candidates, award_item, master_loot_frame, master_lo
     local data = master_loot_correlation_data.get( item_link )
     if not data then return end
 
-    if not player.value then
-      pretty_print( "Player needs a value selected." )
+    local candidate = master_loot_candidates.find( player.name )
+
+    if not candidate then
+      pretty_print( string.format( "%s is not on loot candidate list.", player.name ) )
       return
     end
 
     m_confirmed = { slot = data.slot, player = player }
-    m.api.GiveMasterLoot( data.slot, player.value )
+    m.api.GiveMasterLoot( data.slot, candidate.value )
     master_loot_frame.hide()
   end
 
