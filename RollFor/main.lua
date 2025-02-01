@@ -255,7 +255,6 @@ local function create_components()
     M.player_selection_frame
   )
 
-  ---@type LootController
   M.loot_controller = m.LootController.new(
     M.player_info,
     M.loot_facade,

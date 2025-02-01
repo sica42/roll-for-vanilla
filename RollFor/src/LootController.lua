@@ -8,11 +8,6 @@ local red, orange, blue, hl = m.colors.red, m.colors.orange, m.colors.blue, m.co
 
 local M = m.Module.new( "LootController" )
 
----@class LootController
----@field show fun()
----@field update fun( preview_fn: RollControllerPreviewFn )
----@field hide fun()
-
 ---@alias SelectedItem { item_id: number, comment: string? }
 
 ---@param player_info PlayerInfo
@@ -290,14 +285,6 @@ function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller
   roll_controller.subscribe( "LootFrameDeselect", deselect )
   roll_controller.subscribe( "LootFrameClearSelectionCache", clear_selection_cache )
   roll_controller.subscribe( "LootFrameUpdate", update )
-
-  ---@type LootController
-  return {
-    show = show,
-    update = update,
-    hide = hide,
-    deselect = deselect
-  }
 end
 
 m.LootController = M
