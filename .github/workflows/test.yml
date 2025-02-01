@@ -2,7 +2,7 @@ name: RollFor Tests
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "v3" ]
   pull_request_target:
     types: [opened, reopened, edited, synchronize]
     branches: [ "master" ]
