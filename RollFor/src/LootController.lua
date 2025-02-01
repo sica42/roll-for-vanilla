@@ -66,7 +66,7 @@ function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller
   ---@param hard_ressed boolean?
   ---@param soft_ressed boolean?
   local function select_item( entries, item, hard_ressed, soft_ressed )
-    M.debug.add( string.format( "select_item(%s, %s)", item.id, hard_ressed and "hr" or soft_ressed and "sr" or "free" ) )
+    M.debug.add( string.format( "select_item( %s, %s )", item.id, hard_ressed and "hr" or soft_ressed and "sr" or "free roll" ) )
     local c = find_top_priority_comment( item.id, entries )
     local count = count_selected_items( entries, item.id, c )
 
@@ -263,7 +263,7 @@ function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller
   end
 
   local function on_loot_slot_cleared( slot )
-    M.debug.add( string.format( "loot_slot_cleared(%s)", slot ) )
+    M.debug.add( string.format( "loot_slot_cleared( %s )", slot ) )
     update()
   end
 

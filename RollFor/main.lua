@@ -411,17 +411,8 @@ local function on_roll_command( roll_slash_command )
       return
     end
 
-    for command, modules in string.gmatch( args, "debug (.-) (.*)" ) do
-      for module_name in string.gmatch( modules, "%S+" ) do
-        local mod = m[ module_name ]
-        if mod and mod.debug then
-          local dbg = mod.debug
-          local f = dbg[ command ]
-
-          if f then f() end
-        end
-      end
-
+    if string.find( args, "^debug" ) then
+      m.DebugBuffer.on_command( args )
       return
     end
 

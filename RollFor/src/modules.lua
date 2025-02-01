@@ -49,6 +49,10 @@ M.colors = {
   end
 }
 
+function M.colorize( color, text )
+  return string.format( "|cff%s%s|r", color, text )
+end
+
 M.msg = {
   disabled = M.colors.red( "disabled" ),
   enabled = M.colors.green( "enabled" ),
