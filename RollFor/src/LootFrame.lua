@@ -51,55 +51,6 @@ function M.new( frame_builder, db, config )
     db.point = { point = point, relative_point = relative_point, x = x, y = y }
   end
 
-  -- local function on_click( button, item )
-  --   if m.api.IsControlKeyDown() then
-  --     m.api.DressUpItemLink( item.link )
-  --     return
-  --   elseif m.api.IsShiftKeyDown() and m.api.ChatFrameEditBox:IsVisible() then
-  --     m.api.ChatFrameEditBox:Insert( item.link )
-  --     return
-  --   end
-  --
-  --   local loot_method = m.api.GetLootMethod()
-  --
-  --   if player_info.is_master_looter() and item.type ~= LT.Coin then
-  --     local count = loot_list.count( item.id )
-  --     roll_controller.preview( item, count )
-  --     return
-  --   end
-  --
-  --   local threshold = m.api.GetLootThreshold()
-  --
-  --   if loot_method == "freeforall" or (item.quality or 0) < threshold then
-  --     -- Fucking hell this took forever to figure out. Fuck you Blizzard.
-  --     -- For looting to work in vanilla, the frame must be of a "LootButton" type and
-  --     -- then it comes with the SetSlot function that we need to use to set the slot.
-  --     -- This will probably be a pain in the ass when porting.
-  --     local slot = loot_list.get_slot( item.id )
-  --     button:SetSlot( slot )
-  --   end
-  -- end
-
-  -- local function select( data )
-  --   if not boss_name_frame then return end
-  --   if data and data.item and selected_item and data.item.id == selected_item.id then return end
-  --   if not boss_name_frame:IsVisible() then return end
-  --
-  --   M.debug.add( "select" )
-  --   selected_item = data and data.item or nil
-  --   update()
-  --   roll_controller.loot_list_item_selected()
-  -- end
-
-  -- local function deselect()
-  --   if not selected_item then return end
-  --
-  --   M.debug.add( "deselect" )
-  --   selected_item = nil
-  --   update()
-  --   roll_controller.loot_list_item_deselected()
-  -- end
-
   local function create_boss_name_frame()
     boss_name_frame = frame_builder.new()
         :name( "RollForBossNameFrame" )
@@ -277,12 +228,6 @@ function M.new( frame_builder, db, config )
       frame:SetWidth( max_frame_width - 2 )
     end
   end
-
-  -- roll_controller.subscribe( "preview", select )
-  -- roll_controller.subscribe( "show_master_loot_confirmation", select )
-  -- roll_controller.subscribe( "award_aborted", select )
-  -- roll_controller.subscribe( "rolling_popup_closed", deselect )
-  -- roll_controller.subscribe( "loot_awarded", deselect )
 
   config.subscribe( "reset_loot_frame", function()
     db.point = nil
