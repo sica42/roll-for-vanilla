@@ -23,7 +23,9 @@ M.zones    = {
   [ "Zul'Gurub" ] = {
     "High Priestess Jeklik",
     "High Priest Venoxis",
+    "Witherbark Speaker",
     "High Priestess Mar'li",
+    "Vilebranch Speaker",
     "Broodlord Mandokir",
     "Ohgan",
     "Gri'lek",
