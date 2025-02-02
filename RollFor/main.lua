@@ -364,19 +364,9 @@ function M.import_encoded_softres_data( data, data_loaded_callback )
   update_minimap_icon()
 end
 
-local function announce_hr( item )
-  M.chat.announce( string.format( "%s is hard-ressed.", item ), true )
-end
-
 local function on_roll_command( roll_slash_command )
   return function( args )
     if M.rolling_logic.is_rolling() then
-      -- TODO: Maybe bring it back.
-      -- if not args or args == "" then
-      --   M.roll_controller.show()
-      --   return
-      -- end
-
       M.chat.info( "Rolling is in progress." )
       return
     end
@@ -413,17 +403,15 @@ local function on_roll_command( roll_slash_command )
       return
     end
 
-    -- TODO: What if we wanted to bypass the hard-res?
-    -- Also, get rid of this here. Make a strategy for this shit or something.
-    if M.softres.is_item_hardressed( item.id ) then
-      announce_hr( item.link )
-      return
-    end
-
     local strategy_type = m.Types.slash_command_to_strategy_type( roll_slash_command )
 
     if not strategy_type then
       info( string.format( "Unsupported command: %s", hl( roll_slash_command and roll_slash_command.slash_command or "?" ) ) )
+      return
+    end
+
+    if M.softres.is_item_hardressed( item.id ) then
+      M.roll_controller.preview( item, count )
       return
     end
 

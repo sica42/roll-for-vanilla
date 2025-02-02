@@ -6,6 +6,5 @@
 4. Fix auto-master loot enabling it in Durotar.
 5. Add HR surprise tooltips.
 6. Fix the color codes lol becuz it's the highest prio lol.
-7. Handle HR items outside of the loot list.
-8. Mark winners in the player selection list.
-9. Link LootFrame and RollingPopup interactions so we don't end up in loot frame selected but no popup bug.
+7. Mark winners in the player selection list.
+8. Link LootFrame and RollingPopup interactions so we don't end up in loot frame selected but no popup bug.
