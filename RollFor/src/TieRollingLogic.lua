@@ -6,7 +6,6 @@ if m.TieRollingLogic then return end
 local M = {}
 local take = m.take
 local RollType = m.Types.RollType
-local hl = m.colors.hl
 
 ---@type MakeRollFn
 local make_roll = m.Types.make_roll
@@ -27,6 +26,7 @@ function M.new( chat, players, item, item_count, on_rolling_finished, roll_type,
   local rolling = false
   local player_count = getn( players )
 
+  ---@param player_name string
   local function find_player( player_name )
     for _, player in ipairs( players ) do
       if player.name == player_name then return player end
@@ -108,7 +108,11 @@ function M.new( chat, players, item, item_count, on_rolling_finished, roll_type,
     on_rolling_finished( item, item_count, winner_rolls, true )
   end
 
-  local function on_roll( player_name, roll, min, max )
+  ---@param roller Player
+  ---@param roll number
+  ---@param min number
+  ---@param max number
+  local function on_roll( roller, roll, min, max )
     local ms_threshold = config.ms_roll_threshold()
     local os_threshold = config.os_roll_threshold()
     local tmog_threshold = config.tmog_roll_threshold()
@@ -119,28 +123,28 @@ function M.new( chat, players, item, item_count, on_rolling_finished, roll_type,
     local os_roll = max == os_threshold
     local actual_roll_type = ms_roll and RollType.MainSpec or os_roll and RollType.OffSpec or RollType.Transmog
 
-    if actual_roll_type ~= roll_type and not (actual_roll_type == RollType.MainSpec and roll_type == RollType.SoftRes) then
-      local roll_threshold_str = config.roll_threshold( roll_type ).str
-      chat.info( string.format( "|cffff9f69%s|r didn't %s. This roll (|cffff9f69%s|r) is ignored.", player_name, hl( roll_threshold_str ), roll ) )
+    local player = find_player( roller.name )
+
+    if not player then
+      chat.info( string.format( "|cffff9f69%s|r is not allowed to re-roll. This roll (|cffff9f69%s|r) is ignored.", roller.name, roll ) )
+      controller.roll_was_ignored( roller.name, nil, roll_type, roll, "Not in GroupRoster." )
       return
     end
 
-    local player = find_player( player_name )
-
-    if not player then
-      chat.info( string.format( "|cffff9f69%s|r is not allowed to re-roll. This roll (|cffff9f69%s|r) is ignored.", player_name, roll ) )
-      controller.roll_was_ignored( player_name, nil, roll_type, roll, "Not in GroupRoster." )
+    if actual_roll_type ~= roll_type and not (actual_roll_type == RollType.MainSpec and roll_type == RollType.SoftRes) then
+      local roll_threshold_str = config.roll_threshold( roll_type ).str
+      chat.info( m.msg.invalid_roll( player.name, player.class, roll_threshold_str, roll ) )
       return
     end
 
     if player.rolls == 0 then
-      chat.info( string.format( "|cffff9f69%s|r exhausted their rolls. This roll (|cffff9f69%s|r) is ignored.", player_name, roll ) )
+      chat.info( m.msg.rolls_exhausted( player.name, player.class, roll ) )
       return
     end
 
     player.rolls = player.rolls - 1
     table.insert( rolls, make_roll( player, roll_type, roll ) )
-    controller.roll_was_accepted( player_name, player.class, roll_type, roll )
+    controller.roll_was_accepted( roller.name, player.class, roll_type, roll )
 
     if have_all_rolls_been_exhausted() then find_winner() end
   end

@@ -93,6 +93,8 @@ function M.new(
     return have_all_players_rolled( mainspec_rollers )
   end
 
+  ---@param player_name string
+  ---@param rollers RollingPlayer[]
   local function find_player( player_name, rollers )
     for _, player in ipairs( rollers ) do
       if player.name == player_name then return player end
@@ -161,7 +163,11 @@ function M.new(
     on_rolling_finished( item, item_count, winner_rolls )
   end
 
-  local function on_roll( player_name, roll, min, max )
+  ---@param roller Player
+  ---@param roll number
+  ---@param min number
+  ---@param max number
+  local function on_roll( roller, roll, min, max )
     if not rolling or min ~= 1 or (max ~= tmog_threshold and max ~= os_threshold and max ~= ms_threshold) then return end
     if max == tmog_threshold and not tmog_rolling_enabled then return end
 
@@ -169,11 +175,11 @@ function M.new(
     local os_roll = max == os_threshold
     local roll_type = ms_roll and RollType.MainSpec or os_roll and RollType.OffSpec or RollType.Transmog
     local rollers = ms_roll and mainspec_rollers or os_roll and offspec_rollers or tmog_rollers
-    local player = find_player( player_name, rollers )
+    local player = find_player( roller.name, rollers ) ---@type RollingPlayer
 
     if player.rolls == 0 then
-      chat.info( string.format( "|cffff9f69%s|r exhausted their rolls. This roll (|cffff9f69%s|r) is ignored.", player_name, roll ) )
-      controller.roll_was_ignored( player_name, player.class, roll_type, roll, "Rolled too many times." )
+      chat.info( m.msg.rolls_exhausted( player.name, player.class, roll ) )
+      controller.roll_was_ignored( roller.name, player.class, roll_type, roll, "Rolled too many times." )
       return
     end
 

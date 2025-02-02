@@ -49,8 +49,66 @@ M.colors = {
   end
 }
 
+M.colors.softres = M.colors.blue
+M.colors.name_matcher = M.colors.blue
+M.colors.hl = M.colors.highlight
+
+local hl = M.colors.hl
+
 function M.colorize( color, text )
   return string.format( "|cff%s%s|r", color, text )
+end
+
+---@param player_name string
+---@param player_class PlayerClass
+---@param roll number
+local function rolls_exhausted( player_name, player_class, roll )
+  return string.format(
+    "%s exhausted their rolls. This roll (%s) is ignored.",
+    M.colorize_player_by_class( player_name, player_class ),
+    hl( roll )
+  )
+end
+
+---@param player_name string
+---@param player_class PlayerClass
+---@param roll_command string
+---@param roll number
+local function invalid_roll( player_name, player_class, roll_command, roll )
+  return string.format(
+    "%s didn't %s. This roll (%s) is ignored.",
+    M.colorize_player_by_class( player_name, player_class ),
+    hl( roll_command ),
+    hl( roll )
+  )
+end
+
+---@param player_name string
+---@param player_class PlayerClass
+---@param item_link string
+---@param roll_command string
+---@param roll number
+local function invalid_sr_roll( player_name, player_class, item_link, roll_command, roll )
+  return string.format(
+    "%s did SR %s, but didn't %s. This roll (%s) is ignored.",
+    M.colorize_player_by_class( player_name, player_class ),
+    item_link,
+    hl( roll_command ),
+    hl( roll )
+  )
+end
+
+---@param player_name string
+---@param player_class PlayerClass
+---@param item_link string
+---@param roll number
+local function did_not_soft_res( player_name, player_class, item_link, roll )
+  return string.format(
+    "%s didn't SR %s. This roll (%s) is ignored.",
+    M.colorize_player_by_class( player_name, player_class ),
+    item_link,
+    hl( roll )
+  )
 end
 
 M.msg = {
@@ -58,6 +116,10 @@ M.msg = {
   enabled = M.colors.green( "enabled" ),
   locked = M.colors.red( "locked" ),
   unlocked = M.colors.green( "unlocked" ),
+  rolls_exhausted = rolls_exhausted,
+  invalid_roll = invalid_roll,
+  invalid_sr_roll = invalid_sr_roll,
+  did_not_soft_res = did_not_soft_res
 }
 
 if M.api.RAID_CLASS_COLORS then
@@ -71,10 +133,6 @@ if M.api.RAID_CLASS_COLORS then
   M.api.RAID_CLASS_COLORS.SHAMAN.colorStr = "ff0070de"
   M.api.RAID_CLASS_COLORS.WARRIOR.colorStr = "ffc79c6e"
 end
-
-M.colors.softres = M.colors.blue
-M.colors.name_matcher = M.colors.blue
-M.colors.hl = M.colors.highlight
 
 function M.print( message )
   if not message then return end

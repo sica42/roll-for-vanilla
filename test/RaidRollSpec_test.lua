@@ -85,7 +85,7 @@ function SingleWinnerRaidRollSpec:should_auto_raid_roll_if_no_one_rolled()
   chat.raid( "[1]:Obszczymucha, [2]:Psikutas" )
 
   -- When
-  rf.roll( "Psikutas", 1, 1, 2 ) -- Not great, but I gotta get things moving, cuz Netherwing 3.0.
+  rf.roll( p1, 1, 1, 2 ) -- Not great, but I gotta get things moving, cuz Netherwing 3.0.
 
   -- Then
   chat.raid( "Obszczymucha wins [Bag] (raid-roll)." )

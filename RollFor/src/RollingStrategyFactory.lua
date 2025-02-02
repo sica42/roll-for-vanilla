@@ -11,7 +11,7 @@ local getn = table.getn
 
 ---@class RollingStrategy
 ---@field start_rolling fun()
----@field on_roll fun( player_name: string, roll: number, min: number, max: number )
+---@field on_roll fun( player_name: Player, roll: number, min: number, max: number )
 ---@field show_sorted_rolls fun( limit: number? )
 ---@field stop_accepting_rolls fun( manual_stop: boolean )
 ---@field cancel_rolling fun()

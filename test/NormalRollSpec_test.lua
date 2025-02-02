@@ -826,7 +826,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls()
   )
 
   -- When
-  rf.roll( "Obszczymucha", 96, 1, 99 )
+  rf.roll( p2, 96, 1, 99 )
 
   -- Then
   rf.rolling_popup.should_display(
@@ -842,7 +842,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls()
   chat.raid( "Stopping rolls in 3" )
 
   -- When
-  rf.roll( "Psikutas", 69, 1, 100 )
+  rf.roll( p1, 69, 1, 100 )
 
   -- Then
   rf.rolling_popup.should_display(
@@ -990,7 +990,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   )
 
   -- When
-  rf.roll( "Obszczymucha", 96, 1, 99 )
+  rf.roll( p2, 96, 1, 99 )
 
   -- Then
   rf.rolling_popup.should_display(
@@ -1006,7 +1006,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   chat.raid( "Stopping rolls in 3" )
 
   -- When
-  rf.roll( "Psikutas", 69, 1, 100 )
+  rf.roll( p1, 69, 1, 100 )
 
   -- Then
   rf.rolling_popup.should_display(
@@ -1163,7 +1163,7 @@ function SomeoneRolledSpec:should_display_close_button_that_closes_the_popup()
   )
 
   -- When
-  rf.roll( "Psikutas", 69, 1, 99 )
+  rf.roll( p1, 69, 1, 99 )
 
   -- When
   rf.ace_timer.repeating_tick( 8 )
@@ -1271,8 +1271,8 @@ function NormalTieRollSpec:should_display_tie_rolls()
   )
 
   -- When
-  rf.roll( "Obszczymucha", 69, 1, 100 )
-  rf.roll( "Psikutas", 69, 1, 100 )
+  rf.roll( p2, 69, 1, 100 )
+  rf.roll( p1, 69, 1, 100 )
 
   -- Then
   chat.console( "RollFor: Obszczymucha and Psikutas rolled the highest (69) for [Bag]." )
@@ -1304,8 +1304,8 @@ function NormalTieRollSpec:should_display_tie_rolls()
   )
 
   -- When
-  rf.roll( "Obszczymucha", 42, 1, 100 )
-  rf.roll( "Psikutas", 42, 1, 100 )
+  rf.roll( p2, 42, 1, 100 )
+  rf.roll( p1, 42, 1, 100 )
 
   -- Then
   chat.console( "RollFor: Obszczymucha and Psikutas re-rolled the highest (42) for [Bag]." )
@@ -1343,7 +1343,7 @@ function NormalTieRollSpec:should_display_tie_rolls()
   )
 
   -- When
-  rf.roll( "Obszczymucha", 1, 1, 100 )
+  rf.roll( p2, 1, 1, 100 )
 
   -- Then
   rf.rolling_popup.should_display(
@@ -1360,7 +1360,7 @@ function NormalTieRollSpec:should_display_tie_rolls()
     buttons( "FinishEarly", "Cancel" )
   )
 
-  rf.roll( "Psikutas", 2, 1, 100 )
+  rf.roll( p1, 2, 1, 100 )
 
   -- Then
   chat.console( "RollFor: Psikutas re-rolled the highest (2) for [Bag]." )
@@ -1484,7 +1484,7 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
 
   -- When
   rf.ace_timer.repeating_tick( 4 )
-  rf.roll( "Cosmicshadow", 24, 1, 100 )
+  rf.roll( p1, 24, 1, 100 )
 
   -- Then
   chat.raid( "Stopping rolls in 3" )

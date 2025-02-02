@@ -24,7 +24,7 @@ local getn = table.getn
 ---@param winner_tracker WinnerTracker
 ---@param controller RollControllerFacade
 ---@param candidates ItemCandidate[]|Player[]
----@param player_info PlayerInfo
+---@param roller PlayerInfo
 function M.new(
     chat,
     ace_timer,
@@ -33,7 +33,7 @@ function M.new(
     winner_tracker,
     controller,
     candidates,
-    player_info
+    roller
 )
   local m_rolling = false
   local m_winners = {}
@@ -81,18 +81,22 @@ function M.new(
     end, 1 )
   end
 
-  local function on_roll( player_name, roll, min, max )
-    if player_name ~= player_info.get_name() then return end
+  ---@param player Player
+  ---@param roll number
+  ---@param min number
+  ---@param max number
+  local function on_roll( player, roll, min, max )
+    if player.name ~= roller.get_name() then return end
     if min ~= 1 or max ~= getn( candidates ) then return end
 
     table.insert( m_winners, candidates[ roll ] )
     if getn( m_winners ) < item_count then return end
 
     local winners = m.map( m_winners,
-      ---@param player ItemCandidate|Player
-      function( player )
-        if type( player ) == "table" then                                                                  -- Fucking lua50 and its n.
-          local winner = make_winner( player.name, player.class, item, player.type == "ItemCandidate" or false, roll_type, nil )
+      ---@param p ItemCandidate|Player
+      function( p )
+        if type( p ) == "table" then                                                                       -- Fucking lua50 and its n.
+          local winner = make_winner( p.name, p.class, item, p.type == "ItemCandidate" or false, roll_type, nil )
           winner_tracker.track( winner.name, item.link, roll_type, nil, m.Types.RollingStrategy.RaidRoll ) -- TODO: Get the fuck outta here.
           return winner
         end

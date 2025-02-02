@@ -6,6 +6,7 @@ if m.SoftResRollingLogic then return end
 local M = {}
 local map = m.map
 local take = m.take
+local hl = m.colors.hl
 local roll_type = m.Types.RollType.SoftRes
 local strategy = m.Types.RollingStrategy.SoftResRoll
 
@@ -174,40 +175,41 @@ function M.new(
     on_rolling_finished( item, item_count, winner_rolls )
   end
 
-  local function on_roll( player_name, roll, min, max )
+  ---@param roller Player
+  ---@param roll number
+  ---@param min number
+  ---@param max number
+  local function on_roll( roller, roll, min, max )
     local ms_threshold = config.ms_roll_threshold()
     local os_threshold = config.os_roll_threshold()
     local tmog_threshold = config.tmog_roll_threshold()
 
     if not rolling or min ~= 1 or (max ~= tmog_threshold and max ~= os_threshold and max ~= ms_threshold) then return end
 
-    local player = find_player( player_name )
+    local player = find_player( roller.name )
     local ms_roll = max == ms_threshold
 
     if not player then
-      -- TODO: move the messages to a separate module.
-      chat.info( string.format( "|cffff9f69%s|r did not SR %s. This roll (|cffff9f69%s|r) is ignored.", player_name, item.link, roll ) )
-      controller.roll_was_ignored( player_name, nil, roll_type, roll, "Did not soft-res." )
+      chat.info( m.msg.did_not_soft_res( roller.name, roller.class, item.link, roll ) )
+      controller.roll_was_ignored( roller.name, nil, roll_type, roll, "Did not soft-res." )
       return
     end
 
     if not ms_roll then
-      -- TODO: move the messages to a separate module.
-      chat.info( string.format( "|cffff9f69%s|r did SR %s, but didn't roll MS. This roll (|cffff9f69%s|r) is ignored.", player_name, item.link, roll ) )
-      controller.roll_was_ignored( player_name, player.class, roll_type, roll, "Didn't roll MS." )
+      chat.info( m.msg.invalid_sr_roll( player.name, player.class, item.link, "/roll", roll ) )
+      controller.roll_was_ignored( player.name, player.class, roll_type, roll, "Didn't /roll." )
       return
     end
 
     if player.rolls == 0 then
-      -- TODO: move the messages to a separate module.
-      chat.info( string.format( "|cffff9f69%s|r exhausted their rolls. This roll (|cffff9f69%s|r) is ignored.", player_name, roll ) )
-      controller.roll_was_ignored( player_name, player.class, roll_type, roll, "Rolled too many times." )
+      chat.info( m.msg.rolls_exhausted( player.name, player.class, roll ) )
+      controller.roll_was_ignored( player.name, player.class, roll_type, roll, "Rolled too many times." )
       return
     end
 
     player.rolls = player.rolls - 1
     table.insert( rolls, make_roll( player, roll_type, roll ) )
-    controller.roll_was_accepted( player_name, player.class, roll_type, roll )
+    controller.roll_was_accepted( player.name, player.class, roll_type, roll )
 
     find_winner( State.AfterRoll )
   end
@@ -268,12 +270,12 @@ function M.new(
 
     for i, v in ipairs( rolls ) do
       if limit and limit > 0 and i > limit then return end
-      chat.info( string.format( "[|cffff9f69%d|r]: %s", v.roll, m.colorize_player_by_class( v.player.name, v.player.class ) ) )
+      chat.info( string.format( "[%s]: %s", hl( v.roll ), m.colorize_player_by_class( v.player.name, v.player.class ) ) )
     end
   end
 
   local function print_rolling_complete( canceled )
-    chat.info( string.format( "Rolling for %s has %s.", item.link, canceled and "been canceled" or "finished" ) )
+    chat.info( string.format( "Rolling for %s %s.", item.link, canceled and "was canceled" or "finished" ) )
   end
 
   local function cancel_rolling()

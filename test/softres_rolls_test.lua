@@ -114,8 +114,8 @@ function SoftResIntegrationSpec:should_only_process_rolls_from_players_who_soft_
   -- Then
   m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon and Psikutas)" ),
-    c( "RollFor: Rikus did not SR [Hearthstone]. This roll (100) is ignored." ),
-    c( "RollFor: Obszczymucha did not SR [Hearthstone]. This roll (42) is ignored." ),
+    c( "RollFor: Rikus didn't SR [Hearthstone]. This roll (100) is ignored." ),
+    c( "RollFor: Obszczymucha didn't SR [Hearthstone]. This roll (42) is ignored." ),
     cr( "Psikutas rolled the highest (69) for [Hearthstone] (SR)." ),
     rolling_finished()
   )
@@ -137,7 +137,7 @@ function SoftResIntegrationSpec:should_ignore_offspec_rolls_by_players_who_soft_
   -- Then
   m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon and Psikutas)" ),
-    c( "RollFor: Psikutas did SR [Hearthstone], but didn't roll MS. This roll (69) is ignored." ),
+    c( "RollFor: Psikutas did SR [Hearthstone], but didn't /roll. This roll (69) is ignored." ),
     r( "Stopping rolls in 3", "2", "1" ),
     r( "SR rolls remaining: Psikutas (1 roll)" ),
     cr( "Psikutas rolled the highest (99) for [Hearthstone] (SR)." ),
@@ -161,7 +161,7 @@ function SoftResIntegrationSpec:should_announce_current_highest_roller_if_a_play
   -- Then
   m.chat.assert(
     rw( "Roll for [Hearthstone]: (SR by Ponpon and Psikutas)" ),
-    c( "RollFor: Psikutas did SR [Hearthstone], but didn't roll MS. This roll (69) is ignored." ),
+    c( "RollFor: Psikutas did SR [Hearthstone], but didn't /roll. This roll (69) is ignored." ),
     r( "Stopping rolls in 3", "2", "1" ),
     r( "SR rolls remaining: Psikutas (1 roll)" ),
     cr( "Ponpon rolled the highest (42) for [Hearthstone] (SR)." ),

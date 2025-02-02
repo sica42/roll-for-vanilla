@@ -20,7 +20,7 @@ local RS = m.Types.RollingStrategy
 ---@field on_softres_rolls_available SoftresRollsAvailableCallback
 ---@field on_rolling_finished RollingFinishedCallback
 ---@field is_rolling fun(): boolean
----@field on_roll fun( player_name: string, roll_value: number, min: number, max: number )
+---@field on_roll fun( player: Player, roll_value: number, min: number, max: number )
 ---@field show_sorted_rolls fun( limit: number? )
 
 ---@param chat Chat
@@ -227,13 +227,13 @@ function M.new( chat, ace_timer, roll_controller, strategy_factory, master_loot_
     roll_controller.rolling_canceled()
   end
 
-  ---@param player_name string
+  ---@param player Player
   ---@param roll_value number
   ---@param min number
   ---@param max number
-  local function on_roll( player_name, roll_value, min, max )
+  local function on_roll( player, roll_value, min, max )
     if m_rolling_strategy and m_rolling_strategy.is_rolling() then
-      m_rolling_strategy.on_roll( player_name, roll_value, min, max )
+      m_rolling_strategy.on_roll( player, roll_value, min, max )
     end
   end
 

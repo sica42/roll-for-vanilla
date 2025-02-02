@@ -135,7 +135,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
   )
 
   -- When
-  rf.roll( "Psikutas", 69, 1, 100 )
+  rf.roll( p1, 69, 1, 100 )
 
   -- Then
   rf.rolling_popup.should_display(
@@ -147,7 +147,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
   )
 
   -- When
-  rf.roll( "Obszczymucha", 99, 1, 100 )
+  rf.roll( p2, 99, 1, 100 )
 
   -- Then
   chat.console( "RollFor: Obszczymucha rolled the highest (99) for [Bag] (SR)." )
@@ -323,7 +323,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
   )
 
   -- When
-  rf.roll( "Psikutas", 69, 1, 100 )
+  rf.roll( p1, 69, 1, 100 )
 
   -- Then
   rf.rolling_popup.should_display(
@@ -336,7 +336,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
   )
 
   -- When
-  rf.roll( "Obszczymucha", 99, 1, 100 )
+  rf.roll( p2, 99, 1, 100 )
 
   -- Then
   rf.rolling_popup.should_display(
@@ -349,7 +349,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
   )
 
   -- When
-  rf.roll( "Jimmy", 98, 1, 100 )
+  rf.roll( p3, 98, 1, 100 )
 
   -- Then
   chat.console( "RollFor: Obszczymucha rolled the highest (99) for [Bag] (SR)." )
@@ -507,8 +507,8 @@ function SoftResTieRollSpec:should_display_tie_rolls()
   )
 
   -- When
-  rf.roll( "Obszczymucha", 69, 1, 100 )
-  rf.roll( "Psikutas", 69, 1, 100 )
+  rf.roll( p2, 69, 1, 100 )
+  rf.roll( p1, 69, 1, 100 )
 
   -- Then
   chat.console( "RollFor: Obszczymucha and Psikutas rolled the highest (69) for [Bag] (SR)." )
@@ -540,8 +540,8 @@ function SoftResTieRollSpec:should_display_tie_rolls()
   )
 
   -- When
-  rf.roll( "Obszczymucha", 42, 1, 100 )
-  rf.roll( "Psikutas", 42, 1, 100 )
+  rf.roll( p2, 42, 1, 100 )
+  rf.roll( p1, 42, 1, 100 )
 
   -- Then
   chat.console( "RollFor: Obszczymucha and Psikutas re-rolled the highest (42) for [Bag] (SR)." )
@@ -579,8 +579,8 @@ function SoftResTieRollSpec:should_display_tie_rolls()
   )
 
   -- When
-  rf.roll( "Obszczymucha", 1, 1, 100 )
-  rf.roll( "Psikutas", 2, 1, 100 )
+  rf.roll( p2, 1, 1, 100 )
+  rf.roll( p1, 2, 1, 100 )
 
   -- Then
   chat.console( "RollFor: Psikutas re-rolled the highest (2) for [Bag] (SR)." )

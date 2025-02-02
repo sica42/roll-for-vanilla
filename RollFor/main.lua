@@ -486,7 +486,14 @@ local function on_softres_command( args )
 end
 
 local function on_roll( player_name, roll, min, max )
-  M.rolling_logic.on_roll( player_name, roll, min, max )
+  local player = M.group_roster.find_player( player_name )
+
+  if not player then
+    m.err( string.format( "Player %s could not be found.", hl( player_name ) ) )
+    return
+  end
+
+  M.rolling_logic.on_roll( player, roll, min, max )
 end
 
 local function on_loot_method_changed()
@@ -500,8 +507,8 @@ local function on_master_looter_changed( player_name )
 end
 
 function M.on_chat_msg_system( message )
-  for player, roll, min, max in string.gmatch( message, "([^%s]+) rolls (%d+) %((%d+)%-(%d+)%)" ) do
-    on_roll( player, tonumber( roll ), tonumber( min ), tonumber( max ) )
+  for player_name, roll, min, max in string.gmatch( message, "([^%s]+) rolls (%d+) %((%d+)%-(%d+)%)" ) do
+    on_roll( player_name, tonumber( roll ), tonumber( min ), tonumber( max ) )
     return
   end
 
