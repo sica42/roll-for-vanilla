@@ -54,6 +54,13 @@ M.RollType = {
 ---| "RaidRoll"
 ---| "InstaRaidRoll"
 
+---@class RS
+---@field NormalRoll "NormalRoll"
+---@field SoftResRoll "SoftResRoll"
+---@field TieRoll "TieRoll"
+---@field RaidRoll "RaidRoll"
+---@field InstaRaidRoll "InstaRaidRoll"
+
 local RollingStrategy = {
   NormalRoll = "NormalRoll",
   SoftResRoll = "SoftResRoll",
@@ -62,6 +69,7 @@ local RollingStrategy = {
   InstaRaidRoll = "InstaRaidRoll"
 }
 
+---@type RS
 M.RollingStrategy = RollingStrategy
 
 ---@class PT
