@@ -389,7 +389,7 @@ function M.colorize_player_by_class( name, class )
   return "|c" .. color .. name .. M.api.FONT_COLOR_CODE_CLOSE
 end
 
-local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
+local base64_chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
 ----@diagnostic disable-next-line: undefined-field
 ---@diagnostic disable-next-line: undefined-field
 local mod = math.mod
@@ -397,11 +397,11 @@ local mod = math.mod
 function M.decode_base64( data )
   if not data then return nil end
 
-  data = string.gsub( data, '[^' .. b .. '=]', '' )
+  data = string.gsub( data, '[^' .. base64_chars .. '=]', '' )
   return string.gsub( string.gsub( data, '.', function( x )
     if (x == '=') then return '' end
     ---@diagnostic disable-next-line: undefined-field
-    local r, f = '', (string.find( b, x ) - 1)
+    local r, f = '', (string.find( base64_chars, x ) - 1)
     for i = 6, 1, -1 do r = r .. (mod( f, 2 ^ i ) - mod( f, 2 ^ (i - 1) ) > 0 and '1' or '0') end
     return r;
   end ), '%d%d%d?%d?%d?%d?%d?%d?', function( x )
@@ -421,7 +421,7 @@ function M.encode_base64( data )
     if (string.len( x ) < 6) then return '' end
     local c = 0
     for i = 1, 6 do c = c + (string.sub( x, i, i ) == '1' and 2 ^ (6 - i) or 0) end
-    return string.sub( b, c + 1, c + 1 )
+    return string.sub( base64_chars, c + 1, c + 1 )
   end ) .. ({ '', '==', '=' })[ mod( string.len( data ), 3 ) + 1 ])
 end
 
@@ -569,6 +569,87 @@ function M.article( number )
   end
 
   return "a"
+end
+
+function M.interpolate_color( current_second )
+  local colors = {
+    red = { r = 255, g = 47, b = 47 },
+    orange = { r = 255, g = 143, b = 47 },
+    blue = { r = 32, g = 159, b = 249 }
+  }
+
+  local function floor( n )
+    local i = 0
+
+    while i + 1 <= n do
+      i = i + 1
+    end
+
+    return i
+  end
+
+  local function lerp_color( c1, c2, t )
+    local function adjust_t( interval )
+      if interval < 0.5 then
+        return interval * interval * 2
+      else
+        return 1 - ((1 - interval) * (1 - interval) * 2)
+      end
+    end
+
+    local t_r = adjust_t( t )
+    local t_g = t
+    local t_b = adjust_t( t )
+
+    local r = c1.r + (c2.r - c1.r) * t_r
+    local g = c1.g + (c2.g - c1.g) * t_g
+    local b = c1.b + (c2.b - c1.b) * t_b
+
+    if t > 0.25 and t < 0.75 then
+      local boost = 1.2
+      local mid = (r + g + b) / 3
+      r = mid + (r - mid) * boost
+      g = mid + (g - mid) * boost
+      b = mid + (b - mid) * boost
+
+      if r < 0 then r = 0 end
+      if r > 255 then r = 255 end
+      if g < 0 then g = 0 end
+      if g > 255 then g = 255 end
+      if b < 0 then b = 0 end
+      if b > 255 then b = 255 end
+    end
+
+    return { r = r, g = g, b = b }
+  end
+
+  local function rgb_to_hex( red, green, blue )
+    local function to_hex( n )
+      local hex = "0123456789abcdef"
+      local hi = floor( n / 16 )
+      local lo = n - (hi * 16)
+
+      return string.sub( hex, hi + 1, hi + 1 ) .. string.sub( hex, lo + 1, lo + 1 )
+    end
+
+    return to_hex( floor( red ) ) .. to_hex( floor( green ) ) .. to_hex( floor( blue ) )
+  end
+
+  if current_second == 1 then
+    return rgb_to_hex( colors.red.r, colors.red.g, colors.red.b )
+  elseif current_second == 3 then
+    return rgb_to_hex( colors.orange.r, colors.orange.g, colors.orange.b )
+  end
+
+  if current_second == 2 then
+    local t = 0.75
+    local color = lerp_color( colors.red, colors.orange, t )
+    return rgb_to_hex( color.r, color.g, color.b )
+  end
+
+  if current_second > 3 then
+    return rgb_to_hex( colors.blue.r, colors.blue.g, colors.blue.b )
+  end
 end
 
 return M

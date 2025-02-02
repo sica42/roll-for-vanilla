@@ -235,7 +235,9 @@ function M.new( config )
   ---@param content table
   ---@param seconds_left number
   local function seconds_left_content( content, seconds_left )
-    add_text( content, string.format( "Rolling ends in %s second%s.", seconds_left, seconds_left == 1 and "" or "s" ), top_padding )
+    local color = m.interpolate_color( seconds_left )
+    local seconds = m.colorize( color, seconds_left )
+    add_text( content, string.format( "Rolling ends in %s second%s.", seconds, seconds_left == 1 and "" or "s" ), top_padding )
   end
 
   ---@class RollingPopupRollData
