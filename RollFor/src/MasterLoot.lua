@@ -39,7 +39,7 @@ function M.new( master_loot_candidates, loot_award_callback, loot_list, roll_con
   -- LOOT_OPENED -> LOOT_SLOT_CLEARED -> LOOT_CLOSED -> CHAT_MSG_LOOT.
   -- It's safer and simpler to just rely on LOOT_ events.
   local function on_loot_slot_cleared( slot )
-    M.debug.add( string.format( "on_loot_slot_cleared(%s)", slot or nil ) )
+    M.debug.add( string.format( "on_loot_slot_cleared( %s )", slot or nil ) )
     if not m_slot_cache[ slot ] or not m_confirmed then return end
 
     local cached_item = m_slot_cache[ slot ]
@@ -57,7 +57,7 @@ function M.new( master_loot_candidates, loot_award_callback, loot_list, roll_con
     local player = data.player
     local item = data.item
 
-    M.debug.add( string.format( "on_confirm(%s [%s], %s)", player and player.name or "nil", player and player.type or "nil", item and item.id or "nil" ) )
+    M.debug.add( string.format( "on_confirm( %s [%s], %s )", player and player.name or "nil", player and player.type or "nil", item and item.id or "nil" ) )
     local slot = loot_list.get_slot( item.id )
     if not slot then return end
 
@@ -86,7 +86,7 @@ function M.new( master_loot_candidates, loot_award_callback, loot_list, roll_con
   end
 
   local function on_loot_received( player_name, item_id, item_link )
-    M.debug.add( string.format( "on_loot_received(%s, %s, %s)", player_name or "nil", item_id or "nil", item_link or "nil" ) )
+    M.debug.add( string.format( "on_loot_received( %s, %s, %s )", player_name or "nil", item_id or "nil", item_link or "nil" ) )
     local is_looting = loot_list.is_looting()
     if m_confirmed and is_looting then return end
     if not m_confirmed then return end
