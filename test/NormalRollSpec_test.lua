@@ -1228,7 +1228,6 @@ function NormalTieRollSpec:should_display_tie_rolls()
       :chat( chat )
       :build()
   u.mock( "GiveMasterLoot", function( slot ) loot_facade.notify( "LootSlotCleared", slot ) end )
-  rf.enable_debug( "RollController" )
 
   -- Then
   rf.loot_frame.should_be_hidden()

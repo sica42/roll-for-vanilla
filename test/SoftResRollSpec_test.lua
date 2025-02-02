@@ -460,7 +460,6 @@ function SoftResTieRollSpec:should_display_tie_rolls()
       :soft_res_data( sr( p1.name, 69 ), sr( p2.name, 69 ) )
       :build()
   u.mock( "GiveMasterLoot", function( slot ) loot_facade.notify( "LootSlotCleared", slot ) end )
-  rf.enable_debug( "RollController" )
 
   -- Then
   rf.loot_frame.should_be_hidden()

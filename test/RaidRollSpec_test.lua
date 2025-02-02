@@ -185,4 +185,120 @@ function SingleWinnerRaidRollSpec:should_raid_roll_if_no_one_rolled()
   )
 end
 
+function SingleWinnerRaidRollSpec:should_auto_raid_roll_if_no_one_rolled_and_reproduce_a_bug()
+  -- Given
+  local loot_facade, chat = mock_loot_facade(), mock_chat()
+  local item, item2, p1, p2 = i( "Hearthstone", 123 ), i( "Bag", 69 ), p( "Psikutas" ), p( "Obszczymucha" )
+  local rf = new_roll_for()
+      :loot_facade( loot_facade )
+      :raid_roster( p1, p2 )
+      :chat( chat )
+      :config( { auto_raid_roll = true } )
+      :build()
+  rf.enable_debug( "RollController", "LootController" )
+
+  -- Then
+  rf.loot_frame.should_be_hidden()
+
+  -- When
+  loot_facade.notify( "LootOpened", item, item2 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Bag" ),
+    enabled_item( 2, "Hearthstone" )
+  )
+  chat.raid( "Princess Kenny dropped 2 items:" )
+  chat.raid( "1. [Bag]" )
+  chat.raid( "2. [Hearthstone]" )
+  rf.rolling_popup.should_be_hidden()
+
+  -- When
+  rf.loot_frame.click( 1 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    selected_item( 1, "Bag" ),
+    disabled_item( 2, "Hearthstone" )
+  )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    buttons( "Roll", "RaidRoll", "AwardOther", "Close" )
+  )
+
+  -- When
+  rf.rolling_popup.click( "Roll" )
+
+  -- Then
+  chat.raid_warning( "Roll for [Bag]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    text( "Rolling ends in 8 seconds.", 11 ),
+    buttons( "FinishEarly", "Cancel" )
+  )
+
+  -- When
+  rf.ace_timer.repeating_tick( 7 )
+
+  -- Then
+  chat.raid( "Stopping rolls in 3" )
+  chat.raid( "2" )
+  chat.raid( "1" )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    text( "Rolling ends in 1 second.", 11 ),
+    buttons( "FinishEarly", "Cancel" )
+  )
+
+  -- When
+  loot_facade.notify( "LootClosed" )
+
+  -- Then
+  rf.loot_frame.should_be_hidden()
+
+  -- When
+  rf.ace_timer.repeating_tick()
+
+  -- Then
+  chat.console( "RollFor: No one rolled for [Bag]." )
+  chat.raid( "No one rolled for [Bag]." )
+  chat.raid( "Raid rolling [Bag]..." )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    text( "Raid rolling...", 11 ),
+    empty_line( 5 )
+  )
+
+  -- When
+  rf.ace_timer.repeating_tick( 1 )
+
+  -- Then
+  chat.raid( "[1]:Obszczymucha, [2]:Psikutas" )
+
+  -- When
+  rf.roll( p1, 1, 1, 2 ) -- Not great, but I gotta get things moving, cuz Netherwing 3.0.
+
+  -- Then
+  chat.raid( "Obszczymucha wins [Bag] (raid-roll)." )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    text( "Obszczymucha wins the raid-roll.", 11 ),
+    buttons( "RaidRollAgain", "Close" )
+  )
+
+  -- When
+  loot_facade.notify( "LootOpened", item, item2 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    selected_item( 1, "Bag" ),
+    disabled_item( 2, "Hearthstone" )
+  )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    text( "Obszczymucha wins the raid-roll.", 11 ),
+    buttons( "RaidRollAgain", "Close" )
+  )
+end
+
 os.exit( lu.LuaUnit.run() )
