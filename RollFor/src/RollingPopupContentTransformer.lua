@@ -17,6 +17,24 @@ local article = m.article
 
 local M = m.Module.new( "RollingPopupContentTransformer" )
 
+---@param label string
+---@param width number
+local function button_definition( label, width )
+  return { type = "button", label = label, width = width }
+end
+
+M.button_definitions = {
+  [ "Roll" ] = button_definition( "Roll", 70 ),
+  [ "RaidRoll" ] = button_definition( "Raid roll", 90 ),
+  [ "InstaRaidRoll" ] = button_definition( "Raid roll", 90 ),
+  [ "Close" ] = button_definition( "Close", 70 ),
+  [ "AwardOther" ] = button_definition( "Award...", 90 ),
+  [ "AwardWinner" ] = button_definition( "Award", 80 ),
+  [ "FinishEarly" ] = button_definition( "Finish early", 100 ),
+  [ "Cancel" ] = button_definition( "Cancel", 90 ),
+  [ "RaidRollAgain" ] = button_definition( "Raid roll again", 130 )
+}
+
 local top_padding = 11
 
 ---@alias RollingPopupButtonType
@@ -149,35 +167,17 @@ function M.new( config )
   ---@param content table
   ---@param buttons RollingPopupButtonWithCallback[]
   local function add_buttons( content, buttons )
-    local function get_props( type )
-      if type == "Roll" then
-        return "Roll", 70
-      elseif type == "AwardWinner" then
-        return "Award", 80
-      elseif type == "AwardOther" then
-        return "Award...", 90
-      elseif type == "RaidRoll" then
-        return "Raid roll", 90
-      elseif type == "InstaRaidRoll" then
-        return "Raid roll", 90
-      elseif type == "RaidRollAgain" then
-        return "Raid roll again", 130
-      elseif type == "Close" then
-        return "Close", 70
-      elseif type == "FinishEarly" then
-        return "Finish early", 100
-      elseif type == "Cancel" then
-        return "Cancel", 90
-      else
-        error( string.format( "Unsupported type: %s", type or "nil" ) )
-      end
-    end
-
     for _, button in ipairs( buttons ) do
-      local label, width = get_props( button.type )
+      local definition = M.button_definitions[ button.type ]
+      if not definition then error( string.format( "Unsupported button type: %s", button.type or "nil" ) ) end
 
       if not button.should_display_callback or button.should_display_callback() then
-        table.insert( content, { type = "button", label = label, width = width, on_click = button.callback } )
+        table.insert( content, {
+          type = definition.type,
+          label = definition.label,
+          width = definition.width,
+          on_click = button.callback
+        } )
       end
     end
   end

@@ -1,5 +1,8 @@
 local M = {}
 
+local transformer = require( "src/RollingPopupContentTransformer" )
+local button_definitions = transformer.button_definitions
+
 local T = require( "src/Types" )
 local RT = T.RollType
 
@@ -71,22 +74,14 @@ function M.selected_item( index, name, comment, comment_tooltip )
   return { index = index, is_enabled = true, is_selected = true, name = name, comment = comment, comment_tooltip = comment_tooltip }
 end
 
-local button_definitions = {
-  [ "Roll" ] = { type = "button", label = "Roll", width = 70 },
-  [ "RaidRoll" ] = { type = "button", label = "Raid roll", width = 90 },
-  [ "InstaRaidRoll" ] = { type = "button", label = "Raid roll", width = 90 },
-  [ "Close" ] = { type = "button", label = "Close", width = 70 },
-  [ "AwardOther" ] = { type = "button", label = "Award...", width = 90 },
-  [ "AwardWinner" ] = { type = "button", label = "Award", width = 80 },
-  [ "FinishEarly" ] = { type = "button", label = "Finish early", width = 100 },
-  [ "Cancel" ] = { type = "button", label = "Cancel", width = 90 },
-}
-
 ---@param ... RollingPopupButtonType
 function M.buttons( ... )
   local result = {}
 
   for _, button_type in ipairs( { ... } ) do
+    local button = button_definitions[ button_type ]
+    if not button then error( string.format( "%s button definition was not found.", button_type ), 2 ) end
+
     table.insert( result, button_definitions[ button_type ] )
   end
 

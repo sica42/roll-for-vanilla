@@ -8,7 +8,6 @@ local i, p = builder.i, builder.p
 local gui = require( "test/gui_helpers" )
 local item_link, text, buttons, empty_line = gui.item_link, gui.text, gui.buttons, gui.empty_line
 local enabled_item, disabled_item, selected_item = gui.enabled_item, gui.disabled_item, gui.selected_item
--- local individual_award_button = gui.individual_award_button
 
 SingleWinnerRaidRollSpec = {}
 

@@ -10,7 +10,6 @@ local M = {}
 local info = m.pretty_print
 local hl = m.colors.highlight
 local RollSlashCommand = m.Types.RollSlashCommand
--- local RS = m.Types.RollingStrategy
 
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
@@ -67,35 +66,6 @@ local function trade_complete_callback( recipient, items_given, items_received )
     end
   end
 end
-
--- ---@param item DroppedItem
--- ---@param strategy RollingStrategyType
--- local function select_player( item, strategy )
---   local anchor = M.rolling_popup.get_frame()
---   M.master_loot.show_loot_candidates_frame( item, strategy )
---   local player_list = M.master_loot_frame.get_frame()
---
---   player_list:ClearAllPoints()
---   player_list:SetPoint( "TOP", anchor, "BOTTOM", 0, -5 )
--- end
-
--- ---@param item Item
--- ---@param item_count number
--- local function raid_roll_item( item, item_count )
---   M.roll_controller.start( RS.RaidRoll, item, item_count )
--- end
---
--- ---@param item Item
--- ---@param item_count number
--- local function insta_raid_roll_item( item, item_count )
---   M.roll_controller.start( RS.InstaRaidRoll, item, item_count )
--- end
---
--- ---@param item Item
--- ---@param item_count number
--- local function roll_item( item, item_count )
---   M.roll_controller.start( RS.SoftResRoll, item, item_count, M.config.default_rolling_time_seconds() )
--- end
 
 local function create_components()
   ---@type AceTimer

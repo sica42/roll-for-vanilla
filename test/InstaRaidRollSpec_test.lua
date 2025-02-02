@@ -139,7 +139,7 @@ function SingleWinnerInstaRaidRollSpec:should_display_insta_raid_roll_button_tha
     individual_award_button,
     text( "Psikutas wins the raid-roll.", 8 ),
     individual_award_button,
-    buttons( "AwardOther", "Close" )
+    buttons( "RaidRollAgain", "AwardOther", "Close" )
   )
   rf.confirmation_popup.should_be_hidden()
 
@@ -163,7 +163,7 @@ function SingleWinnerInstaRaidRollSpec:should_display_insta_raid_roll_button_tha
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Psikutas wins the raid-roll.", 11 ),
-    buttons( "AwardWinner", "AwardOther", "Close" )
+    buttons( "AwardWinner", "RaidRollAgain", "AwardOther", "Close" )
   )
 
   -- When
@@ -832,7 +832,7 @@ function SingleWinnerInstaRaidRollSpec:should_work_if_loot_is_closed_while_award
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
     text( "Obszczymucha wins the raid-roll.", 11 ),
-    buttons( "Close" )
+    buttons( "RaidRollAgain", "Close" )
   )
 
   -- When
@@ -842,8 +842,91 @@ function SingleWinnerInstaRaidRollSpec:should_work_if_loot_is_closed_while_award
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
     text( "Obszczymucha wins the raid-roll.", 11 ),
-    buttons( "AwardWinner", "AwardOther", "Close" ) -- TODO: In game this didn't show the buttons ffs... Why?
+    buttons( "AwardWinner", "RaidRollAgain", "AwardOther", "Close" ) -- TODO: In game this didn't show the buttons ffs... Why?
   )
+end
+
+function SingleWinnerInstaRaidRollSpec:should_display_raid_roll_again_button_that_works()
+  -- Given
+  local loot_facade, chat = mock_loot_facade(), mock_chat()
+  local item, item2, p1, p2 = i( "Hearthstone", 123 ), i( "Bag", 69 ), p( "Psikutas" ), p( "Obszczymucha" )
+  local rf = new_roll_for()
+      :loot_facade( loot_facade )
+      :raid_roster( p1, p2 )
+      :chat( chat )
+      :build()
+  mock_random( { { 1, 2, 1 }, { 1, 2, 2 } } )
+  u.mock( "GiveMasterLoot", function( slot ) loot_facade.notify( "LootSlotCleared", slot ) end )
+
+  -- Then
+  rf.loot_frame.should_be_hidden()
+
+  -- When
+  loot_facade.notify( "LootOpened", item, item2 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Bag" ),
+    enabled_item( 2, "Hearthstone" )
+  )
+  chat.raid( "Princess Kenny dropped 2 items:" )
+  chat.raid( "1. [Bag]" )
+  chat.raid( "2. [Hearthstone]" )
+  rf.rolling_popup.should_be_hidden()
+
+  -- When
+  rf.loot_frame.click( 1 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    selected_item( 1, "Bag" ),
+    disabled_item( 2, "Hearthstone" )
+  )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    buttons( "Roll", "InstaRaidRoll", "AwardOther", "Close" )
+  )
+
+  -- When
+  rf.rolling_popup.click( "InstaRaidRoll" )
+
+  -- Then
+  chat.raid( "Obszczymucha wins [Bag] (raid-roll)." )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    text( "Obszczymucha wins the raid-roll.", 11 ),
+    buttons( "AwardWinner", "RaidRollAgain", "AwardOther", "Close" )
+  )
+  rf.confirmation_popup.should_be_hidden()
+
+  -- When
+  rf.rolling_popup.click( "RaidRollAgain" )
+
+  -- Then
+  chat.raid( "Psikutas wins [Bag] (raid-roll)." )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    text( "Psikutas wins the raid-roll.", 11 ),
+    buttons( "AwardWinner", "RaidRollAgain", "AwardOther", "Close" )
+  )
+
+  rf.confirmation_popup.should_be_hidden()
+  -- When
+  rf.rolling_popup.click( "AwardWinner" )
+
+  -- Then
+  rf.rolling_popup.should_be_hidden()
+  rf.confirmation_popup.should_be_visible()
+
+  -- When
+  rf.confirmation_popup.confirm()
+
+  -- Then
+  rf.confirmation_popup.should_be_hidden()
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Hearthstone" )
+  )
+  chat.console( "RollFor: Psikutas received [Bag]." )
 end
 
 os.exit( lu.LuaUnit.run() )

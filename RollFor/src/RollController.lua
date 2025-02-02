@@ -669,9 +669,21 @@ function M.new(
     notify_subscribers( "winners_found", { item = item, item_count = item_count, winners = winners, rolling_strategy = strategy } )
   end
 
+
+  ---@param buttons RollingPopupButtonWithCallback[]
+  ---@param item Item
+  ---@param item_count number
+  ---@param strategy_type RollingStrategyType
+  local function add_raid_roll_again_button( buttons, item, item_count, strategy_type ) ---@diagnostic disable-line: unused-local -- TODO: leaving for now. Maybe we'll need it.
+    table.insert( buttons, button( "RaidRollAgain", function()
+      start( strategy_type, item, item_count )
+    end ) )
+  end
+
   ---@param data RollTrackerData
   ---@param candidates ItemCandidate[]
-  local function raid_roll_winners( data, candidates )
+  ---@param strategy_type RollingStrategyType
+  local function raid_roll_winners( data, candidates, strategy_type )
     local item = data.item
     local buttons = {} ---@type RollingPopupButtonWithCallback[]
     local dropped_item = loot_list.get_by_id( item.id )
@@ -685,7 +697,7 @@ function M.new(
 
         local candidate = ml_candidates.find( player.name )
         local award_callback = candidate and dropped_item and function()
-          show_master_loot_confirmation( candidate, dropped_item, RS.InstaRaidRoll )
+          show_master_loot_confirmation( candidate, dropped_item, strategy_type )
         end
 
         ---@type WinnerWithAwardCallback
@@ -697,6 +709,8 @@ function M.new(
       table.insert( buttons, button( "AwardWinner", winners[ 1 ].award_callback, should_display_callback ) )
       winners[ 1 ].award_callback = nil
     end
+
+    add_raid_roll_again_button( buttons, item, data.item_count, strategy_type )
 
     if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates ) end
 
@@ -786,7 +800,7 @@ function M.new(
     rolling_popup.ping()
 
     if strategy_type == "InstaRaidRoll" or strategy_type == "RaidRoll" then
-      raid_roll_winners( data, candidates )
+      raid_roll_winners( data, candidates, strategy_type )
       return
     end
 
@@ -936,7 +950,7 @@ function M.new(
 
     if strategy_type == "InstaRaidRoll" or strategy_type == "RaidRoll" then
       local candidates = ml_candidates.get()
-      raid_roll_winners( data, candidates )
+      raid_roll_winners( data, candidates, strategy_type )
     elseif strategy_type == "NormalRoll" or strategy_type == "SoftResRoll" then
       local candidates = ml_candidates.get()
       normal_roll_winners( data, current_iteration, candidates )
