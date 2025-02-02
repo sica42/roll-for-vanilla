@@ -30,7 +30,14 @@ function M.new()
   ---@param times number?
   local function repeating_tick( times )
     if not m_repeating_tick_fn then return end
-    for _ = 1, times or 1 do m_repeating_tick_fn() end
+
+    for i = 1, times or 1 do
+      if not m_repeating_tick_fn then
+        error( string.format( "The timer was canceled after %s tick%s.", i - 1, i == 2 and "" or "s" ), 2 )
+      end
+
+      m_repeating_tick_fn()
+    end
   end
 
   ---@type AceTimerMock

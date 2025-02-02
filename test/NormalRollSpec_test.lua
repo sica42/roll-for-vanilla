@@ -1509,6 +1509,7 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
     text( "Cosmicshadow wins the main-spec roll with a 24.", 11 ),
     buttons( "RaidRoll", "Close" )
   )
+  rf.enable_debug( "RollingPopup" )
 
   -- When
   loot_facade.notify( "LootOpened", item )
@@ -1521,7 +1522,7 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
     item_link( item, 1 ),
     mainspec_roll( p1, 24, 11 ),
     text( "Cosmicshadow wins the main-spec roll with a 24.", 11 ),
-    buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" ) -- TODO: fuck this this broke in game... Why?
+    buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
 end
 

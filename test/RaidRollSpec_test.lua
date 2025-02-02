@@ -195,7 +195,7 @@ function SingleWinnerRaidRollSpec:should_auto_raid_roll_if_no_one_rolled_and_rep
       :chat( chat )
       :config( { auto_raid_roll = true } )
       :build()
-  rf.enable_debug( "RollController", "LootController" )
+  rf.enable_debug( "RollController", "LootController", "RollingPopup" )
 
   -- Then
   rf.loot_frame.should_be_hidden()
@@ -257,7 +257,7 @@ function SingleWinnerRaidRollSpec:should_auto_raid_roll_if_no_one_rolled_and_rep
   rf.loot_frame.should_be_hidden()
 
   -- When
-  rf.ace_timer.repeating_tick()
+  rf.ace_timer.repeating_tick( 1 )
 
   -- Then
   chat.console( "RollFor: No one rolled for [Bag]." )
@@ -297,7 +297,7 @@ function SingleWinnerRaidRollSpec:should_auto_raid_roll_if_no_one_rolled_and_rep
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Obszczymucha wins the raid-roll.", 11 ),
-    buttons( "RaidRollAgain", "Close" )
+    buttons( "AwardWinner", "RaidRollAgain", "AwardOther", "Close" )
   )
 end
 

@@ -49,7 +49,7 @@ local top_padding = 11
 ---| "Cancel"
 
 ---@class RollingPopupContentTransformer
----@field transform fun( data: RollingPopupPreviewData ): table
+---@field transform fun( data: RollingPopupData ): table
 
 ---@param config Config
 ---@diagnostic disable-next-line: unused-local

@@ -188,7 +188,7 @@ function M.new_roll_for()
     local loot_list = require( "src/SoftResLootListDecorator" ).new( raw_loot_list, softres )
     deps[ "SoftResLootList" ] = loot_list
 
-    local ml_candidates_api = deps[ "MasterLootCandidatesApi" ] or require( "mocks/MasterLootCandidatesApi" ).new( group_roster )
+    local ml_candidates_api = deps[ "MasterLootCandidatesApi" ] or require( "mocks/MasterLootCandidatesApi" ).new( group_roster, raw_loot_list )
     local ml_candidates = require( "src/MasterLootCandidates" ).new( ml_candidates_api, group_roster )
     deps[ "MasterLootCandidates" ] = ml_candidates
 

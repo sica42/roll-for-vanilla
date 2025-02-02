@@ -69,7 +69,6 @@ function M.new( chat, players, item, item_count, on_rolling_finished, roll_type,
 
     if roll_count == 0 then
       controller.finish()
-      -- on_rolling_finished( item, item_count, {}, true )
       return
     end
 

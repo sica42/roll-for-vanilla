@@ -25,7 +25,7 @@ local button_defaults = {
 ---@field get_frame fun(): table
 ---@field ping fun()
 
-local M = {}
+local M = m.Module.new( "RollingPopup" )
 
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
@@ -171,7 +171,11 @@ function M.new( popup_builder, content_transformer, db, config )
     end
   end
 
+  ---@param data RollingPopupData
   local function refresh( _, data )
+    M.debug.add( string.format( "refresh( type: %s )", data.type or "nil" ) )
+    M.debug.add( string.format( "buttons: %s", data.buttons and m.prettify_table( data.buttons, function(b) return b.type end ) or "nil" ) )
+
     if not popup then popup = create_popup() end
     popup:clear()
 
@@ -262,6 +266,8 @@ function M.new( popup_builder, content_transformer, db, config )
   end
 
   local function show()
+    M.debug.add( "show" )
+
     if not popup then
       popup = create_popup()
     else
@@ -272,6 +278,8 @@ function M.new( popup_builder, content_transformer, db, config )
   end
 
   local function hide()
+    M.debug.add( "hide" )
+
     if popup then
       on_hide = nil
       popup:Hide()

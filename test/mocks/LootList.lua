@@ -2,6 +2,7 @@ local M = {}
 
 ---@param loot_facade LootFacade
 function M.new( loot_facade )
+  local looting = false
   local m_items = {}
 
   ---@param items MasterLootDistributableItem[]
@@ -14,8 +15,6 @@ function M.new( loot_facade )
       m_items[ slot ] = item
     end
   end
-
-  local looting = false
 
   local function get_items()
     local result = {}
@@ -33,6 +32,8 @@ function M.new( loot_facade )
 
   ---@param item_id number
   local function get_slot( item_id )
+    if not looting then return end
+
     for slot, item in pairs( m_items or {} ) do
       if item.id == item_id then
         return slot

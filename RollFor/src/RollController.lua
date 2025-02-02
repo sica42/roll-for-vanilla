@@ -787,11 +787,8 @@ function M.new(
     rolling_popup:refresh( rolling_popup_data[ item.id ] )
   end
 
-  local function finish()
-    local candidates = ml_candidates.get()
-    roll_tracker.finish( candidates )
-    notify_subscribers( "finish" )
-
+  ---@param candidates ItemCandidate[]
+  local function refresh_finish_popup_content( candidates )
     local data, current_iteration = roll_tracker.get()
 
     if not current_iteration then return end
@@ -812,6 +809,14 @@ function M.new(
     if strategy_type == "TieRoll" then
       tie_content()
     end
+  end
+
+  local function finish()
+    local candidates = ml_candidates.get()
+    roll_tracker.finish( candidates )
+    notify_subscribers( "finish" )
+
+    refresh_finish_popup_content( candidates )
   end
 
   ---@param strategy_type RollingStrategyType
@@ -972,6 +977,14 @@ function M.new(
   local function popup_refresh()
     if rolling_popup_item and rolling_popup_data[ rolling_popup_item.id ] then
       M.debug.add( "popup_refresh" )
+
+      local data = roll_tracker.get()
+
+      if data.status.type == "Finished" then
+        refresh_finish_popup_content( ml_candidates.get() )
+        return
+      end
+
       rolling_popup.show()
       rolling_popup:refresh( rolling_popup_data[ rolling_popup_item.id ] )
     end
