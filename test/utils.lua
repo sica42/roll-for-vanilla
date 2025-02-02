@@ -956,9 +956,9 @@ function M.hard_res_item( item_id, quality )
   return { soft_res = false, item_id = item_id, quality = quality or 4 }
 end
 
-function M.award( player, item_name, item_id )
+function M.award( player_name, item_name, item_id )
   local rf = M.load_roll_for()
-  rf.loot_award_callback.on_loot_awarded( player, item_id, M.item_link( item_name, item_id ) )
+  rf.loot_award_callback.on_loot_awarded( item_id, M.item_link( item_name, item_id ), player_name )
 end
 
 function M.load_libstub()

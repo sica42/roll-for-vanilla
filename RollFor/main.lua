@@ -42,7 +42,7 @@ local function on_softres_status_changed()
   update_minimap_icon()
 end
 
-local function trade_complete_callback( recipient, items_given, items_received )
+local function trade_complete_callback( recipient_name, items_given, items_received )
   for i = 1, getn( items_given ) do
     local item = items_given[ i ]
     if item then
@@ -50,18 +50,19 @@ local function trade_complete_callback( recipient, items_given, items_received )
       local item_name = item_id and M.dropped_loot.get_dropped_item_name( item_id )
 
       if item_id and item_name then
-        M.loot_award_callback.on_loot_awarded( recipient, item_id, item.link )
+        M.loot_award_callback.on_loot_awarded( item_id, item.link, recipient_name )
       end
     end
   end
 
   for i = 1, getn( items_received ) do
     local item = items_received[ i ]
+
     if item then
       local item_id = M.item_utils.get_item_id( item.link )
 
-      if item_id and M.awarded_loot.has_item_been_awarded( recipient, item_id ) then
-        M.unaward_item( recipient, item_id, item.link )
+      if item_id and M.awarded_loot.has_item_been_awarded( recipient_name, item_id ) then
+        M.unaward_item( recipient_name, item_id, item.link )
       end
     end
   end
@@ -235,7 +236,7 @@ local function create_components()
   )
 
   ---@type LootAwardCallback
-  M.loot_award_callback = m.LootAwardCallback.new( M.awarded_loot, M.roll_controller, M.winner_tracker )
+  M.loot_award_callback = m.LootAwardCallback.new( M.awarded_loot, M.roll_controller, M.winner_tracker, M.group_roster )
 
   ---@type MasterLoot
   M.master_loot = m.MasterLoot.new(

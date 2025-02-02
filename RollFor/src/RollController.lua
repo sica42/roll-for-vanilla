@@ -34,7 +34,7 @@ local getn = table.getn
 ---@field tie_start fun()
 ---@field waiting_for_rolls fun()
 ---@field award_aborted fun( item: Item )
----@field loot_awarded fun( player_name: string, item_id: number, item_link: string )
+---@field loot_awarded fun( item_id: number, item_link: string, player_name: string, player_class: PlayerClass? )
 ---@field loot_closed fun()
 ---@field loot_opened fun()
 ---@field player_already_has_unique_item fun()
@@ -905,14 +905,16 @@ function M.new(
   ---@field confirm_fn fun()
 
   ---@class LootAwardedData
-  ---@field player_name string
   ---@field item_id number
   ---@field item_link string
+  ---@field player_name string
+  ---@field player_class string?
 
-  ---@param player_name string
   ---@param item_id number
   ---@param item_link string
-  local function loot_awarded( player_name, item_id, item_link )
+  ---@param player_name string
+  ---@param player_class PlayerClass?
+  local function loot_awarded( item_id, item_link, player_name, player_class )
     roll_tracker.loot_awarded( player_name, item_id )
 
     if ml_confirmation_data then
@@ -920,7 +922,15 @@ function M.new(
       loot_award_popup.hide()
     end
 
-    notify_subscribers( "loot_awarded", { player_name = player_name, item_id = item_id, item_link = item_link } )
+    ---@type LootAwardedData
+    local event_data = {
+      player_name = player_name,
+      player_class = player_class,
+      item_id = item_id,
+      item_link = item_link
+    }
+
+    notify_subscribers( "loot_awarded", event_data )
 
     local data, current_iteration = roll_tracker.get()
 

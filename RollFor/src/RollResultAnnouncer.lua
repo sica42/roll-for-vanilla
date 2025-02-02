@@ -8,6 +8,7 @@ local M = {}
 local RT = m.Types.RollType
 local RS = m.Types.RollingStrategy
 local hl = m.colors.hl
+local grey = m.colors.grey
 local getn = table.getn
 
 ---@param chat Chat
@@ -189,7 +190,8 @@ function M.new( chat, roll_controller, roll_tracker, config )
 
   ---@param data LootAwardedData
   local function on_loot_awarded( data )
-    chat.info( string.format( "%s received %s.", hl( data.player_name ), data.item_link ) )
+    local player_name = data.player_class and m.colorize_player_by_class( data.player_name, data.player_class ) or grey( data.player_name )
+    chat.info( string.format( "%s received %s.", player_name, data.item_link ) )
   end
 
   roll_controller.subscribe( "finish", on_finish )

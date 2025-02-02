@@ -183,7 +183,7 @@ function M.new_roll_for()
         group_aware_softres( group_roster, awarded_loot )
     deps[ "SoftRes" ] = softres
 
-    local raw_loot_list = deps[ "LootList" ] and deps[ "LootList" ].new( loot_facade ) or require( "mocks/LootList" ).new( loot_facade )
+    local raw_loot_list = require( "mocks/LootList" ).new( loot_facade )
     deps[ "LootList" ] = raw_loot_list
     local loot_list = require( "src/SoftResLootListDecorator" ).new( raw_loot_list, softres )
     deps[ "SoftResLootList" ] = loot_list
@@ -234,7 +234,7 @@ function M.new_roll_for()
     )
     deps[ "LootController" ] = loot_controller
 
-    local loot_award_callback = require( "src/LootAwardCallback" ).new( awarded_loot, roll_controller, winner_tracker )
+    local loot_award_callback = require( "src/LootAwardCallback" ).new( awarded_loot, roll_controller, winner_tracker, group_roster )
     local master_loot = require( "src/MasterLoot" ).new( ml_candidates, loot_award_callback, loot_list, roll_controller )
     deps[ "MasterLoot" ] = master_loot
 

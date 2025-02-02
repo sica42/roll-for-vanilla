@@ -6,19 +6,29 @@ if m.LootAwardCallback then return end
 local M = m.Module.new( "LootAwardCallback" )
 
 ---@class LootAwardCallback
----@field on_loot_awarded fun( player_name: string, item_id: number, item_link: string )
+---@field on_loot_awarded fun( item_id: number, item_link: string, player_name: string, player_class: string? )
 
 ---@param awarded_loot AwardedLoot
 ---@param roll_controller RollController
 ---@param winner_tracker WinnerTracker
-function M.new( awarded_loot, roll_controller, winner_tracker )
-  ---@param player_name string
+---@param group_roster GroupRoster
+function M.new( awarded_loot, roll_controller, winner_tracker, group_roster )
   ---@param item_id number
   ---@param item_link string
-  local function on_loot_awarded( player_name, item_id, item_link )
-    M.debug.add( string.format( "on_loot_awarded(%s, %s, %s)", player_name, item_id, item_link ) )
+  ---@param player_name string
+  ---@param player_class PlayerClass?
+  local function on_loot_awarded( item_id, item_link, player_name, player_class )
+    M.debug.add( string.format( "on_loot_awarded( %s, %s, %s, %s )", item_id, item_link, player_name, player_class or "nil" ) )
     awarded_loot.award( player_name, item_id )
-    roll_controller.loot_awarded( player_name, item_id, item_link )
+
+    if player_class then
+      roll_controller.loot_awarded( item_id, item_link, player_name, player_class )
+    else
+      local player = group_roster.find_player( player_name )
+      local class = player and player.class or nil
+      roll_controller.loot_awarded( item_id, item_link, player_name, class )
+    end
+
     winner_tracker.untrack( player_name, item_link )
   end
 
