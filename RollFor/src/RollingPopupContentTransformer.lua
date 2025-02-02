@@ -24,15 +24,15 @@ local function button_definition( label, width )
 end
 
 M.button_definitions = {
-  [ "Roll" ] = button_definition( "Roll", 70 ),
-  [ "RaidRoll" ] = button_definition( "Raid roll", 90 ),
-  [ "InstaRaidRoll" ] = button_definition( "Raid roll", 90 ),
+  [ "AwardOther" ] = button_definition( "...", 40 ),
+  [ "AwardWinner" ] = button_definition( "Award", 75 ),
+  [ "Cancel" ] = button_definition( "Cancel", 80 ),
   [ "Close" ] = button_definition( "Close", 70 ),
-  [ "AwardOther" ] = button_definition( "Award...", 90 ),
-  [ "AwardWinner" ] = button_definition( "Award", 80 ),
-  [ "FinishEarly" ] = button_definition( "Finish early", 100 ),
-  [ "Cancel" ] = button_definition( "Cancel", 90 ),
-  [ "RaidRollAgain" ] = button_definition( "Raid roll again", 130 )
+  [ "FinishEarly" ] = button_definition( "Finish early", 110 ),
+  [ "InstaRaidRoll" ] = button_definition( "Raid roll", 90 ),
+  [ "RaidRoll" ] = button_definition( "Raid roll", 90 ),
+  [ "RaidRollAgain" ] = button_definition( "Raid roll again", 130 ),
+  [ "Roll" ] = button_definition( "Roll", 60 )
 }
 
 local top_padding = 11
