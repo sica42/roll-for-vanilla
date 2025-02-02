@@ -221,7 +221,7 @@ function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller
       table.insert( result, {
         index = index,
         texture = item.texture,
-        name = is_coin and item.amount_text or item.name,
+        name = is_coin and m.one_line_coin_name( item.amount_text ) or item.name,
         quality = item.quality or 0,
         quantity = item.quantity,
         click_fn = function()

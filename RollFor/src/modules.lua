@@ -710,4 +710,9 @@ function M.interpolate_color( current_second )
   end
 end
 
+---@param coin_name string?
+function M.one_line_coin_name( coin_name )
+  return string.gsub( coin_name or "", "\n", ", " )
+end
+
 return M

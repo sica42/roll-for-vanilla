@@ -452,22 +452,13 @@ function M.dropped_item( parent, text )
     container.index.text:SetText( v.index )
     container.icon.texture:SetTexture( v.texture )
     container.text:SetText( m.colorize_item_by_quality( v.name, v.quality ) )
-    -- local is_coin = v.type == LT.Coin
-    -- container.text:SetText( m.colorize_item_by_quality( is_coin and v.amount_text or v.name, is_coin and 0 or v.quality ) )
 
     if v.comment then
       container.comment.text:SetText( v.comment )
-      -- container.comment.text:SetText( m.colors.red( "HR" ) )
       container.comment:Show()
       container.text:ClearAllPoints()
       container.text:SetPoint( "LEFT", container.icon, "RIGHT", spacing, 0 )
       container.text:SetPoint( "RIGHT", container.comment, "LEFT", 0, 0 )
-      -- elseif v.sr_players and getn( v.sr_players ) > 0 then
-      --   container.comment.text:SetText( m.colors.orange( "SR" ) )
-      --   container.comment:Show()
-      --   container.text:ClearAllPoints()
-      --   container.text:SetPoint( "LEFT", container.icon, "RIGHT", spacing, 0 )
-      --   container.text:SetPoint( "RIGHT", container.comment, "LEFT", 0, 0 )
     else
       container.comment:Hide()
       container.text:ClearAllPoints()

@@ -91,4 +91,13 @@ function Base64Spec:should_decode_and_encode()
   eq( decoded, "Princess Kenny" )
 end
 
+CoinSpec = {}
+
+function CoinSpec:should_one_line_coin_name()
+  eq( mod.one_line_coin_name( nil ), "" )
+  eq( mod.one_line_coin_name( "5 gold\n37 silver\n69 copper" ), "5 gold, 37 silver, 69 copper" )
+  eq( mod.one_line_coin_name( "37 silver\n69 copper" ), "37 silver, 69 copper" )
+  eq( mod.one_line_coin_name( "69 copper" ), "69 copper" )
+end
+
 os.exit( lu.LuaUnit.run() )
