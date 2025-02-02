@@ -8,8 +8,19 @@ function main() {
 
   git tag "$1" -f
   git push origin "$1" -f
-  git tag latest -f
-  git push origin latest -f
+
+  local git_branch
+  git_branch=$(git rev-parse --abbrev-ref HEAD)
+
+  if [[ "$git_branch" == "master" ]]; then
+    echo "Pushing latest tag..." >&2
+    git tag latest -f
+    git push origin latest -f
+  elif [[ "$git_branch" == "v4" ]]; then
+    echo "Pushing beta tag..." >&2
+    git tag beta -f
+    git push origin beta -f
+  fi
 
   local release_dir="$HOME/Dropbox"
   local latest_file="${release_dir}/RollFor.zip"
@@ -23,4 +34,3 @@ function main() {
 }
 
 main "$@"
-
