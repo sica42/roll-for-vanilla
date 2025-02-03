@@ -106,7 +106,6 @@ function M.new( popup_builder, db, center_point )
         table.insert( content,
           { type = "text", value = string.format( "%s wins the %s roll with %s %s.", player, roll_type, article( winner.winning_roll ), roll ), padding = padding } )
       elseif strategy_type == RS.SoftResRoll then
-        m.trace( "Chuj" )
         table.insert( content, sr_content( winner, padding ) )
       else
         table.insert( content, { type = "text", value = string.format( "%s %s win the roll.", player, red( "did not" ) ), padding = padding } )

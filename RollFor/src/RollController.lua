@@ -324,7 +324,8 @@ function M.new(
   ---@param buttons RollingPopupButtonWithCallback[]
   ---@param candidates ItemCandidate[]
   ---@param winners WinnerWithAwardCallback[]
-  local function add_award_other_button( dropped_item, buttons, candidates, winners )
+  ---@param strategy_type RollingStrategyType
+  local function add_award_other_button( dropped_item, buttons, candidates, winners, strategy_type )
     M.debug.add( "add_award_other_button" )
     if not dropped_item then return end
 
@@ -341,7 +342,7 @@ function M.new(
               is_winner = is_winner( candidate.name, winners ),
               confirm_fn = function()
                 player_selection_frame.hide()
-                show_master_loot_confirmation( candidate, dropped_item, RS.NormalRoll ) -- TODO: why is this NormalRoll here?
+                show_master_loot_confirmation( candidate, dropped_item, strategy_type )
               end
             }
           end )
@@ -383,7 +384,7 @@ function M.new(
     add_roll_button( buttons, RS.NormalRoll, item, item_count )
     add_raid_roll_button( buttons, "InstaRaidRoll", item, item_count )
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, {} ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, {}, RS.NormalRoll ) end
 
     add_close_button( buttons, S.Preview )
 
@@ -413,7 +414,7 @@ function M.new(
   local function preview_hard_ressed_item( buttons, item, item_count, dropped_item, candidate_count, candidates )
     add_roll_button( buttons, RS.SoftResRoll, item, item_count )
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, {} ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, {}, RS.SoftResRoll ) end
 
     add_close_button( buttons, S.Preview )
 
@@ -468,7 +469,7 @@ function M.new(
       winners[ 1 ].award_callback = nil
     end
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, winners ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, winners, RS.SoftResRoll ) end
 
     add_close_button( buttons, S.Preview )
 
@@ -499,7 +500,7 @@ function M.new(
   local function preview_sr_items_not_equal_to_item_count( soft_ressers, item, item_count, dropped_item, buttons, candidate_count, candidates )
     add_roll_button( buttons, RS.SoftResRoll, item, item_count )
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, {} ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, {}, RS.SoftResRoll ) end
 
     add_close_button( buttons, S.Preview )
 
@@ -565,7 +566,7 @@ function M.new(
 
     add_raid_roll_again_button( buttons, item, data.item_count, strategy_type )
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, winners ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, winners, strategy_type ) end
 
     add_close_button( buttons, S.Finish )
 
@@ -618,7 +619,7 @@ function M.new(
 
     add_raid_roll_button( buttons, "RaidRoll", item, data.item_count )
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, winners ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, winners, RS.NormalRoll ) end
 
     add_close_button( buttons, S.Finish )
 
@@ -678,7 +679,7 @@ function M.new(
       end
 
       add_raid_roll_button( buttons, "RaidRoll", item, data.item_count )
-      add_award_other_button( dropped_item, buttons, candidates, winners )
+      add_award_other_button( dropped_item, buttons, candidates, winners, first_iteration.rolling_strategy )
       add_close_button( buttons, "Finished" )
     end
 
