@@ -3,6 +3,8 @@ local m = RollFor
 
 if m.TradeTracker then return end
 
+local hl = m.colors.hl
+
 M = {}
 
 M.debug_enabled = false
@@ -39,18 +41,14 @@ function M.new( ace_timer, chat, trade_complete_callback )
   local m_trade_canceled = false
   local m_received_trade_close = false -- Server sends multiple ones. Probably server bug.
 
-  local function highlight( text )
-    return string.format( "|cffff9f69%s|r", text )
-  end
-
   local function finalize_trading()
     if M.debug_enabled then
       if m_trade_canceled then
-        chat.info( string.format( "Trading with %s was canceled.", highlight( m_recipient_name ) ) )
+        chat.info( string.format( "Trading with %s was canceled.", hl( m_recipient_name ) ) )
         return
       end
 
-      chat.info( string.format( "Trading with %s complete.", highlight( m_recipient_name ) ) )
+      chat.info( string.format( "Trading with %s complete.", hl( m_recipient_name ) ) )
 
       for _, v in pairs( m_items_giving ) do
         if v then chat.info( string.format( "Traded: %sx%s", v.quantity, v.link ) ) end
@@ -91,7 +89,7 @@ function M.new( ace_timer, chat, trade_complete_callback )
     m_recipient_name = m.api.TradeFrameRecipientNameText:GetText() or "Unknown"
 
     if M.debug_enabled then
-      chat.info( string.format( "Started trading with %s.", highlight( m_recipient_name ) ) )
+      chat.info( string.format( "Started trading with %s.", hl( m_recipient_name ) ) )
     end
 
     m_trading = true
@@ -135,7 +133,7 @@ function M.new( ace_timer, chat, trade_complete_callback )
       return
     end
 
-    chat.info( string.format( "Trading with %s was canceled.", highlight( m_recipient_name ) ) )
+    chat.info( string.format( "Trading with %s was canceled.", hl( m_recipient_name ) ) )
     m_trading = false
   end
 

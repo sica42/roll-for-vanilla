@@ -6,6 +6,7 @@ if m.TieRollingLogic then return end
 local M = {}
 local take = m.take
 local RollType = m.Types.RollType
+local hl = m.colors.hl
 
 ---@type MakeRollFn
 local make_roll = m.Types.make_roll
@@ -125,7 +126,7 @@ function M.new( chat, players, item, item_count, on_rolling_finished, roll_type,
     local player = find_player( roller.name )
 
     if not player then
-      chat.info( string.format( "|cffff9f69%s|r is not allowed to re-roll. This roll (|cffff9f69%s|r) is ignored.", roller.name, roll ) )
+      chat.info( m.msg.did_not_tie( roller.name, roller.class, item.link, roll ) )
       controller.roll_was_ignored( roller.name, nil, roll_type, roll, "Not in GroupRoster." )
       return
     end
@@ -154,7 +155,7 @@ function M.new( chat, players, item, item_count, on_rolling_finished, roll_type,
 
     for i, v in ipairs( rolls ) do
       if limit and limit > 0 and i > limit then return end
-      chat.info( string.format( "[|cffff9f69%d|r]: %s", v.roll, m.colorize_player_by_class( v.player.name, v.player.class ) ) )
+      chat.info( string.format( "[%s]: %s", hl( v.roll ), m.colorize_player_by_class( v.player.name, v.player.class ) ) )
     end
   end
 

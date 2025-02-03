@@ -93,12 +93,12 @@ function M.new( db, api, absent_unfiltered_softres, name_matcher, softres_status
     elseif target and not already_matched_name then
       manual_match_options = nil
       db.manual_matches[ softres_name ] = target
-      p( string.format( "|cffff9f69%s|r is now soft-ressing as |cffff9f69%s|r.", target, softres_name ) )
+      p( string.format( "%s is now soft-ressing as %s.", colors.hl( target ), colors.hl( softres_name ) ) )
       softres_status_changed()
     elseif not target and already_matched_name then
       manual_match_options = nil
       db.manual_matches[ softres_name ] = nil
-      p( string.format( "Unmatched |cffff2f2f%s|r.", softres_name ) )
+      p( string.format( "Unmatched %s.", colors.hl( softres_name ) ) )
       softres_status_changed()
     else
       p( string.format( "To match a player, target them first." ) )

@@ -208,7 +208,7 @@ function TieRollsSpec:should_not_allow_the_winner_to_reroll_a_tie_of_other_playe
     cr( "Ohhaimark rolled the highest (99) for [Hearthstone]." ),
     cr( "Jogobobek and Obszczymucha rolled the next highest (69) for [Hearthstone]." ),
     r( "Jogobobek and Obszczymucha /roll for [Hearthstone] now." ),
-    c( "RollFor: Ohhaimark is not allowed to re-roll. This roll (23) is ignored." )
+    c( "RollFor: Ohhaimark didn't tie roll for [Hearthstone]. This roll (23) is ignored." )
   )
 end
 

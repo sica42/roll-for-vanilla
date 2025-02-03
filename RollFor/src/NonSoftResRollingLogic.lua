@@ -10,6 +10,7 @@ local merge = m.merge
 local take = m.take
 local rlu = m.RollingLogicUtils
 local RollType = m.Types.RollType
+local hl = m.colors.hl
 
 ---@type MakeRollFn
 local make_roll = m.Types.make_roll
@@ -233,7 +234,7 @@ function M.new(
       for _, v in ipairs( sorted_rolls ) do
         if limit and limit > 0 and i > limit then return end
 
-        chat.info( string.format( "[|cffff9f69%d|r]: %s", v.roll, v.player.name ) )
+        chat.info( string.format( "[%s]: %s", hl( v.roll ), v.player.name ) )
         i = i + 1
       end
     end
