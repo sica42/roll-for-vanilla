@@ -226,16 +226,6 @@ function M.new_roll_for()
       player_selection_frame
     )
 
-    local loot_controller = require( "src/LootController" ).new(
-      player_info,
-      loot_facade,
-      loot_list,
-      loot_frame,
-      roll_controller,
-      softres
-    )
-    deps[ "LootController" ] = loot_controller
-
     local loot_award_callback = require( "src/LootAwardCallback" ).new( awarded_loot, roll_controller, winner_tracker, group_roster )
     local master_loot = require( "src/MasterLoot" ).new( ml_candidates, loot_award_callback, loot_list, roll_controller )
     deps[ "MasterLoot" ] = master_loot
@@ -263,6 +253,18 @@ function M.new_roll_for()
       config
     )
     deps[ "RollingLogic" ] = rolling_logic
+
+    local loot_controller = require( "src/LootController" ).new(
+      player_info,
+      loot_facade,
+      loot_list,
+      loot_frame,
+      roll_controller,
+      softres,
+      rolling_logic,
+      chat
+    )
+    deps[ "LootController" ] = loot_controller
 
     local rolling_popup_content = require( "src/RollingPopupContentTransformer" ).new( config )
     deps[ "RollingPopupContent" ] = rolling_popup_content

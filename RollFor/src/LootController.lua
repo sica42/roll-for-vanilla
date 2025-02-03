@@ -16,7 +16,9 @@ local M = m.Module.new( "LootController" )
 ---@param loot_frame LootFrame
 ---@param roll_controller RollController
 ---@param softres GroupAwareSoftRes
-function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller, softres )
+---@param rolling_logic RollingLogic
+---@param chat Chat
+function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller, softres, rolling_logic, chat )
   -- This will store which items were selected, because we'll lost that info when the loot is closed.
   -- Upon loot opening, we'll check it here and reselect if appropriate.
   local item_selection_cache = {}
@@ -225,6 +227,11 @@ function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller
         quality = item.quality or 0,
         quantity = item.quantity,
         click_fn = function()
+          if rolling_logic.is_rolling() then
+            chat.info( "Cannot select item while rolling is in progress.", m.colors.red )
+            return
+          end
+
           if is_coin or selected or not player_info.is_master_looter() then return end
           select_item( entries, selected_entry.item --[[@as DroppedItem]], selected_entry.hard_ressed, selected_entry.soft_ressed ); update()
         end,

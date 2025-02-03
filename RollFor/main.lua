@@ -219,15 +219,6 @@ local function create_components()
     M.player_selection_frame
   )
 
-  M.loot_controller = m.LootController.new(
-    M.player_info,
-    M.loot_facade,
-    M.loot_list,
-    M.loot_frame,
-    M.roll_controller,
-    M.softres
-  )
-
   ---@type LootAwardCallback
   M.loot_award_callback = m.LootAwardCallback.new( M.awarded_loot, M.roll_controller, M.winner_tracker, M.group_roster )
 
@@ -300,6 +291,17 @@ local function create_components()
     M.master_loot_candidates,
     M.winner_tracker,
     M.config
+  )
+
+  M.loot_controller = m.LootController.new(
+    M.player_info,
+    M.loot_facade,
+    M.loot_list,
+    M.loot_frame,
+    M.roll_controller,
+    M.softres,
+    M.rolling_logic,
+    M.chat
   )
 
   ---@type ArgsParser

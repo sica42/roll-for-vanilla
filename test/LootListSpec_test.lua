@@ -322,7 +322,7 @@ end
 function LootListSpec:should_display_the_winning_content_popup_after_rolling_and_switching_to_another_loot_and_then_opening_back_the_original_loot()
   -- Given
   local loot_facade, chat = mock_loot_facade(), mock_chat()
-  local item, item2, item3, p1, p2 = qi( "Bag", 123, 1 ), qi( "Hearthstone", 69, 1 ), qi( "Sword", 42 ), p( "Psikutas" ), p( "Obszczymucha" )
+  local item, item2, item3, p1, p2 = qi( "Bag", 123, 1 ), qi( "Hearthstone", 69, 1 ), qi( "Sword", 42, 1 ), p( "Psikutas" ), p( "Obszczymucha" )
   local rf = new_roll_for()
       :loot_facade( loot_facade )
       :raid_roster( p1, p2 )
@@ -402,6 +402,102 @@ function LootListSpec:should_display_the_winning_content_popup_after_rolling_and
     item_link( item, 1 ),
     text( "Obszczymucha wins the raid-roll.", 11 ),
     buttons( "AwardWinner", "RaidRollAgain", "AwardOther", "Close" )
+  )
+end
+
+function LootListSpec:should_not_allow_to_select_item_while_rolling_is_in_progress()
+  -- Given
+  local loot_facade, chat = mock_loot_facade(), mock_chat()
+  local item, item2, item3, p1, p2 = i( "Bag", 123 ), i( "Hearthstone", 69 ), i( "Sword", 42 ), p( "Psikutas" ), p( "Obszczymucha" )
+  local rf = new_roll_for()
+      :loot_facade( loot_facade )
+      :raid_roster( p1, p2 )
+      :chat( chat )
+      :build()
+
+  -- Then
+  rf.loot_frame.should_be_hidden()
+
+  -- When
+  loot_facade.notify( "LootOpened", item )
+
+  -- Then
+  chat.raid( "Princess Kenny dropped 1 item:" )
+  chat.raid( "1. [Bag]" )
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Bag" )
+  )
+  rf.rolling_popup.should_be_hidden()
+
+  -- When
+  rf.loot_frame.click( 1 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    selected_item( 1, "Bag" )
+  )
+  rf.rolling_popup.should_display(
+    item_link( item, 1 ),
+    buttons( "Roll", "InstaRaidRoll", "AwardOther", "Close" )
+  )
+
+  -- When
+  rf.rolling_popup.click( "Roll" )
+
+  -- Then
+  chat.raid_warning( "Roll for [Bag]: /roll (MS) or /roll 99 (OS) or /roll 98 (TMOG)" )
+  rf.rolling_popup.should_display(
+    item_link( item, 1 ),
+    text( "Rolling ends in 8 seconds.", 11 ),
+    buttons( "FinishEarly", "Cancel" )
+  )
+
+  -- When
+  loot_facade.notify( "LootClosed" )
+
+  -- Then
+  rf.rolling_popup.should_display(
+    item_link( item, 1 ),
+    text( "Rolling ends in 8 seconds.", 11 ),
+    buttons( "FinishEarly", "Cancel" )
+  )
+
+  -- When
+  loot_facade.notify( "LootOpened", item2, item3 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Hearthstone" ),
+    enabled_item( 2, "Sword" )
+  )
+
+  -- When
+  rf.loot_frame.click( 1 )
+
+  -- Then
+  chat.console( "RollFor: Cannot select item while rolling is in progress." )
+  rf.rolling_popup.should_display(
+    item_link( item, 1 ),
+    text( "Rolling ends in 8 seconds.", 11 ),
+    buttons( "FinishEarly", "Cancel" )
+  )
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Hearthstone" ),
+    enabled_item( 2, "Sword" )
+  )
+
+  -- When
+  loot_facade.notify( "LootClosed" )
+  loot_facade.notify( "LootOpened", item )
+
+  -- Then
+  rf.loot_frame.should_display(
+    selected_item( 1, "Bag" )
+  )
+  rf.rolling_popup.should_display(
+    item_link( item, 1 ),
+    text( "Rolling ends in 8 seconds.", 11 ),
+    buttons( "FinishEarly", "Cancel" )
   )
 end
 

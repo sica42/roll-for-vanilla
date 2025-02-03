@@ -8,5 +8,4 @@
 ## Critical for the release
 
 0. Update README.
-1. Disable the loot frame when rolling.
-
+1. Fix Loot Award winner display.
