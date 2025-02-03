@@ -1509,7 +1509,6 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
     text( "Cosmicshadow wins the main-spec roll with a 24.", 11 ),
     buttons( "RaidRoll", "Close" )
   )
-  rf.enable_debug( "RollingPopup" )
 
   -- When
   loot_facade.notify( "LootOpened", item )

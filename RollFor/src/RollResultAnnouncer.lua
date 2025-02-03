@@ -13,8 +13,8 @@ local getn = table.getn
 
 ---@param chat Chat
 ---@param roll_controller RollController
----@param roll_tracker RollTracker
-function M.new( chat, roll_controller, roll_tracker, config )
+---@param config Config
+function M.new( chat, roll_controller, config )
   ---@param winners Winner[]
   ---@param top_roll boolean
   local announce_winner = function( winners, top_roll )
@@ -137,8 +137,9 @@ function M.new( chat, roll_controller, roll_tracker, config )
     chat.announce( message( top_rollers_str ) )
   end
 
-  local function on_tie_start()
-    local data, iteration = roll_tracker.get()
+  ---@param event_data TieStartData
+  local function on_tie_start( event_data )
+    local data, iteration = event_data.tracker_data, event_data.iteration
     if not data or not iteration then return end
 
     local player_count = getn( iteration.rolls )
@@ -175,8 +176,9 @@ function M.new( chat, roll_controller, roll_tracker, config )
     end
   end
 
-  local function on_finish()
-    local data = roll_tracker.get()
+  ---@param event_data RollingFinishedData
+  local function on_finish( event_data )
+    local data = event_data.roll_tracker_data
     if not data or not data.item then return end
 
     local winner_count = getn( data.winners )

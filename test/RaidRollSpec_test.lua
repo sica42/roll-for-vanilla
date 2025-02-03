@@ -195,7 +195,6 @@ function SingleWinnerRaidRollSpec:should_auto_raid_roll_if_no_one_rolled_and_rep
       :chat( chat )
       :config( { auto_raid_roll = true } )
       :build()
-  rf.enable_debug( "RollController", "LootController", "RollingPopup" )
 
   -- Then
   rf.loot_frame.should_be_hidden()

@@ -799,11 +799,21 @@ function M.new(
     end
   end
 
+  ---@class RollingFinishedData
+  ---@field roll_tracker_data RollTrackerData
+
   local function finish()
     local candidates = ml_candidates.get()
     roll_tracker.finish( candidates )
-    notify_subscribers( "finish" )
 
+    local data = roll_tracker.get()
+
+    ---@type RollingFinishedData
+    local event_data = {
+      roll_tracker_data = data
+    }
+
+    notify_subscribers( "finish", event_data )
     refresh_finish_popup_content( candidates )
   end
 
@@ -847,10 +857,22 @@ function M.new(
     tie_content()
   end
 
+  ---@class TieStartData
+  ---@field tracker_data RollTrackerData
+  ---@field iteration RollIteration
+
   local function tie_start()
     roll_tracker.tie_start()
-    notify_subscribers( "tie_start" )
 
+    local data, iteration = roll_tracker.get()
+
+    ---@type TieStartData
+    local event_data = {
+      tracker_data = data,
+      iteration = iteration
+    }
+
+    notify_subscribers( "tie_start", event_data )
     tie_content()
   end
 

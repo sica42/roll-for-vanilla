@@ -256,7 +256,6 @@ function LootListSpec:should_not_select_the_loot_if_the_popup_was_closed_after_l
       :chat( chat )
       :build()
   mock_random( { { 1, 2, 1 } } )
-  rf.enable_debug( "RollController", "LootController" )
 
   -- Then
   rf.loot_frame.should_be_hidden()
