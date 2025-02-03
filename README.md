@@ -11,6 +11,19 @@ The Master Looter then assigns the item directly to the winner.
 
 
 ## Features
+
+### Fully SR-integrated loot list
+
+---
+
+### Automatically enables Master Loot when a boss is targeted
+Disable this feature with:  
+```
+/rf config auto-master-loot
+```
+
+---
+
 ### Shows the loot that dropped (and who soft reserved)
 <img src="docs/dropped-loot.gif" alt="Shows dropped loot" style="width:720px;height:350">
 
@@ -72,23 +85,10 @@ https://youtu.be/vZdafun0nYo
 
 ---
 
-### In the loot window
-
-Shift + left click for normal roll.  
-Alt + left click for raid-roll.
-
-When you click, the addon will insert into the edit box either  
+### Insta Raid-roll item from your bags
 ```
-/rf <item link>
+/irr <item link>
 ```
-
-or
-
-```
-/rr <item link>
-```
-
-Press Enter to start rolling.  
 
 ---
 
@@ -140,6 +140,11 @@ To show the SR items type:
 ```
 
 If someone needs to update their items, repeat the process and copy the data again.
+
+
+### Soft-Res data format
+
+The SR data from *Raidres* is a **Base64** encoded **JSON**. Decode it to see what's inside.  
 
 ---
 
@@ -199,9 +204,22 @@ Click on the minimap icon and click **Clear** or type:
 ---
 
 
+## Shoutouts
+
+Thank you to:
+  * **Turtle WoW devs** for amazing content. You cunts should switch to a better client.  
+  * **Itamedruids** for *Raidres* and adding the export function. Love your work.  
+  * My fellow raiders (there's too many to mention).  
+  * All bug reporters, testers and feature suggesters.  
+
+
 ## Need more help?
 
-Feel free to contact me if you need more help.  
-Whisper **Jogobobek** in-game on Nordaanar Turtle WoW or
-**Obszczymucha** on Discord.
+The best way to contact me is to message me on Discord.  
+Username: **Obszczymucha**  
+
+My character **Jogobobek** will no longer be available on Turtle WoW.  
+I'm switching to Netherwing 3.0, perhaps under a different name :P  
+
+Thanks Turtle for fun.
 
