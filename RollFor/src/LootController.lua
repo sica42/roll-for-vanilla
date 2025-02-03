@@ -275,6 +275,10 @@ function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller
     M.debug.add( "loot_opened" )
     show()
     update()
+
+    if selected_item then
+      roll_controller.update( selected_item.item_id )
+    end
   end
 
   local function on_loot_slot_cleared( slot )

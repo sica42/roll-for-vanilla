@@ -268,13 +268,15 @@ end
 ---| "Waiting"
 ---| "Finished"
 ---| "Canceled"
+---| "Awarded"
 local RollingStatus = {
   Preview = "Preview",
   InProgress = "InProgress",
   TieFound = "TieFound",
   Waiting = "Waiting",
   Finished = "Finished",
-  Canceled = "Canceled"
+  Canceled = "Canceled",
+  Awarded = "Awarded"
 }
 
 M.RollingStatus = RollingStatus

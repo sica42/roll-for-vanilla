@@ -46,8 +46,8 @@ local getn = table.getn
 ---  ml_candidates: ItemCandidate[] }
 
 ---@class RollTracker
----@field preview fun( item: Item, count: number, ml_candidates: ItemCandidate[], soft_ressers: RollingPlayer[], hard_ressed: boolean )
----@field start fun( rolling_strategy: RollingStrategyType, item: Item|DroppedItem|SoftRessedDroppedItem, count: number, seconds: number?, message: string?, required_rolling_players: RollingPlayer[]? )
+---@field preview fun( count: number, ml_candidates: ItemCandidate[], soft_ressers: RollingPlayer[], hard_ressed: boolean )
+---@field start fun( rolling_strategy: RollingStrategyType, count: number, seconds: number?, message: string?, required_rolling_players: RollingPlayer[]? )
 ---@field waiting_for_rolls fun()
 ---@field add_winners fun( winners: Winner[] )
 ---@field finish fun( ml_candidates: ItemCandidate[] )
@@ -62,9 +62,9 @@ local getn = table.getn
 ---@field loot_awarded fun( player_name: string, item_id: number )
 ---@field create_roll_data fun( players: RollingPlayer[] ): RollData[]
 
-function M.new()
+---@param item_on_roll Item
+function M.new( item_on_roll )
   local status
-  local item_on_roll
   local item_on_roll_count = 0
   local iterations = {}
   local current_iteration = 0
@@ -145,19 +145,14 @@ function M.new()
     return result
   end
 
-  ---@param item Item
   ---@param count number
   ---@param ml_candidates ItemCandidate[]
   ---@param soft_ressers RollingPlayer[]
   ---@param hard_ressed boolean
-  local function preview( item, count, ml_candidates, soft_ressers, hard_ressed )
+  local function preview( count, ml_candidates, soft_ressers, hard_ressed )
     M.debug.add( "preview" )
-    lua50_clear_table( iterations )
-    lua50_clear_table( winners )
-    lua50_clear_table( master_loot_candidates )
     current_iteration = 1
     status = { type = S.Preview }
-    item_on_roll = item
     item_on_roll_count = count
 
     local soft_ressed = getn( soft_ressers ) > 0
@@ -185,12 +180,11 @@ function M.new()
 
 
   ---@param rolling_strategy RollingStrategyType
-  ---@param item Item|DroppedItem|SoftRessedDroppedItem
   ---@param count number
   ---@param seconds number
   ---@param message string
   ---@param required_rolling_players RollingPlayer[]?
-  local function start( rolling_strategy, item, count, seconds, message, required_rolling_players )
+  local function start( rolling_strategy, count, seconds, message, required_rolling_players )
     M.debug.add( "start" )
     lua50_clear_table( iterations )
     lua50_clear_table( winners )
@@ -198,7 +192,6 @@ function M.new()
     current_iteration = 1
     status = { type = S.InProgress, seconds_left = seconds }
 
-    item_on_roll = item
     item_on_roll_count = count
 
     table.insert( iterations, {
@@ -305,27 +298,28 @@ function M.new()
   end
 
   local function clear()
-    M.debug.add( "clear" )
-    lua50_clear_table( iterations )
-    lua50_clear_table( winners )
-    lua50_clear_table( master_loot_candidates )
-    current_iteration = 0
-    status = nil
-    item_on_roll = nil
-    item_on_roll_count = 0
-    M.debug.add( "cleared" )
+    error( "Nothing should be clearing this.", 2 )
+    -- M.debug.add( "clear" )
+    -- lua50_clear_table( iterations )
+    -- lua50_clear_table( winners )
+    -- lua50_clear_table( master_loot_candidates )
+    -- current_iteration = 0
+    -- status = nil
+    -- item_on_roll = nil
+    -- item_on_roll_count = 0
+    -- M.debug.add( "cleared" )
   end
 
-  local function clear_if_no_winners()
+  local function mark_as_awarded_if_no_more_items()
     if item_on_roll_count == 0 then
-      clear()
+      status.type = S.Awarded
     end
   end
 
   ---@param player_name string
   ---@param item_id number
   local function loot_awarded( player_name, item_id )
-    if not item_on_roll or item_on_roll.id ~= item_id then return end
+    if item_on_roll.id ~= item_id then return end -- TODO: this makes no sense now
 
     item_on_roll_count = item_on_roll_count - 1
     local w = status.type == S.Preview and status.winners or winners
@@ -333,13 +327,13 @@ function M.new()
     for i, winner in ipairs( w ) do
       if winner.name == player_name then
         table.remove( w, i )
-        clear_if_no_winners()
+        mark_as_awarded_if_no_more_items()
 
         return
       end
     end
 
-    clear_if_no_winners()
+    mark_as_awarded_if_no_more_items()
   end
 
   ---@type RollTracker

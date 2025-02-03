@@ -2,7 +2,7 @@ local u = require( "test/utils" )
 local getn, reqsrc = u.getn, u.multi_require_src
 local lu, eq = u.luaunit( "assertEquals" ) ---@diagnostic disable-line: unused-local
 local m, T, IU = require( "src/modules" ), require( "src/Types" ), require( "src/ItemUtils" )
-reqsrc( "DebugBuffer", "Module", "Types", "SoftResDataTransformer", "RollingLogicUtils" )
+reqsrc( "DebugBuffer", "Module", "Types", "SoftResDataTransformer", "RollingLogicUtils", "RollTracker" )
 reqsrc( "TieRollingLogic", "SoftResRollingLogic", "NonSoftResRollingLogic", "RaidRollRollingLogic", "InstaRaidRollRollingLogic" )
 local SoftResAwardedLootDecorator = require( "src/SoftResAwardedLootDecorator" )
 local SoftResDecorator = require( "src/SoftResPresentPlayersDecorator" )
@@ -205,9 +205,6 @@ function M.new_roll_for()
     local winner_tracker = require( "src/WinnerTracker" ).new( db( "winner_tracker" ) )
     deps[ "WinnerTracker" ] = winner_tracker
 
-    local roll_tracker = require( "src/RollTracker" ).new()
-    deps[ "RollTracker" ] = roll_tracker
-
     local frame_builder = require( "mocks/FrameBuilder" )
     local loot_frame = require( "mocks/LootFrame" ).new( frame_builder, db( "loot_frame" ), config )
     local popup_builder = require( "mocks/PopupBuilder" )
@@ -220,8 +217,6 @@ function M.new_roll_for()
     deps[ "PlayerSelectionFrame" ] = player_selection_frame
 
     local roll_controller = require( "src/RollController" ).new(
-      roll_tracker,
-      player_info,
       ml_candidates,
       softres,
       loot_list,

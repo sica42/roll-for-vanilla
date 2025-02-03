@@ -177,9 +177,6 @@ local function create_components()
   ---@type DroppedLootAnnounce
   M.dropped_loot_announce = m.DroppedLootAnnounce.new( M.loot_list, M.chat, M.dropped_loot, M.softres, M.winner_tracker, M.player_info )
 
-  ---@type RollTracker
-  M.roll_tracker = m.RollTracker.new()
-
   ---@type MasterLootCandidates
   M.master_loot_candidates = m.MasterLootCandidates.new( M.api(), M.group_roster ) -- remove group_roster for testing (dummy candidates)
 
@@ -215,8 +212,6 @@ local function create_components()
 
   ---@type RollController
   M.roll_controller = m.RollController.new(
-    M.roll_tracker,
-    M.player_info,
     M.master_loot_candidates,
     M.softres,
     M.loot_list,
