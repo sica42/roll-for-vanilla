@@ -61,7 +61,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
   rf.rolling_popup.click( "Roll" )
 
   -- Then
-  chat.raid_warning( "Roll for [Bag]: (SR by Obszczymucha and Psikutas)" )
+  chat.raid_warning( "Roll for [Bag]: SR by Obszczymucha and Psikutas" )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     roll_placeholder( p2, 11 ),
@@ -243,7 +243,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
   rf.rolling_popup.click( "Roll" )
 
   -- Then
-  chat.raid_warning( "Roll for 2x[Bag]: (SR by Jimmy, Obszczymucha and Psikutas). 2 top rolls win." )
+  chat.raid_warning( "Roll for 2x[Bag]: SR by Jimmy, Obszczymucha and Psikutas. 2 top rolls win." )
   rf.rolling_popup.should_display(
     item_link( item2, 2 ),
     roll_placeholder( p3, 11 ),
@@ -496,7 +496,7 @@ function SoftResTieRollSpec:should_display_tie_rolls()
   rf.rolling_popup.click( "Roll" )
 
   -- Then
-  chat.raid_warning( "Roll for [Bag]: (SR by Obszczymucha and Psikutas)" )
+  chat.raid_warning( "Roll for [Bag]: SR by Obszczymucha and Psikutas" )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     roll_placeholder( p2, 11 ),
