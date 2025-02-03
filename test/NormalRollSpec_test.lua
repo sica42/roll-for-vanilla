@@ -1111,7 +1111,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   )
 end
 
-function SomeoneRolledSpec:should_display_close_button_that_closes_the_popup()
+function SomeoneRolledSpec:should_display_close_button_that_closes_the_popup_and_remember_the_winner()
   -- Given
   local loot_facade, chat = mock_loot_facade(), mock_chat()
   local item, item2, p1, p2 = i( "Hearthstone", 123 ), i( "Bag", 69 ), p( "Psikutas" ), p( "Obszczymucha" )
@@ -1212,7 +1212,9 @@ function SomeoneRolledSpec:should_display_close_button_that_closes_the_popup()
   )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    buttons( "Roll", "RaidRoll", "AwardOther", "Close" )
+    offspec_roll( p1, 69, 11 ),
+    text( "Psikutas wins the off-spec roll with a 69.", 11 ),
+    buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
 end
 

@@ -313,6 +313,7 @@ function M.new(
   ---@param buttons RollingPopupButtonWithCallback[]
   ---@param candidates ItemCandidate[]
   local function add_award_other_button( dropped_item, buttons, candidates )
+    M.debug.add( "add_award_other_button" )
     if not dropped_item then return end
 
     table.insert( buttons,
@@ -482,210 +483,6 @@ function M.new(
     rolling_popup:refresh( rolling_popup_data[ item.id ] )
   end
 
-  ---@param item Item
-  ---@param item_count number
-  local function preview( item, item_count )
-    M.debug.add( "preview" )
-    if not item_count or item_count == 0 then
-      m.trace( string.format( "item_count: %s", item_count or "nil" ) )
-      return
-    end
-
-    if rolling_popup_data[ item.id ] then
-      currently_displayed_item = item
-      rolling_popup:show()
-      rolling_popup:refresh( rolling_popup_data[ item.id ] )
-      return
-    end
-
-    local candidates = ml_candidates.get()
-    local soft_ressers = softres.get( item.id )
-    local hard_ressed = softres.is_item_hardressed( item.id )
-    local roll_tracker = new_roll_tracker( item )
-    roll_tracker.preview( item_count, candidates, soft_ressers, hard_ressed )
-
-    local color = get_color( item.quality )
-    rolling_popup:border_color( color )
-
-    local sr_count = getn( soft_ressers )
-    local buttons = {} ---@type RollingPopupButtonWithCallback[]
-    local dropped_item = loot_list.get_by_id( item.id )
-    local candidate_count = getn( candidates )
-
-    currently_displayed_item = item
-
-    if hard_ressed then
-      preview_hard_ressed_item( buttons, item, item_count, dropped_item, candidate_count, candidates )
-      return
-    end
-
-    if sr_count == 0 then
-      preview_non_soft_ressed_items( buttons, item, item_count, dropped_item, candidate_count, candidates )
-      return
-    end
-
-    if item_count == sr_count then
-      preview_sr_items_equal_to_item_count( soft_ressers, item, item_count, dropped_item, buttons, candidate_count, candidates )
-      return
-    end
-
-    preview_sr_items_not_equal_to_item_count( soft_ressers, item, item_count, dropped_item, buttons, candidate_count, candidates )
-  end
-
-  local function tie_content()
-    M.debug.add( "tie_content" )
-    local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
-    local data = roll_tracker.get()
-    local item = data.item
-    local first_iteration = data.iterations[ 1 ]
-    local waiting = data.status.type == "Waiting" or false
-
-    local buttons = waiting and roll_in_progress_buttons() or {}
-
-    if data.status.type == "Finished" then
-      local dropped_item = loot_list.get_by_id( item.id )
-      local candidates = ml_candidates.get()
-
-      ---@type WinnerWithAwardCallback[]
-      local winners = m.map( data.winners,
-        ---@param player Winner
-        function( player )
-          if type( player ) ~= "table" then return end -- Fucking lua50 and its n.
-
-          local candidate = ml_candidates.find( player.name )
-          local fuck_lua50 = dropped_item
-          local strategy = first_iteration.rolling_strategy
-          local award_callback = candidate and fuck_lua50 and function()
-            show_master_loot_confirmation( candidate, fuck_lua50, strategy )
-          end
-
-          ---@type WinnerWithAwardCallback
-          return { name = player.name, class = player.class, roll_type = player.roll_type, roll = player.winning_roll, award_callback = award_callback }
-        end
-      )
-
-      if getn( winners ) == 1 and winners[ 1 ].award_callback then
-        table.insert( buttons, button( "AwardWinner", winners[ 1 ].award_callback, should_display_callback ) )
-        winners[ 1 ].award_callback = nil
-      end
-
-      table.insert( buttons, button( "RaidRoll", function() start( RS.RaidRoll, item, data.item_count ) end ) )
-      add_award_other_button( dropped_item, buttons, candidates )
-      add_close_button( buttons, "Finished" )
-    end
-
-    local tie_iterations = {}
-
-    for i, iteration in ipairs( data.iterations ) do
-      if i > 1 then
-        table.insert( tie_iterations,
-          ---@type TieIteration
-          {
-            tied_roll = iteration.tied_roll,
-            rolls = iteration.rolls
-          }
-        )
-      end
-    end
-
-    ---@type RollingPopupTieData
-    rolling_popup_data[ item.id ] = {
-      ---@type RollingPopupRollData
-      roll_data = {
-        item_link = item.link,
-        item_tooltip_link = IU.get_tooltip_link( item.link ),
-        item_texture = item.texture,
-        item_count = data.item_count,
-        rolls = first_iteration.rolls,
-        winners = data.winners,
-        strategy_type = first_iteration.rolling_strategy,
-        buttons = buttons,
-        waiting_for_rolls = waiting or false,
-        type = "Roll"
-      },
-      tie_iterations = tie_iterations,
-      type = "Tie"
-    }
-
-    rolling_popup:show()
-    rolling_popup:refresh( rolling_popup_data[ item.id ] )
-  end
-
-  local function on_roll( player_name, player_class, roll_type, roll )
-    M.debug.add( string.format( "on_roll( %s, %s, %s, %s )", player_name, player_class, roll_type, roll ) )
-    local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
-    roll_tracker.add( player_name, player_class, roll_type, roll )
-
-    local data, current_iteration = roll_tracker.get()
-    local strategy_type = current_iteration and current_iteration.rolling_strategy
-
-    if strategy_type == "NormalRoll" or strategy_type == "SoftResRoll" then
-      local waiting_for_rolls = data.status.type == "Waiting" or false
-
-      roll_content(
-        data.item,
-        data.item_count,
-        not waiting_for_rolls and data.status.seconds_left or nil,
-        roll_in_progress_buttons(),
-        current_iteration.rolls,
-        {},
-        strategy_type,
-        waiting_for_rolls
-      )
-
-      return
-    end
-
-    if strategy_type == "TieRoll" then
-      tie_content()
-    end
-  end
-
-  local function add_ignored( player_name, player_class, roll_type, roll, reason )
-    local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
-    roll_tracker.add_ignored( player_name, roll_type, roll, reason )
-
-    notify_subscribers( "ignored_roll", {
-      player_name = player_name,
-      player_class = player_class,
-      roll_type = roll_type,
-      roll = roll,
-      reason = reason
-    } )
-  end
-
-  ---@param seconds_left number
-  local function tick( seconds_left )
-    local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
-    roll_tracker.tick( seconds_left )
-
-    notify_subscribers( "tick", { seconds_left = seconds_left } )
-
-    local data, current_iteration = roll_tracker.get()
-    local strategy_type = current_iteration and current_iteration.rolling_strategy
-
-    if strategy_type == "NormalRoll" or strategy_type == "SoftResRoll" then
-      roll_content( data.item, data.item_count, seconds_left, roll_in_progress_buttons(), current_iteration.rolls, {}, strategy_type )
-    end
-  end
-
-  ---@class WinnersFoundData
-  ---@field item Item
-  ---@field item_count number
-  ---@field winners Winner[]
-  ---@field rolling_strategy RollingStrategyType
-
-  ---@param item Item
-  ---@param item_count number
-  ---@param winners Winner[]
-  ---@param strategy RollingStrategyType
-  local function winners_found( item, item_count, winners, strategy )
-    local roll_tracker = get_roll_tracker( item.id )
-    roll_tracker.add_winners( winners )
-    notify_subscribers( "winners_found", { item = item, item_count = item_count, winners = winners, rolling_strategy = strategy } )
-  end
-
-
   ---@param buttons RollingPopupButtonWithCallback[]
   ---@param item Item
   ---@param item_count number
@@ -803,6 +600,85 @@ function M.new(
     rolling_popup:refresh( rolling_popup_data[ item.id ] )
   end
 
+  local function tie_content()
+    M.debug.add( "tie_content" )
+    local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
+    local data = roll_tracker.get()
+    local item = data.item
+    local first_iteration = data.iterations[ 1 ]
+    local waiting = data.status.type == "Waiting" or false
+
+    local buttons = waiting and roll_in_progress_buttons() or {}
+
+    if data.status.type == "Finished" then
+      local dropped_item = loot_list.get_by_id( item.id )
+      local candidates = ml_candidates.get()
+
+      ---@type WinnerWithAwardCallback[]
+      local winners = m.map( data.winners,
+        ---@param player Winner
+        function( player )
+          if type( player ) ~= "table" then return end -- Fucking lua50 and its n.
+
+          local candidate = ml_candidates.find( player.name )
+          local fuck_lua50 = dropped_item
+          local strategy = first_iteration.rolling_strategy
+          local award_callback = candidate and fuck_lua50 and function()
+            show_master_loot_confirmation( candidate, fuck_lua50, strategy )
+          end
+
+          ---@type WinnerWithAwardCallback
+          return { name = player.name, class = player.class, roll_type = player.roll_type, roll = player.winning_roll, award_callback = award_callback }
+        end
+      )
+
+      if getn( winners ) == 1 and winners[ 1 ].award_callback then
+        table.insert( buttons, button( "AwardWinner", winners[ 1 ].award_callback, should_display_callback ) )
+        winners[ 1 ].award_callback = nil
+      end
+
+      table.insert( buttons, button( "RaidRoll", function() start( RS.RaidRoll, item, data.item_count ) end ) )
+      add_award_other_button( dropped_item, buttons, candidates )
+      add_close_button( buttons, "Finished" )
+    end
+
+    local tie_iterations = {}
+
+    for i, iteration in ipairs( data.iterations ) do
+      if i > 1 then
+        table.insert( tie_iterations,
+          ---@type TieIteration
+          {
+            tied_roll = iteration.tied_roll,
+            rolls = iteration.rolls
+          }
+        )
+      end
+    end
+
+    ---@type RollingPopupTieData
+    rolling_popup_data[ item.id ] = {
+      ---@type RollingPopupRollData
+      roll_data = {
+        item_link = item.link,
+        item_tooltip_link = IU.get_tooltip_link( item.link ),
+        item_texture = item.texture,
+        item_count = data.item_count,
+        rolls = first_iteration.rolls,
+        winners = data.winners,
+        strategy_type = first_iteration.rolling_strategy,
+        buttons = buttons,
+        waiting_for_rolls = waiting or false,
+        type = "Roll"
+      },
+      tie_iterations = tie_iterations,
+      type = "Tie"
+    }
+
+    rolling_popup:show()
+    rolling_popup:refresh( rolling_popup_data[ item.id ] )
+  end
+
   ---@param candidates ItemCandidate[]
   local function refresh_finish_popup_content( candidates )
     local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
@@ -827,6 +703,134 @@ function M.new(
       tie_content()
     end
   end
+
+  ---@param item Item
+  ---@param item_count number
+  local function preview( item, item_count )
+    M.debug.add( "preview" )
+    if not item_count or item_count == 0 then
+      m.trace( string.format( "item_count: %s", item_count or "nil" ) )
+      return
+    end
+
+    if roll_trackers[ item.id ] then
+      local data = roll_trackers[ item.id ].get()
+
+      if data.status.type == S.Finished then
+        currently_displayed_item = data.item
+        refresh_finish_popup_content( ml_candidates.get() )
+        return
+      end
+    end
+
+    local candidates = ml_candidates.get()
+    local soft_ressers = softres.get( item.id )
+    local hard_ressed = softres.is_item_hardressed( item.id )
+    local roll_tracker = new_roll_tracker( item )
+    roll_tracker.preview( item_count, candidates, soft_ressers, hard_ressed )
+
+    local color = get_color( item.quality )
+    rolling_popup:border_color( color )
+
+    local sr_count = getn( soft_ressers )
+    local buttons = {} ---@type RollingPopupButtonWithCallback[]
+    local dropped_item = loot_list.get_by_id( item.id )
+    local candidate_count = getn( candidates )
+
+    currently_displayed_item = item
+
+    if hard_ressed then
+      preview_hard_ressed_item( buttons, item, item_count, dropped_item, candidate_count, candidates )
+      return
+    end
+
+    if sr_count == 0 then
+      preview_non_soft_ressed_items( buttons, item, item_count, dropped_item, candidate_count, candidates )
+      return
+    end
+
+    if item_count == sr_count then
+      preview_sr_items_equal_to_item_count( soft_ressers, item, item_count, dropped_item, buttons, candidate_count, candidates )
+      return
+    end
+
+    preview_sr_items_not_equal_to_item_count( soft_ressers, item, item_count, dropped_item, buttons, candidate_count, candidates )
+  end
+
+  local function on_roll( player_name, player_class, roll_type, roll )
+    M.debug.add( string.format( "on_roll( %s, %s, %s, %s )", player_name, player_class, roll_type, roll ) )
+    local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
+    roll_tracker.add( player_name, player_class, roll_type, roll )
+
+    local data, current_iteration = roll_tracker.get()
+    local strategy_type = current_iteration and current_iteration.rolling_strategy
+
+    if strategy_type == "NormalRoll" or strategy_type == "SoftResRoll" then
+      local waiting_for_rolls = data.status.type == "Waiting" or false
+
+      roll_content(
+        data.item,
+        data.item_count,
+        not waiting_for_rolls and data.status.seconds_left or nil,
+        roll_in_progress_buttons(),
+        current_iteration.rolls,
+        {},
+        strategy_type,
+        waiting_for_rolls
+      )
+
+      return
+    end
+
+    if strategy_type == "TieRoll" then
+      tie_content()
+    end
+  end
+
+  local function add_ignored( player_name, player_class, roll_type, roll, reason )
+    local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
+    roll_tracker.add_ignored( player_name, roll_type, roll, reason )
+
+    notify_subscribers( "ignored_roll", {
+      player_name = player_name,
+      player_class = player_class,
+      roll_type = roll_type,
+      roll = roll,
+      reason = reason
+    } )
+  end
+
+  ---@param seconds_left number
+  local function tick( seconds_left )
+    local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
+    roll_tracker.tick( seconds_left )
+
+    notify_subscribers( "tick", { seconds_left = seconds_left } )
+
+    local data, current_iteration = roll_tracker.get()
+    local strategy_type = current_iteration and current_iteration.rolling_strategy
+
+    if strategy_type == "NormalRoll" or strategy_type == "SoftResRoll" then
+      roll_content( data.item, data.item_count, seconds_left, roll_in_progress_buttons(), current_iteration.rolls, {}, strategy_type )
+    end
+  end
+
+  ---@class WinnersFoundData
+  ---@field item Item
+  ---@field item_count number
+  ---@field winners Winner[]
+  ---@field rolling_strategy RollingStrategyType
+
+  ---@param item Item
+  ---@param item_count number
+  ---@param winners Winner[]
+  ---@param strategy RollingStrategyType
+  local function winners_found( item, item_count, winners, strategy )
+    local roll_tracker = get_roll_tracker( item.id )
+    roll_tracker.add_winners( winners )
+    notify_subscribers( "winners_found", { item = item, item_count = item_count, winners = winners, rolling_strategy = strategy } )
+  end
+
 
   ---@class RollingFinishedData
   ---@field roll_tracker_data RollTrackerData

@@ -424,7 +424,8 @@ function SingleWinnerInstaRaidRollSpec:should_remember_the_winner_if_the_popup_i
   )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    buttons( "Roll", "RaidRoll", "AwardOther", "Close" )
+    text( "Obszczymucha wins the raid-roll.", 11 ),
+    buttons( "AwardWinner", "RaidRollAgain", "AwardOther", "Close" )
   )
 
   -- When
@@ -470,7 +471,8 @@ function SingleWinnerInstaRaidRollSpec:should_remember_the_winner_if_the_popup_i
   )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    buttons( "Roll", "RaidRoll", "AwardOther", "Close" )
+    text( "Obszczymucha wins the raid-roll.", 11 ),
+    buttons( "AwardWinner", "RaidRollAgain", "AwardOther", "Close" )
   )
 end
 
