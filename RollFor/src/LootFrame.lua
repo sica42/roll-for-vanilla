@@ -107,13 +107,6 @@ function M.new( frame_builder, db, config )
     if not boss_name_frame then create_boss_name_frame() end
     if not loot_frame then create_frame() end
 
-    -- local roll_data = roll_tracker.get()
-    -- local item = roll_data and roll_data.status and roll_data.status ~= S.Preview and roll_data.item
-
-    -- if item and loot_list.get_slot( item.id ) then
-    --   selected_item = item
-    -- end
-
     boss_name_frame.clear()
     boss_name_frame.add_line( "text", function( type, frame )
       if type == "text" then

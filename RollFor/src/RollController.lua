@@ -309,10 +309,21 @@ function M.new(
     return currently_displayed_item and loot_list.is_looting() and loot_list.get_slot( currently_displayed_item.id ) and true or false
   end
 
+  ---@param player_name string
+  ---@param winners WinnerWithAwardCallback[]
+  local function is_winner( player_name, winners )
+    for _, winner in ipairs( winners ) do
+      if winner.name == player_name then return true end
+    end
+
+    return false
+  end
+
   ---@param dropped_item MasterLootDistributableItem?
   ---@param buttons RollingPopupButtonWithCallback[]
   ---@param candidates ItemCandidate[]
-  local function add_award_other_button( dropped_item, buttons, candidates )
+  ---@param winners WinnerWithAwardCallback[]
+  local function add_award_other_button( dropped_item, buttons, candidates, winners )
     M.debug.add( "add_award_other_button" )
     if not dropped_item then return end
 
@@ -326,7 +337,7 @@ function M.new(
             return {
               name = candidate.name,
               class = candidate.class,
-              is_winner = false,
+              is_winner = is_winner( candidate.name, winners ),
               confirm_fn = function()
                 player_selection_frame.hide()
                 show_master_loot_confirmation( candidate, dropped_item, RS.NormalRoll ) -- TODO: why is this NormalRoll here?
@@ -342,16 +353,36 @@ function M.new(
   end
 
   ---@param buttons RollingPopupButtonWithCallback[]
+  ---@param strategy RollingStrategyType
+  ---@param item Item
+  ---@param item_count number
+  local function add_roll_button( buttons, strategy, item, item_count )
+    player_selection_frame.hide()
+    table.insert( buttons, button( "Roll", function() start( strategy, item, item_count, config.default_rolling_time_seconds() ) end ) )
+  end
+
+  ---@param buttons RollingPopupButtonWithCallback[]
+  ---@param type "RaidRoll"|"InstaRaidRoll"
+  ---@param item Item
+  ---@param item_count number
+  local function add_raid_roll_button( buttons, type, item, item_count )
+    table.insert( buttons, button( type, function()
+      player_selection_frame.hide()
+      start( type == "RaidRoll" and RS.RaidRoll or RS.InstaRaidRoll, item, item_count )
+    end ) )
+  end
+
+  ---@param buttons RollingPopupButtonWithCallback[]
   ---@param item Item
   ---@param item_count number
   ---@param dropped_item MasterLootDistributableItem?
   ---@param candidate_count number
   ---@param candidates ItemCandidate[]
   local function preview_non_soft_ressed_items( buttons, item, item_count, dropped_item, candidate_count, candidates )
-    table.insert( buttons, button( "Roll", function() start( RS.NormalRoll, item, item_count, config.default_rolling_time_seconds() ) end ) )
-    table.insert( buttons, button( "InstaRaidRoll", function() start( RS.InstaRaidRoll, item, item_count ) end ) )
+    add_roll_button( buttons, RS.NormalRoll, item, item_count )
+    add_raid_roll_button( buttons, "InstaRaidRoll", item, item_count )
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, {} ) end
 
     add_close_button( buttons, S.Preview )
 
@@ -379,9 +410,9 @@ function M.new(
   ---@param candidate_count number
   ---@param candidates ItemCandidate[]
   local function preview_hard_ressed_item( buttons, item, item_count, dropped_item, candidate_count, candidates )
-    table.insert( buttons, button( "Roll", function() start( RS.SoftResRoll, item, item_count, config.default_rolling_time_seconds() ) end ) )
+    add_roll_button( buttons, RS.SoftResRoll, item, item_count )
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, {} ) end
 
     add_close_button( buttons, S.Preview )
 
@@ -400,6 +431,13 @@ function M.new(
 
     rolling_popup:show()
     rolling_popup:refresh( rolling_popup_data[ item.id ] )
+  end
+
+  ---@param buttons RollingPopupButtonWithCallback[]
+  ---@param callback fun()
+  local function add_award_winner_button( buttons, callback )
+    player_selection_frame.hide()
+    table.insert( buttons, button( "AwardWinner", callback, should_display_callback ) )
   end
 
   ---@param soft_ressers RollingPlayer[]
@@ -425,11 +463,11 @@ function M.new(
     )
 
     if getn( winners ) == 1 and winners[ 1 ].award_callback then
-      table.insert( buttons, button( "AwardWinner", winners[ 1 ].award_callback, should_display_callback ) )
+      add_award_winner_button( buttons, winners[ 1 ].award_callback )
       winners[ 1 ].award_callback = nil
     end
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, winners ) end
 
     add_close_button( buttons, S.Preview )
 
@@ -458,9 +496,9 @@ function M.new(
   ---@param candidate_count number
   ---@param candidates ItemCandidate[]
   local function preview_sr_items_not_equal_to_item_count( soft_ressers, item, item_count, dropped_item, buttons, candidate_count, candidates )
-    table.insert( buttons, button( "Roll", function() start( RS.SoftResRoll, item, item_count, config.default_rolling_time_seconds() ) end ) )
+    add_roll_button( buttons, RS.SoftResRoll, item, item_count )
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, {} ) end
 
     add_close_button( buttons, S.Preview )
 
@@ -489,6 +527,7 @@ function M.new(
   ---@param strategy_type RollingStrategyType
   local function add_raid_roll_again_button( buttons, item, item_count, strategy_type ) ---@diagnostic disable-line: unused-local -- TODO: leaving for now. Maybe we'll need it.
     table.insert( buttons, button( "RaidRollAgain", function()
+      player_selection_frame.hide()
       start( strategy_type, item, item_count )
     end ) )
   end
@@ -519,13 +558,13 @@ function M.new(
     )
 
     if getn( winners ) == 1 and winners[ 1 ].award_callback then
-      table.insert( buttons, button( "AwardWinner", winners[ 1 ].award_callback, should_display_callback ) )
+      add_award_winner_button( buttons, winners[ 1 ].award_callback )
       winners[ 1 ].award_callback = nil
     end
 
     add_raid_roll_again_button( buttons, item, data.item_count, strategy_type )
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, winners ) end
 
     add_close_button( buttons, S.Finish )
 
@@ -572,13 +611,13 @@ function M.new(
     )
 
     if getn( winners ) == 1 and winners[ 1 ].award_callback then
-      table.insert( buttons, button( "AwardWinner", winners[ 1 ].award_callback, should_display_callback ) )
+      add_award_winner_button( buttons, winners[ 1 ].award_callback )
       winners[ 1 ].award_callback = nil
     end
 
-    table.insert( buttons, button( "RaidRoll", function() start( RS.RaidRoll, item, data.item_count ) end ) )
+    add_raid_roll_button( buttons, "RaidRoll", item, data.item_count )
 
-    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates ) end
+    if candidate_count > 0 then add_award_other_button( dropped_item, buttons, candidates, winners ) end
 
     add_close_button( buttons, S.Finish )
 
@@ -633,12 +672,12 @@ function M.new(
       )
 
       if getn( winners ) == 1 and winners[ 1 ].award_callback then
-        table.insert( buttons, button( "AwardWinner", winners[ 1 ].award_callback, should_display_callback ) )
+        add_award_winner_button( buttons, winners[ 1 ].award_callback )
         winners[ 1 ].award_callback = nil
       end
 
-      table.insert( buttons, button( "RaidRoll", function() start( RS.RaidRoll, item, data.item_count ) end ) )
-      add_award_other_button( dropped_item, buttons, candidates )
+      add_raid_roll_button( buttons, "RaidRoll", item, data.item_count )
+      add_award_other_button( dropped_item, buttons, candidates, winners )
       add_close_button( buttons, "Finished" )
     end
 

@@ -8,6 +8,5 @@
 ## Critical for the release
 
 0. Update README.
-1. Mark winners in the player selection list.
-2. Disable the loot frame when rolling.
+1. Disable the loot frame when rolling.
 
