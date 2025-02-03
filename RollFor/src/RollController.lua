@@ -234,11 +234,6 @@ function M.new(
     end ) )
   end
 
-  local function process_next_item()
-    -- if not player_info.is_master_looter() then return end
-    -- notify_subscribers( "process_next_item" )
-  end
-
   local function award_aborted( item )
     if ml_confirmation_data then
       ml_confirmation_data = nil
@@ -252,15 +247,6 @@ function M.new(
       rolling_popup:refresh( rolling_popup_data[ item.id ] )
       return
     end
-
-    local data, current_iteration = roll_tracker.get()
-
-    if not data or not data.status or not data.item or not current_iteration then
-      process_next_item()
-      return
-    end
-
-    notify_subscribers( "TemporaryHack" ) -- TODO: So we don't break things until everything is aligned in RollingPopupContent.
   end
 
   ---@class MasterLootConfirmationData
@@ -945,8 +931,6 @@ function M.new(
       notify_subscribers( "LootFrameUpdate" )
       return
     end
-
-    process_next_item()
 
     if data.item_count == 0 then
       notify_subscribers( "LootFrameDeselect" )

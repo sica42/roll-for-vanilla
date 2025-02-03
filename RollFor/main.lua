@@ -279,9 +279,6 @@ local function create_components()
   -- TODO: Add type.
   M.tie_roll_gui_data = m.TieRollGuiData.new( M.group_roster )
 
-  ---@type LootAutoProcess
-  M.loot_auto_process = m.LootAutoProcess.new( M.config, M.roll_tracker, M.loot_list, M.roll_controller, M.player_info )
-
   -- TODO: Add type.
   M.welcome_popup = m.WelcomePopup.new( m.FrameBuilder, M.ace_timer, db( "welcome_popup" ) )
 
@@ -325,7 +322,6 @@ local function create_components()
     M.master_loot,
     M.auto_group_loot,
     M.roll_controller,
-    M.loot_auto_process,
     M.player_info
   )
 end

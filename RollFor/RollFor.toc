@@ -75,7 +75,6 @@ src\LootList.lua
 src\SoftResLootListDecorator.lua
 src\LootFrame.lua
 src\RollForAd.lua
-src\LootAutoProcess.lua
 src\RollingStrategyFactory.lua
 src\RollingLogic.lua
 src\ArgsParser.lua

@@ -58,7 +58,6 @@ function M.mock_config( configuration )
     tmog_rolling_enabled = function() return true end,
     insta_raid_roll = function() return true end,
     default_rolling_time_seconds = function() return 8 end,
-    auto_process_loot = function() return false end,
     master_loot_frame_rows = function() return 5 end,
     roll_threshold = function()
       return {
@@ -270,7 +269,6 @@ function M.new_roll_for()
     local dropped_loot = require( "src/DroppedLoot" ).new( db( "dummy" ) )
     local dropped_loot_announce = require( "src/DroppedLootAnnounce" ).new( loot_list, chat, dropped_loot, softres, winner_tracker, player_info )
     local auto_group_loot = require( "mocks/AutoGroupLoot" ).new()
-    local loot_auto_process = require( "src/LootAutoProcess" ).new( config, roll_tracker, loot_list, roll_controller, player_info )
     local loot_facade_listener = require( "src/LootFacadeListener" ).new(
       loot_facade,
       auto_loot,
@@ -278,7 +276,6 @@ function M.new_roll_for()
       master_loot,
       auto_group_loot,
       roll_controller,
-      loot_auto_process,
       player_info
     )
     deps[ "LootFacadeListener" ] = loot_facade_listener

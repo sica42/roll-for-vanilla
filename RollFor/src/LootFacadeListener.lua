@@ -13,7 +13,6 @@ local M = {}
 ---@param master_loot MasterLoot
 ---@param auto_group_loot AutoGroupLoot
 ---@param roll_controller RollController
----@param loot_auto_process LootAutoProcess
 ---@param player_info PlayerInfo
 function M.new(
     loot_facade,
@@ -22,7 +21,6 @@ function M.new(
     master_loot,
     auto_group_loot,
     roll_controller,
-    loot_auto_process,
     player_info
 )
   loot_facade.subscribe( "LootOpened", function()
@@ -31,12 +29,10 @@ function M.new(
     master_loot.on_loot_opened()
     auto_group_loot.on_loot_opened()
     roll_controller.loot_opened()
-    loot_auto_process.on_loot_opened()
   end )
 
   loot_facade.subscribe( "LootClosed", function()
     roll_controller.loot_closed()
-    loot_auto_process.on_loot_closed()
   end )
 
   loot_facade.subscribe( "LootSlotCleared", function( slot )

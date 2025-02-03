@@ -25,8 +25,6 @@ function M.new( db )
     [ "rolling_popup_lock" ] = { cmd = "rolling-popup-lock", display = "Rolling popup lock", help = "toggle rolling popup lock" },
     [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },
     [ "insta_raid_roll" ] = { cmd = "insta-rr", display = "Insta raid-roll", help = "toggle insta raid-roll" },
-    [ "auto_process_loot" ] = { cmd = "auto-process-loot", display = "Auto process loot", help = "toggle auto loot processing" },
-    [ "autostart_loot_process" ] = { cmd = "autostart-loot-process", display = "Autostart loot process on loot open", help = "toggle autostart loot processing" },
   }
 
   local function notify_subscribers( event, value )
@@ -45,7 +43,6 @@ function M.new( db )
     if db.show_ml_warning == nil then db.show_ml_warning = false end
     if db.default_rolling_time_seconds == nil then db.default_rolling_time_seconds = 8 end
     if db.master_loot_frame_rows == nil then db.master_loot_frame_rows = 5 end
-    if db.auto_process_loot == nil then db.auto_process_loot = true end
     if db.auto_master_loot == nil then db.auto_master_loot = true end
   end
 
