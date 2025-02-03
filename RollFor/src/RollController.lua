@@ -240,6 +240,7 @@ function M.new(
   local function add_close_button( buttons, status ) ---@diagnostic disable-line: unused-local -- TODO: leaving for now. Maybe we'll need it.
     table.insert( buttons, button( "Close", function()
       M.debug.add( "on_close" )
+      player_selection_frame.hide()
 
       local item_id = currently_displayed_item and currently_displayed_item.id
 
