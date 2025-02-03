@@ -13,6 +13,7 @@ The Master Looter then assigns the item directly to the winner.
 ## Features
 
 ### Fully SR-integrated loot list
+<img src="docs/loot-list.gif?v=2" alt="SR-integrated loot list" style="width:720px;height:350">
 
 ---
 
