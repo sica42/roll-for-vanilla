@@ -489,14 +489,14 @@ function M.dropped_item( parent, text )
 
   local function on_enter()
     if not item then return end
-    if not item.tooltip_link then return end
+    if item.tooltip_link then
+      ---@diagnostic disable-next-line: undefined-global
+      local self = this
 
-    ---@diagnostic disable-next-line: undefined-global
-    local self = this
-
-    m.api.GameTooltip:SetOwner( self, "ANCHOR_RIGHT" )
-    m.api.GameTooltip:SetHyperlink( item.tooltip_link )
-    m.api.GameTooltip:Show()
+      m.api.GameTooltip:SetOwner( self, "ANCHOR_RIGHT" )
+      m.api.GameTooltip:SetHyperlink( item.tooltip_link )
+      m.api.GameTooltip:Show()
+    end
 
     if not item.is_enabled then return end
     hovered_color()
@@ -518,23 +518,23 @@ function M.dropped_item( parent, text )
 
   container.comment:SetScript( "OnEnter", function()
     if not item then return end
-    if not item.comment_tooltip then return end
+    if item.comment_tooltip then
+      ---@diagnostic disable-next-line: undefined-global
+      local self = this
+      self.tooltip_scale = m.api.GameTooltip:GetScale()
+      m.api.GameTooltip:SetOwner( self, "ANCHOR_RIGHT" )
 
-    ---@diagnostic disable-next-line: undefined-global
-    local self = this
-    self.tooltip_scale = m.api.GameTooltip:GetScale()
-    m.api.GameTooltip:SetOwner( self, "ANCHOR_RIGHT" )
+      local result = ""
 
-    local result = ""
+      for _, line in ipairs( item.comment_tooltip ) do
+        if result ~= "" then result = result .. "\n" end
+        result = result .. line
+      end
 
-    for _, line in ipairs( item.comment_tooltip ) do
-      if result ~= "" then result = result .. "\n" end
-      result = result .. line
+      m.api.GameTooltip:AddLine( result, 1, 1, 1 )
+      m.api.GameTooltip:SetScale( 0.9 )
+      m.api.GameTooltip:Show()
     end
-
-    m.api.GameTooltip:AddLine( result, 1, 1, 1 )
-    m.api.GameTooltip:SetScale( 0.9 )
-    m.api.GameTooltip:Show()
 
     if not item.is_enabled then return end
     hovered_color()
