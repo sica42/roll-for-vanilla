@@ -110,6 +110,14 @@ function M.i( name, id, sr_players, hard_ressed, quality )
   return item
 end
 
+---@param name string
+---@param id number?
+---@param quality number?
+---@return MasterLootDistributableItem
+function M.qi( name, id, quality )
+  return M.i( name, id, nil, nil, quality )
+end
+
 function M.new_roll_for()
   local dependencies = {}
   local builder = {}

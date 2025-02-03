@@ -245,7 +245,22 @@ function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller
     loot_frame.hide()
   end
 
-  local function deselect()
+  ---@class LootFrameDeselectData
+  ---@field item_id number?
+
+  ---@param data LootFrameDeselectData
+  local function deselect( data )
+    if data.item_id then
+      local key = string.format( "^%s", data.item_id )
+
+      for k, _ in pairs( item_selection_cache ) do
+        if string.find( k, key ) then item_selection_cache[ k ] = nil end
+      end
+
+      update()
+      return
+    end
+
     if not selected_item then return end
 
     M.debug.add( "deselect" )

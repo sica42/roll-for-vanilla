@@ -224,13 +224,15 @@ function M.new(
     table.insert( buttons, button( "Close", function()
       M.debug.add( "on_close" )
 
+      local item_id = rolling_popup_item and rolling_popup_item.id
+
       if rolling_popup_item then
         rolling_popup_data[ rolling_popup_item.id ] = nil
         rolling_popup_item = nil
       end
 
       rolling_popup.hide()
-      notify_subscribers( "LootFrameDeselect" )
+      notify_subscribers( "LootFrameDeselect", { item_id = item_id } )
     end ) )
   end
 
@@ -933,7 +935,7 @@ function M.new(
     end
 
     if data.item_count == 0 then
-      notify_subscribers( "LootFrameDeselect" )
+      notify_subscribers( "LootFrameDeselect", { item_id = item_id } )
 
       if rolling_popup_item then
         rolling_popup_data[ rolling_popup_item.id ] = nil
@@ -992,6 +994,8 @@ function M.new(
     local status = roll_tracker.get().status
 
     if status and status.type == S.Preview then
+      local item_id = rolling_popup_item and rolling_popup_item.id
+
       if rolling_popup_item then
         rolling_popup_data[ rolling_popup_item.id ] = nil
         rolling_popup_item = nil
@@ -999,7 +1003,7 @@ function M.new(
 
       roll_tracker.clear()
       rolling_popup.hide()
-      notify_subscribers( "LootFrameDeselect" )
+      notify_subscribers( "LootFrameDeselect", { item_id = item_id } )
 
       return
     end
