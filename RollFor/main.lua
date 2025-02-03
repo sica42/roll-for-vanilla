@@ -15,8 +15,6 @@ local RollSlashCommand = m.Types.RollSlashCommand
 local getn = table.getn
 
 local function clear_data()
-  M.dropped_loot.clear()
-  M.awarded_loot.clear()
   M.softres_gui.clear()
   M.name_matcher.clear( true )
   M.softres.clear( true )
@@ -260,7 +258,7 @@ local function create_components()
   M.auto_loot = m.AutoLoot.new( M.loot_list, M.api, db( "auto_loot" ), M.config )
 
   -- TODO: Add type.
-  M.new_group_event = m.NewGroupEvent.new()
+  M.new_group_event = m.NewGroupEvent.new( M.group_roster )
 
   -- TODO: Add type.
   M.auto_group_loot = m.AutoGroupLoot.new( M.loot_list, M.config, m.BossList.zones, M.player_info )
@@ -328,6 +326,11 @@ local function subscribe_for_component_events()
     else
       M.master_loot_warning.hide()
     end
+  end )
+
+  M.new_group_event.subscribe( function()
+    M.awarded_loot.clear()
+    M.dropped_loot.clear()
   end )
 end
 

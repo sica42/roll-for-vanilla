@@ -9,6 +9,5 @@
 
 0. Update README.
 1. Mark winners in the player selection list.
-2. Add a safety mechanism not to reset awarded loot if the SR list is re-imported.
-3. Disable the loot frame when rolling.
+2. Disable the loot frame when rolling.
 

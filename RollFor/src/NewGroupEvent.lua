@@ -5,13 +5,14 @@ if m.NewGroupEvent then return end
 
 local M = {}
 
-local function in_group()
-  return m.api.IsInParty() or m.api.IsInRaid()
-end
+---@class NewGroupEvent
+---@field on_group_changed fun()
+---@field subscribe fun( callback: fun() )
 
-function M.new()
+---@param group_roster GroupRoster
+function M.new( group_roster )
   local m_subscribers = {}
-  local group = in_group()
+  local group = group_roster.am_i_in_group()
 
   local function notify_subscribers()
     for _, subscriber in ipairs( m_subscribers ) do
@@ -20,7 +21,7 @@ function M.new()
   end
 
   local function on_group_changed()
-    local in_group_now = in_group()
+    local in_group_now = group_roster.am_i_in_group()
 
     if not group and in_group_now then
       group = true
