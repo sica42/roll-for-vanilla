@@ -320,4 +320,90 @@ function LootListSpec:should_not_select_the_loot_if_the_popup_was_closed_after_l
   )
 end
 
+function LootListSpec:should_display_the_winning_content_popup_after_rolling_and_switching_to_another_loot_and_then_opening_back_the_original_loot()
+  -- Given
+  local loot_facade, chat = mock_loot_facade(), mock_chat()
+  local item, item2, item3, p1, p2 = qi( "Bag", 123, 1 ), qi( "Hearthstone", 69, 1 ), qi( "Sword", 42 ), p( "Psikutas" ), p( "Obszczymucha" )
+  local rf = new_roll_for()
+      :loot_facade( loot_facade )
+      :raid_roster( p1, p2 )
+      :chat( chat )
+      :build()
+  mock_random( { { 1, 2, 1 } } )
+  rf.enable_debug( "RollController", "LootController" )
+
+  -- Then
+  rf.loot_frame.should_be_hidden()
+
+  -- When
+  loot_facade.notify( "LootOpened", item, item2 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Bag" ),
+    enabled_item( 2, "Hearthstone" )
+  )
+  rf.rolling_popup.should_be_hidden()
+
+  -- When
+  rf.loot_frame.click( 1 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    selected_item( 1, "Bag" ),
+    disabled_item( 2, "Hearthstone" )
+  )
+  rf.rolling_popup.should_display(
+    item_link( item, 1 ),
+    buttons( "Roll", "InstaRaidRoll", "AwardOther", "Close" )
+  )
+
+  -- When
+  rf.rolling_popup.click( "InstaRaidRoll" )
+
+  -- Then
+  chat.raid( "Obszczymucha wins [Bag] (raid-roll)." )
+  rf.rolling_popup.should_display(
+    item_link( item, 1 ),
+    text( "Obszczymucha wins the raid-roll.", 11 ),
+    buttons( "AwardWinner", "RaidRollAgain", "AwardOther", "Close" )
+  )
+
+  -- When
+  loot_facade.notify( "LootClosed" )
+  loot_facade.notify( "LootOpened", item3 )
+
+  -- Then
+  rf.rolling_popup.should_display(
+    item_link( item, 1 ),
+    text( "Obszczymucha wins the raid-roll.", 11 ),
+    buttons( "RaidRollAgain", "Close" )
+  )
+
+  -- When
+  rf.loot_frame.click( 1 )
+
+  -- Then
+  rf.rolling_popup.should_display(
+    item_link( item3, 1 ),
+    buttons( "Roll", "InstaRaidRoll", "AwardOther", "Close" )
+  )
+
+  -- When
+  loot_facade.notify( "LootClosed" )
+
+  -- Then
+  rf.rolling_popup.should_be_hidden()
+
+  -- When
+  loot_facade.notify( "LootOpened", item, item2 )
+
+  -- Then
+  rf.rolling_popup.should_display(
+    item_link( item, 1 ),
+    text( "Obszczymucha wins the raid-roll.", 11 ),
+    buttons( "AwardWinner", "RaidRollAgain", "AwardOther", "Close" )
+  )
+end
+
 os.exit( lu.LuaUnit.run() )
