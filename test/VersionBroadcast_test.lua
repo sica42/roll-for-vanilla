@@ -42,7 +42,7 @@ function VersionBroadcastSpec.should_not_recognize_their_version_as_newer_cuz_th
   eq( result, false )
 end
 
-function VersionBroadcastSpec.should_not_recognize_their_version_as_newer_if_they_have_a_bug_fix()
+function VersionBroadcastSpec.should_recognize_their_version_as_newer_if_they_have_a_bug_fix()
   -- Given
   local mine = "3.7"
   local theirs = "3.7.1"
