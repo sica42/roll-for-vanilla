@@ -449,7 +449,7 @@ function LootListSpec:should_not_allow_to_select_item_while_rolling_is_in_progre
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -459,7 +459,7 @@ function LootListSpec:should_not_allow_to_select_item_while_rolling_is_in_progre
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -479,7 +479,7 @@ function LootListSpec:should_not_allow_to_select_item_while_rolling_is_in_progre
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   rf.loot_frame.should_display(
     enabled_item( 1, "Hearthstone" ),
@@ -497,7 +497,7 @@ function LootListSpec:should_not_allow_to_select_item_while_rolling_is_in_progre
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 end
 

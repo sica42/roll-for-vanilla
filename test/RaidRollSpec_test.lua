@@ -59,7 +59,7 @@ function SingleWinnerRaidRollSpec:should_auto_raid_roll_if_no_one_rolled()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -154,7 +154,7 @@ function SingleWinnerRaidRollSpec:should_raid_roll_if_no_one_rolled()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -233,7 +233,7 @@ function SingleWinnerRaidRollSpec:should_auto_raid_roll_if_no_one_rolled_and_rep
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -246,7 +246,7 @@ function SingleWinnerRaidRollSpec:should_auto_raid_roll_if_no_one_rolled_and_rep
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 1 second.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When

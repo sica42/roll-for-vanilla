@@ -61,7 +61,7 @@ function NoOneRollsSpec:should_display_roll_button_that_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -71,7 +71,7 @@ function NoOneRollsSpec:should_display_roll_button_that_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -81,7 +81,7 @@ function NoOneRollsSpec:should_display_roll_button_that_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 3 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "Stopping rolls in 3" )
 
@@ -92,7 +92,7 @@ function NoOneRollsSpec:should_display_roll_button_that_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 2 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "2" )
 
@@ -103,7 +103,7 @@ function NoOneRollsSpec:should_display_roll_button_that_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 1 second.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "1" )
 
@@ -169,7 +169,7 @@ function NoOneRollsSpec:should_display_cancel_button_that_cancels()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -179,7 +179,7 @@ function NoOneRollsSpec:should_display_cancel_button_that_cancels()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -189,7 +189,7 @@ function NoOneRollsSpec:should_display_cancel_button_that_cancels()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 3 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "Stopping rolls in 3" )
 
@@ -200,7 +200,7 @@ function NoOneRollsSpec:should_display_cancel_button_that_cancels()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 2 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "2" )
 
@@ -209,7 +209,7 @@ function NoOneRollsSpec:should_display_cancel_button_that_cancels()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling was canceled.", 11 ),
-    buttons( "Close" )
+    buttons( "Roll", "InstaRaidRoll", "AwardOther", "Close" )
   )
 end
 
@@ -261,7 +261,7 @@ function NoOneRollsSpec:should_display_finish_early_button_that_finishes_early()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -271,7 +271,7 @@ function NoOneRollsSpec:should_display_finish_early_button_that_finishes_early()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -281,16 +281,18 @@ function NoOneRollsSpec:should_display_finish_early_button_that_finishes_early()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 3 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "Stopping rolls in 3" )
 
   -- When
+  rf.roll( p2, 96, 1, 99 )
   rf.ace_timer.repeating_tick()
 
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
+    offspec_roll( p2, 96, 11 ),
     text( "Rolling ends in 2 seconds.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -300,17 +302,18 @@ function NoOneRollsSpec:should_display_finish_early_button_that_finishes_early()
   rf.rolling_popup.click( "FinishEarly" )
 
   -- Then
-  chat.console( "RollFor: No one rolled for [Bag]." )
-  chat.raid( "No one rolled for [Bag]." )
+  chat.console( "RollFor: Obszczymucha rolled the highest (96) for [Bag] (OS)." )
+  chat.raid( "Obszczymucha rolled the highest (96) for [Bag] (OS)." )
   chat.console( "RollFor: Rolling for [Bag] finished." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    text( "Rolling finished. No one rolled.", 11 ),
-    buttons( "RaidRoll", "AwardOther", "Close" )
+    offspec_roll( p2, 96, 11 ),
+    text( "Obszczymucha wins the off-spec roll with a 96.", 11 ),
+    buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
 end
 
-function NoOneRollsSpec:should_auto_raid_roll_when_enabled_and_rolling_is_finished_early_without_any_winners()
+function NoOneRollsSpec:should_not_display_finish_early_button_if_no_one_rolled()
   -- Given
   local loot_facade, chat = mock_loot_facade(), mock_chat()
   local item, item2, p1, p2 = i( "Hearthstone", 123 ), i( "Bag", 69 ), p( "Psikutas" ), p( "Obszczymucha" )
@@ -318,7 +321,6 @@ function NoOneRollsSpec:should_auto_raid_roll_when_enabled_and_rolling_is_finish
       :loot_facade( loot_facade )
       :raid_roster( p1, p2 )
       :chat( chat )
-      :config( { auto_raid_roll = true } )
       :build()
   u.mock( "GiveMasterLoot", function( slot ) loot_facade.notify( "LootSlotCleared", slot ) end )
 
@@ -359,7 +361,7 @@ function NoOneRollsSpec:should_auto_raid_roll_when_enabled_and_rolling_is_finish
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -369,7 +371,7 @@ function NoOneRollsSpec:should_auto_raid_roll_when_enabled_and_rolling_is_finish
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -379,28 +381,23 @@ function NoOneRollsSpec:should_auto_raid_roll_when_enabled_and_rolling_is_finish
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 3 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "Stopping rolls in 3" )
 
   -- When
-  rf.ace_timer.repeating_tick()
+  rf.ace_timer.repeating_tick( 3 )
 
   -- Then
-  rf.rolling_popup.should_display(
-    item_link( item2, 1 ),
-    text( "Rolling ends in 2 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
-  )
   chat.raid( "2" )
-
-  -- When
-  rf.rolling_popup.click( "FinishEarly" )
-
-  -- Then
+  chat.raid( "1" )
   chat.console( "RollFor: No one rolled for [Bag]." )
   chat.raid( "No one rolled for [Bag]." )
-  chat.raid( "Raid rolling [Bag]..." )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    text( "Rolling finished. No one rolled.", 11 ),
+    buttons( "RaidRoll", "AwardOther", "Close" )
+  )
 end
 
 function NoOneRollsSpec:should_display_close_button_that_closes_the_popup()
@@ -451,7 +448,7 @@ function NoOneRollsSpec:should_display_close_button_that_closes_the_popup()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -461,7 +458,7 @@ function NoOneRollsSpec:should_display_close_button_that_closes_the_popup()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -471,7 +468,7 @@ function NoOneRollsSpec:should_display_close_button_that_closes_the_popup()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 3 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "Stopping rolls in 3" )
 
@@ -482,7 +479,7 @@ function NoOneRollsSpec:should_display_close_button_that_closes_the_popup()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 2 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "2" )
 
@@ -493,7 +490,7 @@ function NoOneRollsSpec:should_display_close_button_that_closes_the_popup()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 1 second.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "1" )
 
@@ -593,7 +590,7 @@ function NoOneRollsSpec:should_auto_raid_roll_when_enabled_and_there_are_no_winn
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -603,7 +600,7 @@ function NoOneRollsSpec:should_auto_raid_roll_when_enabled_and_there_are_no_winn
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -613,7 +610,7 @@ function NoOneRollsSpec:should_auto_raid_roll_when_enabled_and_there_are_no_winn
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 3 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "Stopping rolls in 3" )
 
@@ -624,7 +621,7 @@ function NoOneRollsSpec:should_auto_raid_roll_when_enabled_and_there_are_no_winn
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 2 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "2" )
 
@@ -635,7 +632,7 @@ function NoOneRollsSpec:should_auto_raid_roll_when_enabled_and_there_are_no_winn
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 1 second.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "1" )
 
@@ -696,7 +693,7 @@ function NoOneRollsSpec:should_display_raid_roll_button_that_raid_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -706,7 +703,7 @@ function NoOneRollsSpec:should_display_raid_roll_button_that_raid_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -716,7 +713,7 @@ function NoOneRollsSpec:should_display_raid_roll_button_that_raid_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 3 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "Stopping rolls in 3" )
 
@@ -727,7 +724,7 @@ function NoOneRollsSpec:should_display_raid_roll_button_that_raid_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 2 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "2" )
 
@@ -738,7 +735,7 @@ function NoOneRollsSpec:should_display_raid_roll_button_that_raid_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 1 second.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "1" )
 
@@ -812,7 +809,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -822,7 +819,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -976,7 +973,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   rf.rolling_popup.should_display(
     item_link( item2, 2 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -986,7 +983,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   rf.rolling_popup.should_display(
     item_link( item2, 2 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -1159,7 +1156,7 @@ function SomeoneRolledSpec:should_display_close_button_that_closes_the_popup_and
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -1268,7 +1265,7 @@ function NormalTieRollSpec:should_display_tie_rolls()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -1469,7 +1466,7 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -1480,7 +1477,7 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
     text( "Rolling ends in 6 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When

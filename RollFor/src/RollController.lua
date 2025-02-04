@@ -189,11 +189,15 @@ function M.new(
     notify_subscribers( "finish_rolling_early" )
   end
 
+  ---@param rolls RollData[]
   ---@return RollingPopupButtonWithCallback[]
-  local function roll_in_progress_buttons()
+  local function roll_in_progress_buttons( rolls )
     local buttons = {}
 
-    table.insert( buttons, button( "FinishEarly", function() finish_rolling_early() end ) )
+    if getn( rolls ) > 0 then
+      table.insert( buttons, button( "FinishEarly", function() finish_rolling_early() end ) )
+    end
+
     table.insert( buttons, button( "Cancel", function() cancel_rolling() end ) )
 
     return buttons
@@ -649,7 +653,7 @@ function M.new(
     local first_iteration = data.iterations[ 1 ]
     local waiting = data.status.type == "Waiting" or false
 
-    local buttons = waiting and roll_in_progress_buttons() or {}
+    local buttons = waiting and roll_in_progress_buttons( first_iteration.rolls ) or {}
 
     if data.status.type == "Finished" then
       local dropped_item = loot_list.get_by_id( item.id )
@@ -813,7 +817,7 @@ function M.new(
         data.item,
         data.item_count,
         not waiting_for_rolls and data.status.seconds_left or nil,
-        roll_in_progress_buttons(),
+        roll_in_progress_buttons( current_iteration.rolls ),
         current_iteration.rolls,
         {},
         strategy_type,
@@ -852,7 +856,7 @@ function M.new(
     local strategy_type = current_iteration and current_iteration.rolling_strategy
 
     if strategy_type == "NormalRoll" or strategy_type == "SoftResRoll" then
-      roll_content( data.item, data.item_count, seconds_left, roll_in_progress_buttons(), current_iteration.rolls, {}, strategy_type )
+      roll_content( data.item, data.item_count, seconds_left, roll_in_progress_buttons( current_iteration.rolls ), current_iteration.rolls, {}, strategy_type )
     end
   end
 
@@ -911,7 +915,7 @@ function M.new(
     local rolls = current_iteration and current_iteration.rolls or {}
 
     if strategy_type == "NormalRoll" or strategy_type == "SoftResRoll" then
-      roll_content( item, item_count, seconds, roll_in_progress_buttons(), rolls, {}, strategy_type )
+      roll_content( item, item_count, seconds, roll_in_progress_buttons( current_iteration.rolls ), rolls, {}, strategy_type )
       return
     end
 
@@ -958,9 +962,15 @@ function M.new(
     local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
     roll_tracker.rolling_canceled()
 
-    local data = roll_tracker.get()
+    local data, iteration = roll_tracker.get()
     local item = data.item
+    local dropped_item = loot_list.get_by_id( item.id )
+    local candidates = ml_candidates.get()
     local buttons = {}
+
+    add_roll_button( buttons, iteration.rolling_strategy, item, data.item_count )
+    add_raid_roll_button( buttons, "InstaRaidRoll", item, data.item_count )
+    add_award_other_button( dropped_item, buttons, candidates, {}, iteration.rolling_strategy )
     add_close_button( buttons, "InProgress" )
 
     rolling_popup_data[ item.id ] = {
@@ -989,7 +999,7 @@ function M.new(
     local strategy_type = current_iteration and current_iteration.rolling_strategy
 
     if strategy_type == "NormalRoll" or strategy_type == "SoftResRoll" then
-      roll_content( data.item, data.item_count, nil, roll_in_progress_buttons(), current_iteration.rolls, {}, strategy_type, true )
+      roll_content( data.item, data.item_count, nil, roll_in_progress_buttons( current_iteration.rolls ), current_iteration.rolls, {}, strategy_type, true )
     end
   end
 
