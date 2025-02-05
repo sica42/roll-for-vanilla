@@ -189,12 +189,27 @@ function M.new(
     notify_subscribers( "finish_rolling_early" )
   end
 
+  -- TODO: RollData can be a placeholder for a SR or tie roll.
+  -- If the roll is a placeholder, we should not count it as a roll.
+  ---@param rolls RollData[]
+  local function count_rolls( rolls )
+    if getn( rolls ) == 0 then return 0 end
+
+    local count = 0
+
+    for _, roll in ipairs( rolls ) do
+      if roll.roll then count = count + 1 end
+    end
+
+    return count
+  end
+
   ---@param rolls RollData[]
   ---@return RollingPopupButtonWithCallback[]
   local function roll_in_progress_buttons( rolls )
     local buttons = {}
 
-    if getn( rolls ) > 0 then
+    if count_rolls( rolls ) > 0 then
       table.insert( buttons, button( "FinishEarly", function() finish_rolling_early() end ) )
     end
 

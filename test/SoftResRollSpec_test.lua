@@ -67,7 +67,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2, 11 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -79,7 +79,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2, 11 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -91,7 +91,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2, 11 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 3 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "Stopping rolls in 3" )
 
@@ -104,7 +104,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2, 11 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 2 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "2" )
 
@@ -117,7 +117,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2, 11 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 1 second.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "1" )
 
@@ -131,7 +131,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2, 11 ),
     roll_placeholder( p1 ),
     text( "Waiting for remaining rolls...", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -250,7 +250,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -263,7 +263,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 7 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -276,7 +276,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 3 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "Stopping rolls in 3" )
 
@@ -290,7 +290,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 2 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "2" )
 
@@ -304,7 +304,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 1 second.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
   chat.raid( "1" )
 
@@ -319,7 +319,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     roll_placeholder( p2 ),
     roll_placeholder( p1 ),
     text( "Waiting for remaining rolls...", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
@@ -502,7 +502,7 @@ function SoftResTieRollSpec:should_display_tie_rolls()
     roll_placeholder( p2, 11 ),
     roll_placeholder( p1 ),
     text( "Rolling ends in 8 seconds.", 11 ),
-    buttons( "FinishEarly", "Cancel" )
+    buttons( "Cancel" )
   )
 
   -- When
