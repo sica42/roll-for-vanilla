@@ -977,16 +977,13 @@ function M.new(
     local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
     roll_tracker.rolling_canceled()
 
-    local data, iteration = roll_tracker.get()
+    local data = roll_tracker.get()
     local item = data.item
-    local dropped_item = loot_list.get_by_id( item.id )
-    local candidates = ml_candidates.get()
     local buttons = {}
 
-    add_roll_button( buttons, iteration.rolling_strategy, item, data.item_count )
-    add_raid_roll_button( buttons, "InstaRaidRoll", item, data.item_count )
-    add_award_other_button( dropped_item, buttons, candidates, {}, iteration.rolling_strategy )
-    add_close_button( buttons, "InProgress" )
+    table.insert( buttons, button( "Close", function()
+      preview( item, data.item_count )
+    end ) )
 
     rolling_popup_data[ item.id ] = {
       item_link = item.link,

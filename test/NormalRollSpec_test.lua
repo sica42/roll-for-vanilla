@@ -206,9 +206,22 @@ function NoOneRollsSpec:should_display_cancel_button_that_cancels()
 
   -- When
   rf.rolling_popup.click( "Cancel" )
+
+  -- Then
+  chat.console( "RollFor: Rolling for [Bag] was canceled." )
+  chat.raid( "Rolling for [Bag] was canceled." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     text( "Rolling was canceled.", 11 ),
+    buttons( "Close" )
+  )
+
+  -- When
+  rf.rolling_popup.click( "Close" )
+
+  -- Then
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
     buttons( "Roll", "InstaRaidRoll", "AwardOther", "Close" )
   )
 end

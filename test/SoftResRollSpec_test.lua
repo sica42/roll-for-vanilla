@@ -193,6 +193,86 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
   )
 end
 
+function WaitForRemainingRollsSpec:should_cancel_rolling_and_display_initial_setup()
+  -- Given
+  local loot_facade, chat = mock_loot_facade(), mock_chat()
+  local item, item2, p1, p2 = i( "Hearthstone", 123 ), i( "Bag", 69 ), p( "Psikutas" ), p( "Obszczymucha" )
+  local rf = new_roll_for()
+      :loot_facade( loot_facade )
+      :raid_roster( p1, p2 )
+      :chat( chat )
+      :soft_res_data( sr( p1.name, 69 ), sr( p2.name, 69 ) )
+      :build()
+  u.mock( "GiveMasterLoot", function( slot ) loot_facade.notify( "LootSlotCleared", slot ) end )
+
+  -- Then
+  rf.loot_frame.should_be_hidden()
+
+  -- When
+  loot_facade.notify( "LootOpened", item, item2 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    enabled_item( 1, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha", "Psikutas" } ),
+    enabled_item( 2, "Hearthstone" )
+  )
+  chat.raid( "Princess Kenny dropped 2 items:" )
+  chat.raid( "1. [Bag] (SR by Obszczymucha and Psikutas)" )
+  chat.raid( "2. [Hearthstone]" )
+  rf.rolling_popup.should_be_hidden()
+
+  -- When
+  rf.loot_frame.click( 1 )
+
+  -- Then
+  rf.loot_frame.should_display(
+    selected_item( 1, "Bag", "SR", { "Soft-ressed by:", "Obszczymucha", "Psikutas" } ),
+    disabled_item( 2, "Hearthstone" )
+  )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    roll_placeholder( p2, 11 ),
+    roll_placeholder( p1 ),
+    buttons( "Roll", "AwardOther", "Close" )
+  )
+
+  -- When
+  rf.rolling_popup.click( "Roll" )
+
+  -- Then
+  chat.raid_warning( "Roll for [Bag]: SR by Obszczymucha and Psikutas" )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    roll_placeholder( p2, 11 ),
+    roll_placeholder( p1 ),
+    text( "Rolling ends in 8 seconds.", 11 ),
+    buttons( "Cancel" )
+  )
+
+  -- When
+  rf.rolling_popup.click( "Cancel" )
+
+  -- Then
+  chat.console( "RollFor: Rolling for [Bag] was canceled." )
+  chat.raid( "Rolling for [Bag] was canceled." )
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    text( "Rolling was canceled.", 11 ),
+    buttons( "Close" )
+  )
+
+  -- When
+  rf.rolling_popup.click( "Close" )
+
+  -- Then
+  rf.rolling_popup.should_display(
+    item_link( item2, 1 ),
+    roll_placeholder( p2, 11 ),
+    roll_placeholder( p1 ),
+    buttons( "Roll", "AwardOther", "Close" )
+  )
+end
+
 function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_award_the_winners()
   -- Given
   local loot_facade, chat = mock_loot_facade(), mock_chat()
