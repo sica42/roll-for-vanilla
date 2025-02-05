@@ -19,6 +19,14 @@ The Master Looter then assigns the item directly to the winner.
 
 <img src="docs/gui-sr-tie.gif" alt="soft-res rolling" style="width:1024;height:380">
 
+### Two top rolls win
+
+In this example, two identical items drop. When clicked on any of these, the addon selects  
+both and performs a "two-top-rolls-win" roll.  Then the Master Looter is presented with  
+individual award buttons for each winner.
+
+<img src="docs/two-items.gif" alt="two top rolls win" style="width:1100px;height:306">
+
 
 ## Features
 
