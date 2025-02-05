@@ -3,6 +3,16 @@ A World of Warcraft (1.12.1) addon that manages rolling for items.
 
 ## Demo
 
+### Overview
+
+In this example, the addon shows the soft-ressed items in the loot list.  
+The Master Looter raid-rolls the trash item, then rolls non-SR items.  
+Then the SR items are rolled.
+
+<img src="docs/bindings.gif?v=2" alt="overview" style="width:1350px;height:350">
+
+### Tie roll
+
 In this example, the addon automatically detects that the item is soft-reserved by two players.  
 It restricts rolling for the item to these players only and resolves any tie automatically.  
 The Master Looter then assigns the item directly to the winner.
@@ -13,7 +23,7 @@ The Master Looter then assigns the item directly to the winner.
 ## Features
 
 ### Fully SR-integrated loot list
-<img src="docs/loot-list.gif?v=2" alt="SR-integrated loot list" style="width:720px;height:350">
+<img src="docs/loot-list.gif" alt="SR-integrated loot list" style="width:720px;height:350">
 
 ---
 
