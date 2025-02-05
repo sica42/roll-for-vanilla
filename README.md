@@ -11,6 +11,9 @@ Then the SR items are rolled.
 
 <img src="docs/bindings.gif?v=2" alt="overview" style="width:1350px;height:350">
 
+View better quality (fullscreen): https://youtu.be/f5nY-CxreIM
+
+
 ### Tie roll
 
 In this example, the addon automatically detects that the item is soft-reserved by two players.  
@@ -18,6 +21,7 @@ It restricts rolling for the item to these players only and resolves any tie aut
 The Master Looter then assigns the item directly to the winner.
 
 <img src="docs/gui-sr-tie.gif" alt="soft-res rolling" style="width:1024;height:380">
+
 
 ### Two top rolls win
 
