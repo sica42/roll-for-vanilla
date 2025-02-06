@@ -25,6 +25,7 @@ function M.new( db )
     [ "rolling_popup_lock" ] = { cmd = "rolling-popup-lock", display = "Rolling popup lock", help = "toggle rolling popup lock" },
     [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },
     [ "insta_raid_roll" ] = { cmd = "insta-rr", display = "Insta raid-roll", help = "toggle insta raid-roll" },
+    [ "verbose_raid_roll" ] = { cmd = "verbose-rr", display = "Verbose raid-roll", help = "toggle showing of player names on raid-roll" },
   }
 
   local function notify_subscribers( event, value )
@@ -44,6 +45,7 @@ function M.new( db )
     if db.default_rolling_time_seconds == nil then db.default_rolling_time_seconds = 8 end
     if db.master_loot_frame_rows == nil then db.master_loot_frame_rows = 5 end
     if db.auto_master_loot == nil then db.auto_master_loot = true end
+    if db.verbose_raid_roll == nil then db.verbose_raid_roll = true end
   end
 
   local function print( toggle_key )

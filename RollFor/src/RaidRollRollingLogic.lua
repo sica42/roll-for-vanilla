@@ -33,7 +33,8 @@ function M.new(
     winner_tracker,
     controller,
     candidates,
-    roller
+    roller,
+    config
 )
   local m_rolling = false
   local m_winners = {}
@@ -73,7 +74,7 @@ function M.new(
 
     chat.announce( string.format( "Raid rolling %s%s...", item_count and item_count > 1 and string.format( "%sx", item_count ) or "", item.link ) )
 
-    print_players( candidates )
+    if not config.verbose_raid_roll or config.verbose_raid_roll() then print_players( candidates ) end
     ace_timer.ScheduleTimer( M, function()
       for _ = 1, item_count do
         raid_roll()
