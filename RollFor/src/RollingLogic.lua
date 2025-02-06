@@ -275,11 +275,6 @@ function M.new( chat, ace_timer, roll_controller, strategy_factory, master_loot_
       elseif data.strategy_type == RS.RaidRoll then
         return strategy_factory.raid_roll( data.item, data.item_count, facade )
       elseif data.strategy_type == RS.InstaRaidRoll then
-        if not config.insta_raid_roll() then
-          chat.info( string.format( "Insta raid-roll is %s.", m.msg.disabled ) )
-          return
-        end
-
         return strategy_factory.insta_raid_roll( data.item, data.item_count, facade )
       end
     end

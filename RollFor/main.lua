@@ -237,7 +237,7 @@ local function create_components()
   M.trade_tracker = m.TradeTracker.new( M.ace_timer, M.chat, trade_complete_callback )
 
   -- TODO: Add type.
-  M.usage_printer = m.UsagePrinter.new( M.config, M.chat )
+  M.usage_printer = m.UsagePrinter.new( M.chat )
 
   -- TODO: Add type.
   M.minimap_button = m.MinimapButton.new( M.api, db( "minimap_button" ), M.softres_gui.toggle, M.softres_check, M.config )

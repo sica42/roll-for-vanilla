@@ -89,11 +89,7 @@ function M.new( api, db, manage_softres_fn, softres_check, config )
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/htr" ), white( "show how to roll" ) ) )
         api().GameTooltip:AddLine( string.format( "%s %s - %s", hl( "/rf" ), grey( "<item>" ), white( "roll for" ) ) )
         api().GameTooltip:AddLine( string.format( "%s %s - %s", hl( "/rr" ), grey( "<item>" ), white( "raid-roll" ) ) )
-
-        if config.insta_raid_roll() then
-          api().GameTooltip:AddLine( string.format( "%s %s - %s", hl( "/irr" ), grey( "<item>" ), white( "insta raid-roll" ) ) )
-        end
-
+        api().GameTooltip:AddLine( string.format( "%s %s - %s", hl( "/irr" ), grey( "<item>" ), white( "insta raid-roll" ) ) )
         api().GameTooltip:AddLine( string.format( "%s %s - %s", hl( "/arf" ), grey( "<item>" ), white( "roll for (ignore SR)" ) ) )
         api().GameTooltip:AddLine( string.format( "%s %s %s - %s", hl( "/rf" ), grey( "<item>" ), grey( "<seconds>" ), white( "roll with custom time" ) ) )
         api().GameTooltip:AddLine( string.format( "%s - %s", hl( "/sr" ), white( "manage softres" ) ) )

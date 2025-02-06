@@ -56,7 +56,6 @@ function M.mock_config( configuration )
     os_roll_threshold = function() return 99 end,
     tmog_roll_threshold = function() return 98 end,
     tmog_rolling_enabled = function() return true end,
-    insta_raid_roll = function() return true end,
     default_rolling_time_seconds = function() return 8 end,
     master_loot_frame_rows = function() return 5 end,
     roll_threshold = function()

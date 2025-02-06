@@ -10,7 +10,7 @@ local run_command = u.run_command
 local tick, roll = u.tick, u.roll
 local mock_math_random, mock_multiple_math_random = u.mock_math_random, u.mock_multiple_math_random
 
-local function mock_config( config )
+local function mock_config()
   return {
     new = function()
       return {
@@ -32,7 +32,6 @@ local function mock_config( config )
         show_rolling_tip = function() return true end,
         tmog_rolling_enabled = function() return true end,
         rolling_popup = function() return true end,
-        insta_raid_roll = function() return config and config.insta_raid_roll end,
         raid_roll_again = function() return false end,
         default_rolling_time_seconds = function() return 8 end
       }
@@ -66,7 +65,7 @@ end
 
 function InstaRaidRollLegacySpec:should_print_usage_if_in_party_and_no_item_is_provided()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_party( "Psikutas", "Obszczymucha" )
 
   -- When
@@ -80,7 +79,7 @@ end
 
 function InstaRaidRollLegacySpec:should_print_usage_if_in_raid_and_no_item_is_provided()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_raid( leader( "Psikutas" ), "Obszczymucha" )
 
   -- When
@@ -94,7 +93,7 @@ end
 
 function InstaRaidRollLegacySpec:should_print_usage_if_in_party_and_invalid_item_is_provided()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_party( "Psikutas", "Obszczymucha" )
 
   -- When
@@ -108,7 +107,7 @@ end
 
 function InstaRaidRollLegacySpec:should_print_usage_if_in_raid_and_invalid_item_is_provided()
   -- Given
-  mock_config( { insta_raid_roll = true } )
+  mock_config()
   player( "Psikutas" )
   is_in_raid( leader( "Psikutas" ), "Obszczymucha" )
 
@@ -121,24 +120,9 @@ function InstaRaidRollLegacySpec:should_print_usage_if_in_raid_and_invalid_item_
   )
 end
 
-function InstaRaidRollLegacySpec:should_not_roll_if_insta_raid_roll_is_disabled()
-  -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = false } ) )
-  is_in_party( "Psikutas", "Obszczymucha" )
-  mock_math_random( 1, 2, 2 )
-
-  -- When
-  insta_raid_roll( "Hearthstone" )
-
-  -- Then
-  m.chat.assert(
-    c( "RollFor: Insta raid-roll is disabled." )
-  )
-end
-
 function InstaRaidRollLegacySpec:should_raid_roll_the_item_in_party_chat()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_party( "Psikutas", "Obszczymucha" )
   mock_math_random( 1, 2, 2 )
 
@@ -153,7 +137,7 @@ end
 
 function InstaRaidRollLegacySpec:should_raid_roll_two_items_in_party_chat()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_party( "Psikutas", "Obszczymucha" )
   mock_multiple_math_random( { { 1, 2, 2 }, { 1, 2, 1 } } )
 
@@ -169,7 +153,7 @@ end
 
 function InstaRaidRollLegacySpec:should_raid_roll_the_item_in_party_chat_2()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_party( "Psikutas", "Obszczymucha" )
   mock_math_random( 1, 2, 1 )
 
@@ -184,7 +168,7 @@ end
 
 function InstaRaidRollLegacySpec:should_not_raid_roll_if_rolling_is_in_progress()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_party( "Psikutas", "Obszczymucha" )
 
   -- When
@@ -200,7 +184,7 @@ end
 
 function InstaRaidRollLegacySpec:should_ignore_other_players_rolls()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_party( "Psikutas", "Obszczymucha" )
   mock_math_random( 1, 2, 1 )
 
@@ -217,7 +201,7 @@ end
 
 function InstaRaidRollLegacySpec:should_raid_roll_the_item_in_raid_chat()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_raid( "Psikutas", "Obszczymucha" )
   mock_math_random( 1, 2, 1 )
 
@@ -232,7 +216,7 @@ end
 
 function InstaRaidRollLegacySpec:should_raid_roll_the_item_in_raid_chat_even_as_a_leader()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_raid( leader( "Psikutas" ), "Obszczymucha" )
   mock_math_random( 1, 2, 1 )
 
@@ -248,7 +232,7 @@ end
 
 function InstaRaidRollLegacySpec:should_show_the_winner_with_ssr_command()
   -- Given
-  player( "Psikutas", mock_config( { insta_raid_roll = true } ) )
+  player( "Psikutas", mock_config() )
   is_in_party( "Psikutas", "Obszczymucha" )
   mock_math_random( 1, 2, 1 )
 
