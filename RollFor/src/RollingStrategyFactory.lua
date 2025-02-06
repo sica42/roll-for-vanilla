@@ -125,7 +125,7 @@ function M.new(
         return
       end
 
-      return f( chat, ace_timer, item, item_count or 1, winner_tracker, roll_controller_facade, online_candidates, player_info, config )
+      return f( chat, ace_timer, item, item_count or 1, winner_tracker, roll_controller_facade, online_candidates, player_info )
     end
   end
 
