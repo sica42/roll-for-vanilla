@@ -151,6 +151,7 @@ function M.new( frame_builder, db, config )
   ---@field name string
   ---@field quality ItemQuality
   ---@field quantity number
+  ---@field link ItemLink
   ---@field click_fn fun()
   ---@field is_selected boolean
   ---@field is_enabled boolean

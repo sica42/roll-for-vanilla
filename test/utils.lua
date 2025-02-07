@@ -110,6 +110,7 @@ function M.mock_wow_api()
   M.modules().api.PlaySound = function() end
   M.modules().api.SendAddonMessage = function() end
   M.modules().api.IsShiftKeyDown = function() return false end
+  M.modules().api.IsControlKeyDown = function() return false end
   M.modules().api.GetItemInfo = function() return nil, nil, 4 end
   M.modules().api.UIFrameFade = function() end
   M.modules().api.UnitIsConnected = function() return true end

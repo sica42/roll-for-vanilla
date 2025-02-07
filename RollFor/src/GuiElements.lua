@@ -45,34 +45,6 @@ function M.empty_line( parent )
   return result
 end
 
-function M.item_link( parent )
-  local result = m.api.CreateFrame( "Button", nil, parent )
-
-  result.text = result:CreateFontString( nil, "ARTWORK", "GameFontNormal" )
-  result.text:SetPoint( "TOP", 0, 0 )
-  result.text:SetText( "PrincessKenny" )
-  result:SetHeight( result.text:GetHeight() )
-
-  result:SetScript( "OnEnter", function()
-    ---@diagnostic disable-next-line: undefined-global
-    local self = this
-    m.api.GameTooltip:SetOwner( self, "ANCHOR_CURSOR" )
-    m.api.GameTooltip:SetHyperlink( result.tooltip_link )
-    m.api.GameTooltip:Show()
-  end )
-
-  result:SetScript( "OnLeave", function()
-    m.api.GameTooltip:Hide()
-  end )
-
-  result.SetText = function( _, v )
-    result.text:SetText( v )
-    result:SetWidth( result.text:GetWidth() )
-  end
-
-  return result
-end
-
 function M.item_link_with_icon( parent, text )
   local container = create_text_in_container( "Button", parent, 20, nil, nil, "text" )
 
@@ -164,6 +136,18 @@ function M.item_link_with_icon( parent, text )
 
   container:SetScript( "OnEnter", on_enter )
   container:SetScript( "OnLeave", on_leave )
+  container:SetScript( "OnClick", function()
+    if not tooltip_link then return end
+
+    if m.is_ctrl_key_down() then
+      m.api.DressUpItemLink( container.text:GetText() )
+      return
+    end
+
+    if m.is_shift_key_down() then
+      m.link_item_in_chat( container.text:GetText() )
+    end
+  end )
 
   return container
 end
@@ -474,8 +458,20 @@ function M.dropped_item( parent, text )
       container.quantity:Hide()
     end
 
-    container:SetScript( "OnClick", v.is_enabled and not v.is_selected and v.click_fn or nil )
-    container.icon:SetScript( "OnClick", v.is_enabled and not v.is_selected and v.click_fn or nil )
+    local function modifier_fn()
+      if m.is_ctrl_key_down() then
+        m.api.DressUpItemLink( v.link )
+        return
+      end
+
+      if m.is_shift_key_down() then
+        m.link_item_in_chat( v.link )
+        return
+      end
+    end
+
+    container:SetScript( "OnClick", v.is_enabled and not v.is_selected and v.click_fn or modifier_fn )
+    container.icon:SetScript( "OnClick", v.is_enabled and not v.is_selected and v.click_fn or modifier_fn )
 
     -- Fucking hell this took forever to figure out. Fuck you Blizzard.
     -- For looting to work in vanilla, the frame must be of a "LootButton" type and
