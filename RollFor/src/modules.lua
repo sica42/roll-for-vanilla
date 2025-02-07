@@ -525,6 +525,10 @@ function M.is_shift_key_down()
   return M.api.IsShiftKeyDown()
 end
 
+function M.is_ctrl_key_down()
+  return M.api.IsControlKeyDown()
+end
+
 function M.get_all_key_modifiers()
   local alt = M.api.IsAltKeyDown()
   local ctrl = M.api.IsControlKeyDown()
@@ -727,6 +731,15 @@ end
 ---@param coin_name string?
 function M.one_line_coin_name( coin_name )
   return string.gsub( coin_name or "", "\n", ", " )
+end
+
+---@param item_link string
+function M.link_item_in_chat( item_link )
+  if M.api.ChatEdit_InsertLink then
+    M.api.ChatEdit_InsertLink( item_link )
+  elseif M.api.ChatFrameEditBox:IsVisible() then
+    M.api.ChatFrameEditBox:Insert( item_link )
+  end
 end
 
 return M

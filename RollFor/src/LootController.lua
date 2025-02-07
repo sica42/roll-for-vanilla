@@ -226,7 +226,18 @@ function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller
         name = is_coin and m.one_line_coin_name( item.amount_text ) or item.name,
         quality = item.quality or 0,
         quantity = item.quantity,
+        link = item.link,
         click_fn = function()
+          if m.is_ctrl_key_down() then
+            m.api.DressUpItemLink( item.link )
+            return
+          end
+
+          if m.is_shift_key_down() then
+            m.link_item_in_chat( item.link )
+            return
+          end
+
           if rolling_logic.is_rolling() then
             chat.info( "Cannot select item while rolling is in progress.", m.colors.red )
             return

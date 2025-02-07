@@ -66,7 +66,7 @@ function M.new( frame_builder, db, config )
 
   frame.should_display = function( ... )
     should_be_visible( 3 )
-    eq( m_items and cleanse( u.clone( m_items ), "quality", "slot", "tooltip_link" ) or {}, { ... }, _, _, 3 )
+    eq( m_items and cleanse( u.clone( m_items ), "quality", "slot", "tooltip_link", "link" ) or {}, { ... }, _, _, 3 )
   end
 
   frame.should_display_detailed = function( ... )

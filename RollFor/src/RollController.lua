@@ -9,6 +9,7 @@ local S = m.Types.RollingStatus
 local RS = m.Types.RollingStrategy
 local LAE = m.Types.LootAwardError
 local IU = m.ItemUtils ---@type ItemUtils
+local hl = m.colors.hl
 local getn = table.getn
 
 ---@class RollControllerFacade
@@ -674,7 +675,7 @@ function M.new(
 
     local buttons = waiting and roll_in_progress_buttons( first_iteration.rolls ) or {}
 
-    if data.status.type == "Finished" then
+    if data.status and data.status.type == "Finished" then
       local dropped_item = loot_list.get_by_id( item.id )
       local candidates = ml_candidates.get()
 
@@ -780,7 +781,7 @@ function M.new(
     if roll_trackers[ item.id ] then
       local data = roll_trackers[ item.id ].get()
 
-      if data.status.type == S.Finished then
+      if data.status and data.status.type == S.Finished then
         currently_displayed_item = data.item
         refresh_finish_popup_content( ml_candidates.get() )
         return
@@ -1100,7 +1101,7 @@ function M.new(
 
     local data = roll_tracker.get()
 
-    if data.status.type == "Finished" then
+    if data.status and data.status.type == "Finished" then
       refresh_finish_popup_content( ml_candidates.get() )
       return
     end
@@ -1198,14 +1199,15 @@ function M.new(
     local roll_tracker = roll_trackers[ item_id ]
     local data = roll_tracker.get()
 
-    if data.status.type == S.Finished and not currently_displayed_item then
+    if data.status and data.status.type == S.Finished and not currently_displayed_item then
       currently_displayed_item = data.item
       refresh_finish_popup_content( ml_candidates.get() )
       return
     end
 
     if not currently_displayed_item then
-      m.err( "Murphy's Law" )
+      m.err( "You found a bug!" )
+      m.info( string.format( "Please type: %s and send %s the screenshot on Discord. Thank you.", hl( "/rf debug show" ), hl( "Obszczymucha" ) ) )
     end
   end
 

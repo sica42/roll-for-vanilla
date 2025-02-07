@@ -196,11 +196,22 @@ local function show( module_names )
     return
   end
 
-  pp( "Debug messages:", m.colors.grey )
+  local msg = function( tag )
+    return string.format(
+      "Debug messages %s (%s %s):",
+      tag,
+      m.colors.blue( "RollFor" ),
+      m.colors.hl( "v" .. m.get_addon_version().str )
+    )
+  end
+
+  pp( msg( "start" ) )
 
   for _, message in ipairs( result ) do
     pp( message.text, m.colors.grey, m.colorize( c[ message.module_name ], message.module_name ) )
   end
+
+  pp( msg( "end" ) )
 end
 
 function M.on_command( args )
@@ -215,7 +226,7 @@ function M.on_command( args )
   end
 
   if args == "debug show" then
-    show( { "RollController", "LootController", "LootAwardPopup" } )
+    show( { "RollController", "LootController" } )
     return
   end
 
