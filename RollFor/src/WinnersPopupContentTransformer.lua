@@ -30,7 +30,9 @@ function M.new( config, group_roster )
             table.insert(content, {type = "winner", player_name = item.player_name, player_class = class, link = itemLink, roll_type = item.roll_type, rolling_strategy = item.rolling_strategy})
         end
 
-        table.insert(content, {type = "button", label = "Close", on_click = function() popup:Hide() end } )
+        table.insert(content, {type = "button", label = "Options" } )
+        table.insert(content, {type = "button", label = "Close" } )
+        
 
         return content
     end

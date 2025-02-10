@@ -192,17 +192,42 @@ function M.icon_text( parent, text )
   return container
 end
 
+function M.checkbox( parent, text )
+  local container = m.api.CreateFrame( "Frame", nil, parent )
+  container:SetWidth( 32 )
+  container:SetHeight( 32 )
+  container:SetFrameStrata( "DIALOG" )
+  container:SetFrameLevel( parent:GetFrameLevel() + 1 )
+
+  local checkbox = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate")
+  checkbox:SetPoint("LEFT", 0, 0)
+  checkbox:SetWidth(24)
+  checkbox:SetHeight(24)
+
+  local label = checkbox:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+  label:SetPoint("LEFT", checkbox, "RIGHT", 4, 0)
+  label:SetText( "Hola bola" )
+  label:SetTextColor( 1, 1, 1 )
+    
+  container.checkbox = checkbox
+  container.label = label
+
+  return container
+end
+
 function M.winner_header( parent )  
   local frame = m.api.CreateFrame( "Frame", nil, parent )
-  frame:SetWidth( 190 )
+  frame:SetWidth( 210 )
   frame:SetHeight( 14 )
   frame:SetFrameStrata( "DIALOG" )
   frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
-
   frame:EnableMouse( true )
 
-  local player_header = create_text_in_container( "Button", frame, 63, "LEFT", "Player" )
-  player_header:SetPoint( "LEFT", 0, 0 )
+  local player_header = create_text_in_container( "Button", frame, 74, "LEFT", "Player" )
+  player_header.inner:SetPoint( "LEFT", 2, 0 )
+  player_header:SetHeight( 15 )
+  player_header:SetPoint( "LEFT", 0, 0 )  
+
   player_header:SetBackdrop( {
     bgFile = "Interface/Buttons/WHITE8x8",
     tile = true,
@@ -211,7 +236,9 @@ function M.winner_header( parent )
   player_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
   frame.player_header = player_header
 
-  local item_header = create_text_in_container( "Button", frame, 90, "LEFT", "Item" )
+  local item_header = create_text_in_container( "Button", frame, 107, "LEFT", "Item" )
+  item_header.inner:SetPoint( "LEFT", 2, 0 )
+  item_header:SetHeight( 15 )
   item_header:SetPoint( "LEFT", frame, "LEFT", 75, 0 )
   item_header:SetBackdrop( {
     bgFile = "Interface/Buttons/WHITE8x8",
@@ -221,7 +248,9 @@ function M.winner_header( parent )
   item_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
   frame.item_header = item_header
 
-  local type_header = create_text_in_container( "Button", frame, 20, "RIGHT", "Type" )
+  local type_header = create_text_in_container( "Button", frame, 26, "RIGHT", "Type" )
+  type_header.inner:SetPoint( "LEFT", 2, 0 )
+  type_header:SetHeight( 15 )
   type_header:SetPoint( "RIGHT", 0, 0 )
   type_header:SetBackdrop( {
     bgFile = "Interface/Buttons/WHITE8x8",
@@ -236,7 +265,7 @@ end
 
 function M.winner( parent )
   local frame = m.api.CreateFrame( "Button", nil, parent )  
-  frame:SetWidth( 190 )
+  frame:SetWidth( 210 )
   frame:SetHeight( 14 )
   frame:SetFrameStrata( "DIALOG" )
   frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
@@ -250,39 +279,13 @@ function M.winner( parent )
     frame:SetBackdropColor( 0.125, 0.624, 0.976, a )
   end
 
-  local function hover()
-    if frame.is_selected then
-      return
-    end
-
-    blue_hover( 0.2 )
-  end
-
-  frame.select = function()
-    blue_hover( 0.3 )
-    frame.is_selected = true
-  end
-
-  local function no_hover()
-    if frame.is_selected then
-      frame.select()
-    else
-      blue_hover( 0 )
-    end
-  end
-
-  frame.deselect = function()
-    blue_hover( 0 )
-    frame.is_selected = false
-  end
-
-  frame:deselect()
+  blue_hover( 0 )
   frame:SetScript( "OnEnter", function()
-    hover()
+    blue_hover( 0.2 )
   end )
 
   frame:SetScript( "OnLeave", function()
-    no_hover()
+    blue_hover( 0 )
   end )
 
   frame:EnableMouse( true )

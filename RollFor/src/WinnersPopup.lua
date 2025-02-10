@@ -9,6 +9,7 @@ local blue = m.colors.blue
 local getn = table.getn
 local sort
 local sortOrder = 'desc'
+local showOptions = false
 
 local button_defaults = {
   width = 80,
@@ -96,7 +97,7 @@ function M.new( popup_builder, content_transformer, db, awarded_loot, roll_contr
 
     local builder = popup_builder
         :name( "WinnersFrame" )
-        :width( 190 )
+        :width( 200 )
         :height( 100 )
         :point( get_point() )
         :bg_file( "Interface/Buttons/WHITE8x8" )
@@ -134,6 +135,29 @@ function M.new( popup_builder, content_transformer, db, awarded_loot, roll_contr
     end
 
     if (sort) then table.sort( data, mySort ) end
+--[[
+    if showOptions then
+      
+      popup.add_line("text", function( type, frame, lines ) frame:SetText( "Options" ) end )
+
+
+      for k, v in pairs( m.Types.ItemQuality ) do
+        m.pretty_print("DEBUG: " .. k ..'='..v)
+      end
+
+      popup.add_line("checkbox", function( type, frame, lines ) 
+        frame.label:SetText('lala')
+        frame.checkbox:SetScript("OnClick", function()
+            m.pretty_print("check")
+            --do stuff
+        end)
+        frame:ClearAllPoints()
+        local count = getn( lines )
+        local line_anchor = lines[ count ].frame
+        frame:SetPoint( "TOP", line_anchor, "BOTTOM", 0, 10 )
+      end)
+    end
+    ]]
 
     for _, v in ipairs( content_transformer.transform( data ) ) do
       popup.add_line( v.type, function( type, frame, lines )
@@ -162,7 +186,11 @@ function M.new( popup_builder, content_transformer, db, awarded_loot, roll_contr
         elseif type == "winner" then          
           frame.player_name:SetText( c( v.player_name, v.player_class ) )
           frame.item_link:SetText ( v.link )
-          frame.roll_type:SetText( m.roll_type_color( v.roll_type, m.roll_type_abbrev( v.roll_type ) ) .. (v.rolling_strategy or ''))
+
+          if v.rolling_strategy == m.Types.RollingStrategy.RaidRoll or v.rolling_strategy == m.Types.RollingStrategy.InstaRaidRoll then
+            v.roll_type = m.Types.RollType.RaidRoll
+          end
+          frame.roll_type:SetText( m.roll_type_color( v.roll_type, v.roll_type and m.roll_type_abbrev( v.roll_type ) or "NA" ) )
         elseif type == "button" then
           frame:SetWidth( v.width or button_defaults.width )
           frame:SetHeight( v.height or button_defaults.height )
@@ -171,7 +199,12 @@ function M.new( popup_builder, content_transformer, db, awarded_loot, roll_contr
 
           if v.label == "Close" then
             frame:SetScript( "OnClick", function() popup:Hide() end )
-          end
+          elseif v.label =="Options" then
+            frame:SetScript( "OnClick", function()
+              showOptions = not showOptions
+              refresh()
+            end )
+          end          
         end
 
         if type ~= "button" then
@@ -245,7 +278,6 @@ function M.new( popup_builder, content_transformer, db, awarded_loot, roll_contr
   end
 
   local function on_loot_awarded()
-    m.pretty_print("on loot awarded")
     refresh()
   end
 
