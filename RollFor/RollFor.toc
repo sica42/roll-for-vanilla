@@ -64,6 +64,8 @@ src\AutoMasterLoot.lua
 src\RollTracker.lua
 src\RollController.lua
 src\RollingPopup.lua
+src\WinnersPopup.lua
+src\WinnersPopupContentTransformer.lua
 src\SoftResRollGuiData.lua
 src\TieRollGuiData.lua
 src\RollingPopupContentTransformer.lua

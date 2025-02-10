@@ -20,9 +20,17 @@ function M.new( db )
 
   ---@param player_name string
   ---@param item_id number
-  local function award( player_name, item_id )
+  ---@param item_link string
+  ---@param roll_type string
+  ---@param rolling_strategy string
+  local function award( player_name, item_id, item_link, roll_type, rolling_strategy )
     M.debug.add( "award" )
-    table.insert( db.awarded_items, { player_name = player_name, item_id = item_id } )
+    table.insert( db.awarded_items, { player_name = player_name, item_id = item_id, roll_type = roll_type, rolling_strategy = rolling_strategy } )
+  end
+
+  ---@return table
+  local function winners()
+    return db.awarded_items
   end
 
   ---@param player_name string
@@ -69,6 +77,7 @@ function M.new( db )
   return {
     award = award,
     unaward = unaward,
+    winners = winners,
     has_item_been_awarded = has_item_been_awarded,
     has_item_been_awarded_to_any_player = has_item_been_awarded_to_any_player,
     clear = clear

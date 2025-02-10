@@ -192,6 +192,116 @@ function M.icon_text( parent, text )
   return container
 end
 
+function M.winner_header( parent )  
+  local frame = m.api.CreateFrame( "Frame", nil, parent )
+  frame:SetWidth( 190 )
+  frame:SetHeight( 14 )
+  frame:SetFrameStrata( "DIALOG" )
+  frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
+
+  frame:EnableMouse( true )
+
+  local player_header = create_text_in_container( "Button", frame, 63, "LEFT", "Player" )
+  player_header:SetPoint( "LEFT", 0, 0 )
+  player_header:SetBackdrop( {
+    bgFile = "Interface/Buttons/WHITE8x8",
+    tile = true,
+    tileSize = 22,
+  } )
+  player_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
+  frame.player_header = player_header
+
+  local item_header = create_text_in_container( "Button", frame, 90, "LEFT", "Item" )
+  item_header:SetPoint( "LEFT", frame, "LEFT", 75, 0 )
+  item_header:SetBackdrop( {
+    bgFile = "Interface/Buttons/WHITE8x8",
+    tile = true,
+    tileSize = 22,
+  } )
+  item_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
+  frame.item_header = item_header
+
+  local type_header = create_text_in_container( "Button", frame, 20, "RIGHT", "Type" )
+  type_header:SetPoint( "RIGHT", 0, 0 )
+  type_header:SetBackdrop( {
+    bgFile = "Interface/Buttons/WHITE8x8",
+    tile = true,
+    tileSize = 22,
+  } )
+  type_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
+  frame.type_header = type_header
+
+  return frame
+end
+
+function M.winner( parent )
+  local frame = m.api.CreateFrame( "Button", nil, parent )  
+  frame:SetWidth( 190 )
+  frame:SetHeight( 14 )
+  frame:SetFrameStrata( "DIALOG" )
+  frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
+  frame:SetBackdrop( {
+    bgFile = "Interface/Buttons/WHITE8x8",
+    tile = true,
+    tileSize = 22,
+  } )
+
+  local function blue_hover( a )
+    frame:SetBackdropColor( 0.125, 0.624, 0.976, a )
+  end
+
+  local function hover()
+    if frame.is_selected then
+      return
+    end
+
+    blue_hover( 0.2 )
+  end
+
+  frame.select = function()
+    blue_hover( 0.3 )
+    frame.is_selected = true
+  end
+
+  local function no_hover()
+    if frame.is_selected then
+      frame.select()
+    else
+      blue_hover( 0 )
+    end
+  end
+
+  frame.deselect = function()
+    blue_hover( 0 )
+    frame.is_selected = false
+  end
+
+  frame:deselect()
+  frame:SetScript( "OnEnter", function()
+    hover()
+  end )
+
+  frame:SetScript( "OnLeave", function()
+    no_hover()
+  end )
+
+  frame:EnableMouse( true )
+  
+  local player_name = M.text( frame )
+  player_name:SetPoint( "LEFT", frame, "LEFT", 0, 0 )
+  frame.player_name = player_name
+
+  local item_link = M.text( frame )
+  item_link:SetPoint( "LEFT", frame, "LEFT", 75, 0 )
+  frame.item_link = item_link
+
+  local roll_type = M.text( frame )
+  roll_type:SetPoint( "RIGHT", 0, 0 )
+  frame.roll_type = roll_type
+  
+  return frame
+end
+
 function M.roll( parent )
   local frame = m.api.CreateFrame( "Button", nil, parent )
   frame:SetWidth( 170 )

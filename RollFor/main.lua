@@ -182,6 +182,7 @@ local function create_components()
   M.player_selection_frame = m.MasterLootCandidateSelectionFrame.new( M.config )
 
   local rolling_popup_db = db( "rolling_popup" )
+  local winners_popup_db = db( "winners_popup" )
 
   ---@type RollingPopupContentTransformer
   local rolling_popup_content_transformer = m.RollingPopupContentTransformer.new( M.config )
@@ -228,6 +229,22 @@ local function create_components()
     M.loot_award_callback,
     M.loot_list,
     M.roll_controller
+  )
+
+  ---@type WinnersPopupContentTransformer
+  local winners_popup_content_transformer = m.WinnersPopupContentTransformer.new(
+    M.config,
+    M.group_roster
+  )
+
+  ---@type WinnersPopup
+  M.winners_popup = m.WinnersPopup.new(
+    m.PopupBuilder.new( m.FrameBuilder ),
+    winners_popup_content_transformer,
+    winners_popup_db,
+    M.awarded_loot,
+    M.roll_controller,
+    M.config
   )
 
   -- TODO: Add type.
@@ -630,6 +647,9 @@ local function setup_slash_commands()
   M.api().SlashCmdList[ "SRC" ] = M.softres_check.check_softres
   SLASH_SRO1 = "/sro"
   M.api().SlashCmdList[ "SRO" ] = M.name_matcher.manual_match
+
+  SLASH_RFW1 = "/rfw"
+  M.api().SlashCmdList[ "RFW" ] = M.winners_popup.show
 
   SLASH_RFT1 = "/rft"
   M.api().SlashCmdList[ "RFT" ] = test

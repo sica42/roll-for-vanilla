@@ -30,10 +30,11 @@ function M.new( chat, roll_controller, config, softres )
     local item = winners[ 1 ].item
  
     local sr_players = softres.get( item.id )
-    local sr_player
-    for _, v in ipairs( sr_players ) do
-      if v.name == winners[ 1 ].name then sr_player=v end
-    end
+    local sr_player = m.find(winners[ 1 ].name, sr_players, 'name')  
+--    local sr_player
+--    for _, v in ipairs( sr_players ) do
+--      if v.name == winners[ 1 ].name then sr_player=v end
+--    end
 
     if sr_player and sr_player.note and sr_player.note ~= "" then
       local sr = string.match( sr_player.note, "SR%+(%d+)")
