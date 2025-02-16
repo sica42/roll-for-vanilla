@@ -62,7 +62,7 @@ function M.new( db, group_roster )
 
   local function clear()
     M.debug.add( "clear" )
-    --m.clear_table( db.awarded_items )
+    m.clear_table( db.awarded_items )
   end
 
   ---@param player_name string
