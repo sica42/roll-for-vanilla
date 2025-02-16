@@ -32,22 +32,19 @@ end
 ---| "OffSpec"
 ---| "Transmog"
 ---| "SoftRes"
----| "RaidRoll"
 
 ---@class RT
 ---@field MainSpec "MainSpec"
 ---@field OffSpec "OffSpec"
 ---@field Transmog "Transmog"
 ---@field SoftRes "SoftRes"
----@field RaidRoll "RaidRoll"
 
 ---@type RT
 M.RollType = {
   MainSpec = "MainSpec",
   OffSpec = "OffSpec",
   Transmog = "Transmog",
-  SoftRes = "SoftRes",
-  RaidRoll = "RaidRoll"
+  SoftRes = "SoftRes"
 }
 
 --- @alias RollingStrategyType

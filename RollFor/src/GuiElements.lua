@@ -192,32 +192,9 @@ function M.icon_text( parent, text )
   return container
 end
 
-function M.checkbox( parent, text )
-  local container = m.api.CreateFrame( "Frame", nil, parent )
-  container:SetWidth( 32 )
-  container:SetHeight( 32 )
-  container:SetFrameStrata( "DIALOG" )
-  container:SetFrameLevel( parent:GetFrameLevel() + 1 )
-
-  local checkbox = CreateFrame("CheckButton", nil, container, "UICheckButtonTemplate")
-  checkbox:SetPoint("LEFT", 0, 0)
-  checkbox:SetWidth(24)
-  checkbox:SetHeight(24)
-
-  local label = checkbox:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-  label:SetPoint("LEFT", checkbox, "RIGHT", 4, 0)
-  label:SetText( "Hola bola" )
-  label:SetTextColor( 1, 1, 1 )
-    
-  container.checkbox = checkbox
-  container.label = label
-
-  return container
-end
-
 function M.winner_header( parent )  
   local frame = m.api.CreateFrame( "Frame", nil, parent )
-  frame:SetWidth( 210 )
+  frame:SetWidth( 250 )
   frame:SetHeight( 14 )
   frame:SetFrameStrata( "DIALOG" )
   frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
@@ -236,7 +213,7 @@ function M.winner_header( parent )
   player_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
   frame.player_header = player_header
 
-  local item_header = create_text_in_container( "Button", frame, 107, "LEFT", "Item" )
+  local item_header = create_text_in_container( "Button", frame, 148, "LEFT", "Item" )
   item_header.inner:SetPoint( "LEFT", 2, 0 )
   item_header:SetHeight( 15 )
   item_header:SetPoint( "LEFT", frame, "LEFT", 75, 0 )
@@ -265,7 +242,7 @@ end
 
 function M.winner( parent )
   local frame = m.api.CreateFrame( "Button", nil, parent )  
-  frame:SetWidth( 210 )
+  frame:SetWidth( 250 )
   frame:SetHeight( 14 )
   frame:SetFrameStrata( "DIALOG" )
   frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
@@ -286,17 +263,56 @@ function M.winner( parent )
 
   frame:SetScript( "OnLeave", function()
     blue_hover( 0 )
-  end )
-
-  frame:EnableMouse( true )
+  end )  
   
   local player_name = M.text( frame )
   player_name:SetPoint( "LEFT", frame, "LEFT", 0, 0 )
   frame.player_name = player_name
 
-  local item_link = M.text( frame )
+  --local item_link = M.text( frame )
+  local tooltip_link
+  local item_link = create_text_in_container( "Button", frame, 148, "LEFT", "dummy")
   item_link:SetPoint( "LEFT", frame, "LEFT", 75, 0 )
+  item_link:SetHeight( item_link.inner:GetHeight() )
   frame.item_link = item_link
+
+  frame.SetItem = function( _, itemLink )
+    local function truncate_item(itemLink, len)
+      local item = m.ItemUtils.get_item_name( itemLink )
+      if string.len(item) > len then
+        return string.sub( itemLink, 1, string.find( itemLink, '%[' ) ) .. string.sub( item, 1, len ) .. '...]'
+      end
+      return itemLink
+    end
+
+    item_link.inner:SetText( truncate_item( itemLink, 32 ) )
+
+    tooltip_link = m.ItemUtils.get_tooltip_link( itemLink )
+
+    item_link:SetScript( "OnEnter", function()
+      blue_hover( 0.2 )
+    end )
+
+    item_link:SetScript( "OnLeave", function()
+      blue_hover( 0 )
+    end )
+
+    item_link:SetScript( "OnClick", function()
+      if not tooltip_link then return end
+
+      if m.is_ctrl_key_down() then
+        m.api.DressUpItemLink( itemLink )
+        return
+      end
+  
+      if m.is_shift_key_down() then        
+        m.link_item_in_chat( itemLink )
+        return
+      end
+
+      m.api.SetItemRef( tooltip_link, tooltip_link , "LeftButton" )
+    end)
+  end
 
   local roll_type = M.text( frame )
   roll_type:SetPoint( "RIGHT", 0, 0 )

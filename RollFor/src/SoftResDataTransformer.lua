@@ -74,7 +74,7 @@ function M.transform( data )
 
         if not roller then          
           local roller = make_roller( roller_name, 1 )
-          roller.note = item.note and item.note ~= "" and string.sub(item.note,1,8)
+          roller.sr_plus = tonumber( item.sr_plus )
           table.insert( sr_result[ item_id ].rollers, roller )
         else
           roller.rolls = roller.rolls + 1

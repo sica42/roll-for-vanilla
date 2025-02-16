@@ -22,7 +22,7 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster )
 
     local winners = winner_tracker.find_winners( item_link )
     local winner = m.find(player_name, winners, 'winner_name')
-    awarded_loot.award( player_name, item_id, item_link, winner and winner.roll_type or nil, winner and winner.rolling_strategy or nil)
+    awarded_loot.award( player_name, item_id, winner and winner.roll_type or nil, winner and winner.rolling_strategy or nil)
 
     if player_class then
       roll_controller.loot_awarded( item_id, item_link, player_name, player_class )

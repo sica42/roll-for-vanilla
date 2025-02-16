@@ -11,11 +11,12 @@ local getn = table.getn
 ---@class AwardedLoot
 ---@field award fun( player_name: string, item_id: number )
 ---@field unaward fun( player_name: string, item_id: number )
+---@field get_winners fun()
 ---@field has_item_been_awarded fun( player_name: string, item_id: number ): boolean
 ---@field has_item_been_awarded_to_any_player fun( item_id: ItemId ): boolean
 ---@field clear fun()
 
-function M.new( db )
+function M.new( db, group_roster )
   db.awarded_items = db.awarded_items or {}
 
   ---@param player_name string
@@ -23,13 +24,18 @@ function M.new( db )
   ---@param item_link string
   ---@param roll_type string
   ---@param rolling_strategy string
-  local function award( player_name, item_id, item_link, roll_type, rolling_strategy )
+  local function award( player_name, item_id, roll_type, rolling_strategy )
     M.debug.add( "award" )
-    table.insert( db.awarded_items, { player_name = player_name, item_id = item_id, roll_type = roll_type, rolling_strategy = rolling_strategy } )
+    local player = group_roster.find_player( player_name )
+    local class = player and player.class or nil            
+    local quality, texture = m.get_item_quality_and_texture( item_id )
+    local itemLink = m.fetch_item_link(item_id, quality)
+
+    table.insert( db.awarded_items, { player_name = player_name, item_id = item_id, roll_type = roll_type, rolling_strategy = rolling_strategy, player_class = class, quality = quality, itemLink = itemLink } )
   end
 
   ---@return table
-  local function winners()
+  local function get_winners()
     return db.awarded_items
   end
 
@@ -56,7 +62,7 @@ function M.new( db )
 
   local function clear()
     M.debug.add( "clear" )
-    m.clear_table( db.awarded_items )
+    --m.clear_table( db.awarded_items )
   end
 
   ---@param player_name string
@@ -77,7 +83,7 @@ function M.new( db )
   return {
     award = award,
     unaward = unaward,
-    winners = winners,
+    get_winners = get_winners,
     has_item_been_awarded = has_item_been_awarded,
     has_item_been_awarded_to_any_player = has_item_been_awarded_to_any_player,
     clear = clear

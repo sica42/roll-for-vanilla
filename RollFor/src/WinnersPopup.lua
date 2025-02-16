@@ -4,12 +4,13 @@ local m = RollFor
 if m.WinnersPopup then return end
 
 local c = m.colorize_player_by_class
+local r = m.roll_type_color
 local blue = m.colors.blue
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
+local filter = m.filter
 local sort
 local sortOrder = 'desc'
-local showOptions = false
 
 local button_defaults = {
   width = 80,
@@ -28,19 +29,25 @@ local button_defaults = {
 
 local M = m.Module.new( "WinnersPopup" )
 
+
 M.debug.enable( true )
 
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
 ---@param popup_builder PopupBuilder
----@param content_transformer WinnersPopupContentTransformer
 ---@param db table
+---@param awarded_loot AwardedLoot
+---@param roll_controller RollController
+---@param options_popup OptionsPopup
 ---@param config Config
-function M.new( popup_builder, content_transformer, db, awarded_loot, roll_controller, config )
+function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup, config )
   ---@type Popup?
 
-  --awarded_loot.award('Zombiehunter', 16939, "\124cffa335ee\124Hitem:16939::::::::60:::::\124h[Dragonstalker's Helm]\124h\124r", m.Types.RollType.SoftRes)
-  --awarded_loot.award('Kevieboipro', 16939, "\124cffa335ee\124Hitem:16939::::::::60:::::\124h[Dragonstalker's Helm]\124h\124r", m.Types.RollType.SoftRes)
+  --awarded_loot.award('Zombiehunter', 16939, m.Types.RollType.MainSpec)
+  --awarded_loot.award('Kevieboipro', 16939, m.Types.RollType.Transmog)
+  --awarded_loot.award('Sica', 5504, m.Types.RollType.MainSpec, m.Types.RollingStrategy.RaidRoll)
+  --awarded_loot.award('Sica', 10652 )
+  --awarded_loot.award('Sica', 19019,  m.Types.RollType.MainSpec, m.Types.RollingStrategy.SoftResRoll)
 
   local popup
   db.point = db.point or M.center_point
@@ -121,55 +128,81 @@ function M.new( popup_builder, content_transformer, db, awarded_loot, roll_contr
   end
 
   local function refresh()
+    M.debug.add( "refresh" )
     if not popup then popup = create_popup() end
     popup:clear()
-    local data =  awarded_loot.winners()
-    --m.pretty_print("dump: " ..m.dump( data ))
+
+    local data = awarded_loot.get_winners()
+   
+    for _, v in ipairs( data ) do  
+      if not v.roll_type then
+        v.roll_type = "NA"
+      elseif v.roll_type == m.Types.RollType.MainSpec and (v.rolling_strategy == m.Types.RollingStrategy.RaidRoll or v.rolling_strategy == m.Types.RollingStrategy.InstaRaidRoll) then
+        v.roll_type = "RR"
+      end
+    end
+
+    local filters = config.award_filter()
+    
+    local quality_filter = {}
+    for q, v in pairs ( filters.itemQuality ) do
+      if v then
+        table.insert( quality_filter, m.Types.ItemQuality[q] )
+      end
+    end
+    
+    local rolltype_filter = {}
+    for t, v in pairs ( filters.rollType ) do
+      if v then
+        table.insert( rolltype_filter, t )
+      end
+    end
+
+    data = filter( data , function( item )      
+      local quality = item.quality or 0
+      return m.table_contains_value(quality_filter, quality) and m.table_contains_value(rolltype_filter, item.roll_type)
+    end )
 
     local function mySort(a, b)
-      if sortOrder == 'asc' then
-        return a[sort] < b[sort]
-      else
-        return a[sort] > b[sort]
+      local valA, valB = a[sort] or '', b[sort] or ''
+
+      if valA ~= valB then
+        if sortOrder == 'asc' then
+          return valA < valB
+        else
+          return valA > valB
+        end
       end
+
+      return a.item_id < b.item_id
     end
 
     if (sort) then table.sort( data, mySort ) end
---[[
-    if showOptions then
-      
-      popup.add_line("text", function( type, frame, lines ) frame:SetText( "Options" ) end )
 
+    local content = {}
 
-      for k, v in pairs( m.Types.ItemQuality ) do
-        m.pretty_print("DEBUG: " .. k ..'='..v)
-      end
+    table.insert(content, {type = "text", value = "Winners"} )
+    table.insert(content, {type = "empty_line"} )
+    table.insert(content, {type = "winner_header"} )
 
-      popup.add_line("checkbox", function( type, frame, lines ) 
-        frame.label:SetText('lala')
-        frame.checkbox:SetScript("OnClick", function()
-            m.pretty_print("check")
-            --do stuff
-        end)
-        frame:ClearAllPoints()
-        local count = getn( lines )
-        local line_anchor = lines[ count ].frame
-        frame:SetPoint( "TOP", line_anchor, "BOTTOM", 0, 10 )
-      end)
+    for _, item in pairs( data ) do
+      table.insert(content, {type = "winner", player_name = item.player_name, player_class = item.player_class, itemLink = item.itemLink, roll_type = item.roll_type, rolling_strategy = item.rolling_strategy, quality = item.quality})
     end
-    ]]
 
-    for _, v in ipairs( content_transformer.transform( data ) ) do
-      popup.add_line( v.type, function( type, frame, lines )
+    table.insert(content, {type = "button", label = "Options" } )
+    table.insert(content, {type = "button", label = "Close" } )
+    
+    for _, v in ipairs( content ) do
+      popup.add_line( v.type, function( type, frame, lines )                
         if type == "text" then
           frame:SetText( v.value )
         elseif type == "empty_line" then
-          frame:SetHeight( v.height or 4 )
+          frame:SetHeight( v.height or 6 )
         elseif type == "winner_header" then          
           frame['player_header']:SetScript( "OnClick", function()
             sort = 'player_name'
             sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
-            refresh()            
+            refresh()
           end)
           
           frame.item_header:SetScript( "OnClick", function()
@@ -183,14 +216,11 @@ function M.new( popup_builder, content_transformer, db, awarded_loot, roll_contr
             sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
             refresh()
           end)  
-        elseif type == "winner" then          
-          frame.player_name:SetText( c( v.player_name, v.player_class ) )
-          frame.item_link:SetText ( v.link )
-
-          if v.rolling_strategy == m.Types.RollingStrategy.RaidRoll or v.rolling_strategy == m.Types.RollingStrategy.InstaRaidRoll then
-            v.roll_type = m.Types.RollType.RaidRoll
-          end
-          frame.roll_type:SetText( m.roll_type_color( v.roll_type, v.roll_type and m.roll_type_abbrev( v.roll_type ) or "NA" ) )
+        elseif type == "winner" then
+          local roll_type_abbrev = v.roll_type == 'RR' and 'RR' or v.roll_type == 'NA' and 'NA' or m.roll_type_abbrev( v.roll_type )
+          frame:SetItem( v.itemLink )                              
+          frame.player_name:SetText( c( v.player_name, v.player_class ) )          
+          frame.roll_type:SetText( r( v.roll_type, roll_type_abbrev ) )
         elseif type == "button" then
           frame:SetWidth( v.width or button_defaults.width )
           frame:SetHeight( v.height or button_defaults.height )
@@ -198,13 +228,14 @@ function M.new( popup_builder, content_transformer, db, awarded_loot, roll_contr
           frame:SetScale( v.scale or button_defaults.scale )
 
           if v.label == "Close" then
-            frame:SetScript( "OnClick", function() popup:Hide() end )
-          elseif v.label =="Options" then
             frame:SetScript( "OnClick", function()
-              showOptions = not showOptions
-              refresh()
+              popup:Hide()
             end )
-          end          
+          elseif v.label == "Options" then
+            frame:SetScript( "OnClick", function()
+              options_popup.show('Awards popup')
+            end )
+          end
         end
 
         if type ~= "button" then
@@ -221,7 +252,7 @@ function M.new( popup_builder, content_transformer, db, awarded_loot, roll_contr
           end
         end
       end, 1)
-    end    
+    end
   end
   
   local function show()
@@ -277,11 +308,14 @@ function M.new( popup_builder, content_transformer, db, awarded_loot, roll_contr
     m.api.PlaySound( "igMainMenuOpen" )
   end
 
-  local function on_loot_awarded()
-    refresh()
+  local function onUpdate()
+    if popup and popup:IsVisible() then
+      refresh()
+    end
   end
 
-  roll_controller.subscribe( "loot_awarded", on_loot_awarded )
+  roll_controller.subscribe( "loot_awarded", onUpdate )
+  config.subscribe( "award_filter", onUpdate )
 
   ---@type WinnersPopup
   return {

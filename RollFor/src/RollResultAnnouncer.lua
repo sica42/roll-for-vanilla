@@ -8,6 +8,7 @@ local M = {}
 local RT = m.Types.RollType
 local RS = m.Types.RollingStrategy
 local hl = m.colors.hl
+local blue = m.colors.blue
 local grey = m.colors.grey
 local getn = table.getn
 
@@ -31,18 +32,11 @@ function M.new( chat, roll_controller, config, softres )
  
     local sr_players = softres.get( item.id )
     local sr_player = m.find(winners[ 1 ].name, sr_players, 'name')  
---    local sr_player
---    for _, v in ipairs( sr_players ) do
---      if v.name == winners[ 1 ].name then sr_player=v end
---    end
 
-    if sr_player and sr_player.note and sr_player.note ~= "" then
-      local sr = string.match( sr_player.note, "SR%+(%d+)")
-      if sr then
-        sr = tonumber(sr)
-        roll_value = roll_value - sr
-        roll_value = string.format( "%s+%s=%s", roll_value, sr, hl( roll_value+sr ))
-      end
+    if sr_player and sr_player.sr_plus then
+      local sr = sr_player.sr_plus
+      roll_value = roll_value - sr
+      roll_value = string.format( "%s+%s=%s", roll_value, sr, blue( roll_value + sr ))
     end
 
     local function message( rollers, f )

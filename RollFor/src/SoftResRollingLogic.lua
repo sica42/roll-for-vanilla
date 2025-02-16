@@ -207,9 +207,8 @@ function M.new(
 
     player.rolls = player.rolls - 1
     
-    if player.note and player.note ~= "" then
-      local sr = string.match( player.note, "SR%+(%d+)")
-      if sr then roll = roll + tonumber(sr) end
+    if player.sr_plus then      
+      roll = roll + player.sr_plus
     end
 
     table.insert( rolls, make_roll( player, roll_type, roll ) )
@@ -242,13 +241,8 @@ function M.new(
   local function format_name_with_rolls( player )
     if player_count == item_count then return player.name end
     local roll_count = player.rolls > 1 and string.format( " [%s rolls]", player.rolls ) or ""
-    local note = player.note and player.note ~= "" and string.format( " (%s)", player.note ) or ""
-
-    if player.note and player.note ~= "" then
-      local sr = string.match( player.note, "SR%+(%d+)")
-      if sr then note = string.format( " (+%s)", sr ) end
-    end
-    return string.format( "%s%s%s", player.name, roll_count, note )
+    local sr_plus = player.sr_plus and string.format( " (+%d)", player.sr_plus ) or ""
+    return string.format( "%s%s%s", player.name, roll_count, sr_plus )
   end
 
   local function start_rolling()

@@ -43,6 +43,12 @@ function M.new( db )
     if db.default_rolling_time_seconds == nil then db.default_rolling_time_seconds = 8 end
     if db.master_loot_frame_rows == nil then db.master_loot_frame_rows = 5 end
     if db.auto_master_loot == nil then db.auto_master_loot = true end
+    if not db.award_filter then
+      db.award_filter = {
+        itemQuality = { Uncommon = 1, Rare = 1, Epic = 1, Legendary = 1 },
+        rollType = { MainSpec = 1, OffSpec = 1, Transmog = 1, SoftRes = 1, RR = 1 }
+      }
+    end
   end
 
   local function print( toggle_key )
@@ -374,6 +380,9 @@ function M.new( db )
     default_rolling_time_seconds = get( "default_rolling_time_seconds" ),
     master_loot_frame_rows = get( "master_loot_frame_rows" ),
     configure_master_loot_frame_rows = configure_master_loot_frame_rows,
+    notify_subscribers = notify_subscribers,
+    loot_frame_cursor = get ( "loot_frame_cursor" ),
+    award_filter = get( "award_filter" ),
   }
 
   for toggle_key, _ in pairs( toggles ) do

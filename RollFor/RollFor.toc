@@ -65,11 +65,12 @@ src\RollTracker.lua
 src\RollController.lua
 src\RollingPopup.lua
 src\WinnersPopup.lua
-src\WinnersPopupContentTransformer.lua
 src\SoftResRollGuiData.lua
 src\TieRollGuiData.lua
 src\RollingPopupContentTransformer.lua
 src\GuiElements.lua
+src\OptionsPopup.lua
+src\OptionsGuiElements.lua
 src\WelcomePopup.lua
 src\InstaRaidRollRollingLogic.lua
 src\EventBus.lua

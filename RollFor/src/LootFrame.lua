@@ -23,6 +23,7 @@ function M.new( frame_builder, db, config )
   local loot_frame
   local boss_name_width = 0
   local max_frame_width
+  local max_item_count
 
   local function is_out_of_bounds( x, y, frame_width, frame_height, screen_width, screen_height )
     local left = x
@@ -97,7 +98,6 @@ function M.new( frame_builder, db, config )
         :backdrop_color( 0, 0, 0, 0.5 )
         :border_color( 0, 0, 0, 0.9 )
         :movable()
-        :gui_elements( m.GuiElements )
         :bg_file( "Interface/Buttons/WHITE8x8" )
         :scale( scale )
         :build()
@@ -135,6 +135,8 @@ function M.new( frame_builder, db, config )
     M.debug.add( "show" )
     create_frames()
     max_frame_width = nil
+    max_item_count = nil
+
     boss_name_frame:Show()
   end
 
@@ -214,12 +216,19 @@ function M.new( frame_builder, db, config )
     loot_frame:SetHeight( item_count * height + 2 )
 
     max_frame_width = m.lua.math.max( boss_name_width, max_width )
+    max_item_count = max_item_count or item_count
 
     boss_name_frame:SetWidth( max_frame_width )
     loot_frame:SetWidth( max_frame_width )
 
     for _, frame in ipairs( frames ) do
       frame:SetWidth( max_frame_width - 2 )
+    end
+
+    if config.loot_frame_cursor() and item_count == max_item_count then
+      ---@diagnostic disable-next-line: undefined-global
+      local uiScale, x, y = UIParent:GetEffectiveScale(), GetCursorPosition()    
+      boss_name_frame:SetPoint( "TOPLEFT", UIParent, "BOTTOMLEFT", (x / uiScale) -10, (y / uiScale) + 30 )    
     end
   end
 

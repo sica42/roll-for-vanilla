@@ -101,7 +101,7 @@ local function create_components()
   M.version_broadcast = m.VersionBroadcast.new( db( "version_broadcast" ), M.player_info, version.str )
 
   ---@type AwardedLoot
-  M.awarded_loot = m.AwardedLoot.new( db( "awarded_loot" ) )
+  M.awarded_loot = m.AwardedLoot.new( db( "awarded_loot" ), M.group_roster )
 
   -- TODO: Add type.
   M.softres_db = db( "softres" )
@@ -182,7 +182,6 @@ local function create_components()
   M.player_selection_frame = m.MasterLootCandidateSelectionFrame.new( M.config )
 
   local rolling_popup_db = db( "rolling_popup" )
-  local winners_popup_db = db( "winners_popup" )
 
   ---@type RollingPopupContentTransformer
   local rolling_popup_content_transformer = m.RollingPopupContentTransformer.new( M.config )
@@ -231,19 +230,20 @@ local function create_components()
     M.roll_controller
   )
 
-  ---@type WinnersPopupContentTransformer
-  local winners_popup_content_transformer = m.WinnersPopupContentTransformer.new(
-    M.config,
-    M.group_roster
+  ---@type OptionsPopup
+  M.options_popup = m.OptionsPopup.new(
+    m.PopupBuilder.new( m.FrameBuilder ),
+    db( "config" ),
+    M.config
   )
 
   ---@type WinnersPopup
   M.winners_popup = m.WinnersPopup.new(
     m.PopupBuilder.new( m.FrameBuilder ),
-    winners_popup_content_transformer,
-    winners_popup_db,
+    db( "winners_popup" ),
     M.awarded_loot,
     M.roll_controller,
+    M.options_popup,
     M.config
   )
 
@@ -651,11 +651,14 @@ local function setup_slash_commands()
   SLASH_RFW1 = "/rfw"
   M.api().SlashCmdList[ "RFW" ] = M.winners_popup.show
 
+  SLASH_RFO1 = "/rfo"
+  M.api().SlashCmdList[ "RFO" ] = M.options_popup.show
+
   SLASH_RFT1 = "/rft"
   M.api().SlashCmdList[ "RFT" ] = test
 
-  --SLASH_DROPPED1 = "/DROPPED"
-  --M.api().SlashCmdList[ "DROPPED" ] = simulate_loot_dropped
+  SLASH_DROPPED1 = "/DROPPED"
+  M.api().SlashCmdList[ "DROPPED" ] = simulate_loot_dropped
 end
 
 function M.on_first_enter_world()
