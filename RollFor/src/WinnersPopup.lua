@@ -22,16 +22,12 @@ local button_defaults = {
 ---@field show fun()
 ---@field refresh fun( _, content: RollingPopupData )
 ---@field hide fun()
----@field border_color fun( _, color: RgbaColor )
----@field backdrop_color fun( _, color: RgbaColor )
 ---@field get_frame fun(): table
 ---@field ping fun()
 
 local M = m.Module.new( "WinnersPopup" )
 
-
 M.debug.enable( true )
-
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
 ---@param popup_builder PopupBuilder
@@ -103,7 +99,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
     end
 
     local builder = popup_builder
-        :name( "WinnersFrame" )
+        :name( "rfWinnersFrame" )
         :width( 200 )
         :height( 100 )
         :point( get_point() )
@@ -122,7 +118,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
         end )
         :self_centered_anchor()
 
-    local result = builder:build() 
+    local result = builder:build()
 
     return result
   end
@@ -133,8 +129,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
     popup:clear()
 
     local data = awarded_loot.get_winners()
-   
-    for _, v in ipairs( data ) do  
+    for _, v in ipairs( data ) do
       if not v.roll_type then
         v.roll_type = "NA"
       elseif v.roll_type == m.Types.RollType.MainSpec and (v.rolling_strategy == m.Types.RollingStrategy.RaidRoll or v.rolling_strategy == m.Types.RollingStrategy.InstaRaidRoll) then
@@ -143,14 +138,13 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
     end
 
     local filters = config.award_filter()
-    
     local quality_filter = {}
     for q, v in pairs ( filters.itemQuality ) do
       if v then
         table.insert( quality_filter, m.Types.ItemQuality[q] )
       end
     end
-    
+
     local rolltype_filter = {}
     for t, v in pairs ( filters.rollType ) do
       if v then
@@ -158,7 +152,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
       end
     end
 
-    data = filter( data , function( item )      
+    data = filter( data , function( item )
       local quality = item.quality or 0
       return m.table_contains_value(quality_filter, quality) and m.table_contains_value(rolltype_filter, item.roll_type)
     end )
@@ -191,20 +185,20 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
 
     table.insert(content, {type = "button", label = "Options" } )
     table.insert(content, {type = "button", label = "Close" } )
-    
+
     for _, v in ipairs( content ) do
-      popup.add_line( v.type, function( type, frame, lines )                
+      popup.add_line( v.type, function( type, frame, lines )
         if type == "text" then
           frame:SetText( v.value )
         elseif type == "empty_line" then
           frame:SetHeight( v.height or 6 )
-        elseif type == "winner_header" then          
+        elseif type == "winner_header" then
           frame['player_header']:SetScript( "OnClick", function()
             sort = 'player_name'
             sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
             refresh()
           end)
-          
+
           frame.item_header:SetScript( "OnClick", function()
             sort = 'item_id'
             sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
@@ -215,11 +209,11 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
             sort = 'roll_type'
             sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
             refresh()
-          end)  
+          end)
         elseif type == "winner" then
           local roll_type_abbrev = v.roll_type == 'RR' and 'RR' or v.roll_type == 'NA' and 'NA' or m.roll_type_abbrev( v.roll_type )
-          frame:SetItem( v.itemLink )                              
-          frame.player_name:SetText( c( v.player_name, v.player_class ) )          
+          frame:SetItem( v.itemLink )
+          frame.player_name:SetText( c( v.player_name, v.player_class ) )
           frame.roll_type:SetText( r( v.roll_type, roll_type_abbrev ) )
         elseif type == "button" then
           frame:SetWidth( v.width or button_defaults.width )
@@ -254,7 +248,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
       end, 1)
     end
   end
-  
+
   local function show()
     M.debug.add( "show" )
 
@@ -276,24 +270,6 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
       on_hide = nil
       popup:Hide()
     end
-  end
-
-  ---@param color RgbaColor
-  local function border_color( _, color )
-    if not popup then
-      popup = create_popup()
-    end
-
-    popup:border_color( color.r, color.g, color.b, color.a )
-  end
-
-  ---@param color RgbaColor
-  local function backdrop_color( _, color )
-    if not popup then
-      popup = create_popup()
-    end
-
-    popup:backdrop_color( color.r, color.g, color.b, color.a )
   end
 
   local function get_frame()
@@ -322,8 +298,6 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
     show = show,
     refresh = refresh,
     hide = hide,
-    border_color = border_color,
-    backdrop_color = backdrop_color,
     get_frame = get_frame,
     ping = ping
   }
