@@ -101,7 +101,7 @@ local function create_components()
   M.version_broadcast = m.VersionBroadcast.new( db( "version_broadcast" ), M.player_info, version.str )
 
   ---@type AwardedLoot
-  M.awarded_loot = m.AwardedLoot.new( db( "awarded_loot" ), M.group_roster )
+  M.awarded_loot = m.AwardedLoot.new( db( "awarded_loot" ), M.group_roster, M.config )
 
   -- TODO: Add type.
   M.softres_db = db( "softres" )
@@ -233,6 +233,7 @@ local function create_components()
   ---@type OptionsPopup
   M.options_popup = m.OptionsPopup.new(
     m.PopupBuilder.new( m.FrameBuilder ),
+    M.awarded_loot,
     db( "config" ),
     M.config
   )

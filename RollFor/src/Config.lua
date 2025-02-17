@@ -383,6 +383,7 @@ function M.new( db )
     notify_subscribers = notify_subscribers,
     loot_frame_cursor = get ( "loot_frame_cursor" ),
     award_filter = get( "award_filter" ),
+    keep_award_data = get( "keep_award_data" ),
   }
 
   for toggle_key, _ in pairs( toggles ) do

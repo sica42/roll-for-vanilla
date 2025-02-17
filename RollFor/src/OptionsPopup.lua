@@ -16,9 +16,10 @@ M.debug.enable( true )
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
 ---@param popup_builder PopupBuilder
+---@param awarded_loot AwardedLoot
 ---@param db table
 ---@param config Config
-function M.new( popup_builder, db, config )
+function M.new( popup_builder, awarded_loot, db, config )
   local popup
   local active_area
 
@@ -253,14 +254,10 @@ function M.new( popup_builder, db, config )
     end)
 
     gui.frames = {}
-    --M.gui = gui
     gui.frames.area = CreateFrame("Frame", "area", gui )
     gui.frames.area:SetPoint( "TOPLEFT", header, "BOTTOMLEFT", 0, -7 )
     gui.frames.area:SetPoint( "BOTTOMRIGHT", -7, 7 )
     e.CreateBackdrop( gui.frames.area )
-
-
-    --gui:Show()
 
     CreateGUIEntry("About", function()
       this.title = this:CreateFontString( "Status", "LOW", "GameFontWhite" )
@@ -362,10 +359,16 @@ function M.new( popup_builder, db, config )
     end)
 
     CreateGUIEntry("Awards popup", function()
-      local header = CreateConfig( "Item quality filter", nil, "header")
+      local header = CreateConfig( "General", nil, "header")
       header:GetParent().objectCount = header:GetParent().objectCount - 1
       header:SetHeight(20)
 
+      CreateConfig( "Always keep awards data", "keep_award_data", "checkbox" )
+      CreateConfig( "Reset awards data", nil, "button", function()        
+        awarded_loot.clear( true )
+      end)
+
+      local header = CreateConfig( "Item quality filter", nil, "header")
       CreateConfig( "Poor", "award_filter.itemQuality.Poor", "checkbox", notifyAwards )
       CreateConfig( "Common", "award_filter.itemQuality.Common", "checkbox", notifyAwards )
       CreateConfig( "Uncommon", "award_filter.itemQuality.Uncommon", "checkbox", notifyAwards )
@@ -420,7 +423,6 @@ function M.new( popup_builder, db, config )
     active_area = area
     if not popup then
       popup = create_popup()
-      refresh()
     else
       refresh()
     end

@@ -16,7 +16,7 @@ local getn = table.getn
 ---@field has_item_been_awarded_to_any_player fun( item_id: ItemId ): boolean
 ---@field clear fun()
 
-function M.new( db, group_roster )
+function M.new( db, group_roster, config )
   db.awarded_items = db.awarded_items or {}
 
   ---@param player_name string
@@ -60,9 +60,11 @@ function M.new( db, group_roster )
     return false
   end
 
-  local function clear()
+  local function clear( force )
     M.debug.add( "clear" )
-    m.clear_table( db.awarded_items )
+    if not config.keep_award_data or force then
+      m.clear_table( db.awarded_items )
+    end
   end
 
   ---@param player_name string

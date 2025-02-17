@@ -17,8 +17,6 @@ local tabCount = 0
 local M = {}
 
 local function SetAllPointsOffset(frame, parent, offset)
-  frame:SetWidth( 100 )
-  frame:SetHeight( 100 )
   frame:SetPoint("TOPLEFT", parent, "TOPLEFT", offset, -offset)
   frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -offset, offset)  
 end
