@@ -7,7 +7,7 @@ local info = m.pretty_print
 local gui
 
 ---@class OptionsPopup
----@field show fun()
+---@field show fun( area: string )
 ---@field hide fun()
 
 local M = m.Module.new( "OptionsPopup" )
@@ -70,26 +70,26 @@ function M.new( popup_builder, awarded_loot, db, config )
       end
     end
 
-
-    local function CreateConfig( caption, config, widget, ufunc )
-      if not caption then return end
-
-      if this.objectCount == nil then
-        this.objectCount = 0
+    ---@param caption string
+    ---@param setting string
+    ---@param widget string
+    ---@param ufunc? function
+    ---@return Frame
+    local function CreateConfig( caption, setting, widget, ufunc )
+      if this.object_count == nil then
+        this.object_count = 0
       else
-        this.objectCount = this.objectCount + 1
+        this.object_count = this.object_count + 1
       end
 
-      local frame = CreateFrame( "Frame", nil, this )
+      local frame = m.api.CreateFrame( "Frame", nil, this )
       --frame:SetWidth( this.parent:GetRight()-this.parent:GetLeft()-20 )
       frame:SetWidth( 361 )
       frame:SetHeight( 22 )
-      frame:SetPoint( "TOPLEFT", this, "TOPLEFT", 5, (this.objectCount*-23)-5 )
-      frame.config = config
-
+      frame:SetPoint( "TOPLEFT", this, "TOPLEFT", 5, (this.object_count*-23)-5 )
+      frame.config = setting
 
       if not widget or (widget and widget ~= "button") then
-
         if widget ~= "header" then
           frame:SetScript("OnUpdate", e.EntryUpdate)
           frame.tex = frame:CreateTexture(nil, "BACKGROUND")
@@ -105,38 +105,43 @@ function M.new( popup_builder, awarded_loot, db, config )
       end
 
       if widget == "header" then
-        frame:SetBackdrop(nil)
-        frame:SetHeight(40)
-        this.objectCount = this.objectCount + 1
-        frame.caption:SetJustifyH("LEFT")
-        frame.caption:SetJustifyV("BOTTOM")
-        frame.caption:SetTextColor(.2,1,.8,1)
-        frame.caption:SetAllPoints(frame)
+        frame:SetBackdrop( nil )
+        if not this.first_header then
+          this.first_header = true
+          frame:SetHeight( 20 )
+        else
+          frame:SetHeight( 40 )
+          this.object_count = this.object_count + 1
+        end
+        frame.caption:SetJustifyH( "LEFT" )
+        frame.caption:SetJustifyV( "BOTTOM" )
+        frame.caption:SetTextColor( .2,1,.8,1 )
+        frame.caption:SetAllPoints( frame )
       end
 
       if not widget or widget == "text" then
-        frame.input = CreateFrame("EditBox", nil, frame)
-        m.OptionsGuiElements.CreateBackdrop(frame.input, nil, true)
-        frame.input:SetTextInsets(5, 5, 5, 5)
-        frame.input:SetTextColor(.2,1,.8,1)
-        frame.input:SetJustifyH("RIGHT")
-        frame.input:SetWidth(50)
-        frame.input:SetHeight(18)
-        frame.input:SetPoint("RIGHT" , -3, 0)
-        frame.input:SetFontObject(GameFontNormal)
-        frame.input:SetAutoFocus(false)
-        frame.input:SetText(db[config])
-        frame.input:SetScript("OnEscapePressed", function(self)
+        frame.input = m.api.CreateFrame( "EditBox", nil, frame )
+        m.OptionsGuiElements.CreateBackdrop( frame.input, nil, true )
+        frame.input:SetTextInsets( 5, 5, 5, 5 )
+        frame.input:SetTextColor( .2,1,.8,1 )
+        frame.input:SetJustifyH( "RIGHT" )
+        frame.input:SetWidth( 50 )
+        frame.input:SetHeight( 18 )
+        frame.input:SetPoint( "RIGHT" , -3, 0 )
+        frame.input:SetFontObject( "GameFontNormal" )
+        frame.input:SetAutoFocus( false )
+        frame.input:SetText( db[ setting ] )
+        frame.input:SetScript( "OnEscapePressed", function( self )
           this:ClearFocus()
         end)
 
-        frame.input:SetScript("OnTextChanged", function(self)
+        frame.input:SetScript( "OnTextChanged", function( self )
           if ufunc then
             ufunc()
           else
             if ( type and type ~= "number" ) or tonumber( this:GetText() ) then
-              if tonumber( this:GetText() ) ~= db[config] then
-                db[config] = tonumber( this:GetText() )
+              if tonumber( this:GetText() ) ~= db[setting] then
+                db[setting] = tonumber( this:GetText() )
                 if ufunc then ufunc() end
               end
               this:SetTextColor(.2,1,.8,1)
@@ -148,29 +153,29 @@ function M.new( popup_builder, awarded_loot, db, config )
       end
 
       if widget == "checkbox" then
-        frame.input = CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
+        frame.input = m.api.CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
         frame.input:SetNormalTexture("")
         frame.input:SetPushedTexture("")
         frame.input:SetHighlightTexture("")
         m.OptionsGuiElements.CreateBackdrop(frame.input, nil, true)
         frame.input:SetWidth(14)
         frame.input:SetHeight(14)
-        frame.input:SetPoint("RIGHT" , -5, 1)
+        frame.input:SetPoint("RIGHT" , -3, 1)
         frame.input:SetScript("OnClick", function ()
           if this:GetChecked() then
-            SetNestedValue( db, config, true )
+            SetNestedValue( db, setting, true )
           else
-            SetNestedValue( db, config, false )
+            SetNestedValue( db, setting, false )
           end
 
           if ufunc then ufunc() end
         end)
 
-        if GetNestedValue( db, config ) == true then frame.input:SetChecked() end
+        if GetNestedValue( db, setting ) == true then frame.input:SetChecked() end
       end
 
       if widget == "button" then
-        frame.button = CreateFrame("Button", "rfButton", frame, "UIPanelButtonTemplate")
+        frame.button = m.api.CreateFrame("Button", "rfButton", frame, "UIPanelButtonTemplate")
         e.CreateBackdrop(frame.button, nil, true)
         frame.button:SetNormalTexture("")
         frame.button:SetHighlightTexture("")
@@ -194,7 +199,7 @@ function M.new( popup_builder, awarded_loot, db, config )
       return frame
     end
 
-    gui = CreateFrame( "Frame", "rfOptionsFrame", m.api.UIParent )
+    gui = m.api.CreateFrame( "Frame", "rfOptionsFrame", m.api.UIParent )
     gui:SetMovable( true )
     gui:EnableMouse( true )
     gui:RegisterForDrag( "LeftButton" )
@@ -203,7 +208,6 @@ function M.new( popup_builder, awarded_loot, db, config )
     gui:SetFrameStrata( "DIALOG" )
     gui:SetPoint( "CENTER", 0, 0 )
     gui:Hide()
-    
 
     gui:SetScript("OnShow",function()
       print("Show options")
@@ -225,13 +229,13 @@ function M.new( popup_builder, awarded_loot, db, config )
     e.CreateBackdrop(gui, nil, true, .85)
     --CreateBackdropShadow(gui)    
     m.api.tinsert( m.api.UISpecialFrames, "rfOptionsFrame" )
-    
-    local header = gui:CreateFontString( nil, "ARTWORK", "GameFontNormalSmall" )
-    header:SetTextColor( 1, 1, 1 )
-    header:SetText( "|cff209ff9RollFor|r" )
-    header:SetPoint( "TOPLEFT", gui, "TOPLEFT", 8, -8 )
 
-    local close = CreateFrame("Button", "rfOptionsClose", gui )
+    local title = gui:CreateFontString( nil, "ARTWORK", "GameFontNormalSmall" )
+    title:SetTextColor( 1, 1, 1 )
+    title:SetText( "|cff209ff9RollFor|r" )
+    title:SetPoint( "TOPLEFT", gui, "TOPLEFT", 8, -8 )
+
+    local close = m.api.CreateFrame("Button", "rfOptionsClose", gui )
     close:SetPoint("TOPRIGHT", -7, -7 )
     e.CreateBackdrop( close )
     close:SetHeight( 10 )
@@ -254,8 +258,8 @@ function M.new( popup_builder, awarded_loot, db, config )
     end)
 
     gui.frames = {}
-    gui.frames.area = CreateFrame("Frame", "area", gui )
-    gui.frames.area:SetPoint( "TOPLEFT", header, "BOTTOMLEFT", 0, -7 )
+    gui.frames.area = m.api.CreateFrame("Frame", "area", gui )
+    gui.frames.area:SetPoint( "TOPLEFT", title, "BOTTOMLEFT", 0, -7 )
     gui.frames.area:SetPoint( "BOTTOMRIGHT", -7, 7 )
     e.CreateBackdrop( gui.frames.area )
 
@@ -299,9 +303,13 @@ function M.new( popup_builder, awarded_loot, db, config )
     end)
 
     CreateGUIEntry("Settings", function()
-      local header = CreateConfig( "General settings", nil, "header")
-      header:GetParent().objectCount = header:GetParent().objectCount - 1
-      header:SetHeight(20)
+      CreateConfig( "General settings", "", "header" )
+      CreateConfig( "Master loot warning", "show_ml_warning", "checkbox", notify )
+      CreateConfig( "Auto raid-roll", "auto_raid_roll", "checkbox", notify )
+      CreateConfig( "Auto group loot", "auto_group_loot", "checkbox", notify )
+      CreateConfig( "Auto master loot", "auto_master_loot", "checkbox", notify )
+
+      CreateConfig( "Looting", "", "header" )
       CreateConfig("Master loot frame rows", "master_loot_frame_rows", "text", function()
         local v = tonumber( this:GetText() )
         if v and v >= 5 and v <= 20 then
@@ -315,30 +323,21 @@ function M.new( popup_builder, awarded_loot, db, config )
           this:SetTextColor(1,.3,.3,1)
         end
       end)
-      CreateConfig( "Master loot warning", "show_ml_warning", "checkbox", notify )
-      CreateConfig( "Auto raid-roll", "auto_raid_roll", "checkbox", notify )
-      CreateConfig( "Auto group loot", "auto_group_loot", "checkbox", notify )
-      CreateConfig( "Auto master loot", "auto_master_loot", "checkbox", notify )
-      CreateConfig( "Rolling popup lock", "rolling_popup_lock", "checkbox", notify )
-      CreateConfig( "Show Raid roll again button", "raid_roll_again", "checkbox", notify )
       CreateConfig( "Position loot frame at cursor", "loot_frame_cursor", "checkbox", function()
         config.notify_subscribers( 'reset_loot_frame' )
       end)
-      CreateConfig( "Reset loot frame position", nil, "button", function()
+      CreateConfig( "Reset loot frame position", "", "button", function()
         info( "Loot frame position has been reset." )
         config.notify_subscribers( "reset_loot_frame" )
       end)
 
-      CreateConfig( "Minimap", nil, "header")
+      CreateConfig( "Minimap", "", "header" )
       CreateConfig( "Hide minimap icon", "minimap_button_hidden", "checkbox", notify )
       CreateConfig( "Lock minimap icon", "minimap_button_locked", "checkbox", notify )
 
     end)
     CreateGUIEntry("Rolling", function()
-      local header = CreateConfig( "Roll settings", nil, "header")
-      header:GetParent().objectCount = header:GetParent().objectCount - 1
-      header:SetHeight(20)
-
+      CreateConfig( "Roll settings", "", "header")
       CreateConfig("Default rolling time", "default_rolling_time_seconds", "text", function()
         local v = tonumber( this:GetText() )
         if v and v >= 4 and v <= 15 then
@@ -348,27 +347,26 @@ function M.new( popup_builder, awarded_loot, db, config )
           this:SetTextColor(1,.3,.3,1)
         end
       end)
-      CreateConfig( "MainSpec rolling threshold", "ms_roll_threshold" )
-      CreateConfig( "OffSpec rolling threshold", "os_roll_threshold" )
+      CreateConfig( "Rolling popup lock", "rolling_popup_lock", "checkbox", notify )
+      CreateConfig( "Show Raid roll again button", "raid_roll_again", "checkbox", notify )
+      CreateConfig( "MainSpec rolling threshold", "ms_roll_threshold", "text" )
+      CreateConfig( "OffSpec rolling threshold", "os_roll_threshold", "text" )
       CreateConfig( "Enable transmog rolling", "tmog_rolling_enabled", "checkbox" )
-      CreateConfig( "Transmog rolling threshold", "tmog_roll_threshold" )
-      CreateConfig( "Reset rolling popup position", nil, "button", function()
+      CreateConfig( "Transmog rolling threshold", "tmog_roll_threshold", "text" )
+      CreateConfig( "Reset rolling popup position", "", "button", function()
         info( "Rolling popup position has been reset." )
         config.notify_subscribers( "reset_rolling_popup" )
       end)
     end)
 
     CreateGUIEntry("Awards popup", function()
-      local header = CreateConfig( "General", nil, "header")
-      header:GetParent().objectCount = header:GetParent().objectCount - 1
-      header:SetHeight(20)
-
+      CreateConfig( "General", "", "header")
       CreateConfig( "Always keep awards data", "keep_award_data", "checkbox" )
-      CreateConfig( "Reset awards data", nil, "button", function()        
+      CreateConfig( "Reset awards data", "", "button", function()        
         awarded_loot.clear( true )
       end)
 
-      local header = CreateConfig( "Item quality filter", nil, "header")
+      CreateConfig( "Item quality filter", "", "header")
       CreateConfig( "Poor", "award_filter.itemQuality.Poor", "checkbox", notifyAwards )
       CreateConfig( "Common", "award_filter.itemQuality.Common", "checkbox", notifyAwards )
       CreateConfig( "Uncommon", "award_filter.itemQuality.Uncommon", "checkbox", notifyAwards )
@@ -376,7 +374,7 @@ function M.new( popup_builder, awarded_loot, db, config )
       CreateConfig( "Epic", "award_filter.itemQuality.Epic", "checkbox", notifyAwards )
       CreateConfig( "Legendary", "award_filter.itemQuality.Legendary", "checkbox", notifyAwards )
 
-      CreateConfig( "Roll type filter", nil, "header", notifyAwards )
+      CreateConfig( "Roll type filter", "", "header", notifyAwards )
       CreateConfig( "MainSpec", "award_filter.rollType.MainSpec", "checkbox", notifyAwards )
       CreateConfig( "OffSpec", "award_filter.rollType.OffSpec", "checkbox", notifyAwards )
       CreateConfig( "Transmog", "award_filter.rollType.Transmog", "checkbox", notifyAwards )
@@ -386,7 +384,6 @@ function M.new( popup_builder, awarded_loot, db, config )
 
     end)
 
-    
     return gui
   end
 
@@ -433,7 +430,6 @@ function M.new( popup_builder, awarded_loot, db, config )
     M.debug.add( "hide" )
 
     if popup then
-      on_hide = nil
       popup:Hide()
     end
   end

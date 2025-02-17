@@ -227,8 +227,8 @@ function M.new( frame_builder, db, config )
 
     if config.loot_frame_cursor() and item_count == max_item_count then
       ---@diagnostic disable-next-line: undefined-global
-      local uiScale, x, y = UIParent:GetEffectiveScale(), GetCursorPosition()    
-      boss_name_frame:SetPoint( "TOPLEFT", UIParent, "BOTTOMLEFT", (x / uiScale) -10, (y / uiScale) + 30 )    
+      local uiScale, x, y = m.api.UIParent:GetEffectiveScale(), GetCursorPosition()
+      boss_name_frame:SetPoint( "TOPLEFT", m.api.UIParent, "BOTTOMLEFT", (x / uiScale) -10, (y / uiScale) + 30 )
     end
   end
 

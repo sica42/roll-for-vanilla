@@ -111,11 +111,6 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
         :border_color( 0.125, 0.623, 0.976, 0.2 )
         :movable()
         :on_drag_stop( on_drag_stop )
-        :on_hide( function()
-          if on_hide then
-            on_hide()
-          end
-        end )
         :self_centered_anchor()
 
     local result = builder:build()
@@ -227,7 +222,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
             end )
           elseif v.label == "Options" then
             frame:SetScript( "OnClick", function()
-              options_popup.show('Awards popup')
+              options_popup.show( "Awards popup" )
             end )
           end
         end
@@ -245,7 +240,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
             frame:SetPoint( "TOP", line_anchor, "BOTTOM", 0, v.padding and -v.padding or 0 )
           end
         end
-      end, 1)
+      end, 0)
     end
   end
 
@@ -265,9 +260,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
 
   local function hide()
     M.debug.add( "hide" )
-
     if popup then
-      on_hide = nil
       popup:Hide()
     end
   end

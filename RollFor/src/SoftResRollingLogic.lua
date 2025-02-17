@@ -206,8 +206,8 @@ function M.new(
     end
 
     player.rolls = player.rolls - 1
-    
-    if player.sr_plus then      
+
+    if player.sr_plus then
       roll = roll + player.sr_plus
     end
 

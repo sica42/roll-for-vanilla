@@ -9,21 +9,20 @@ local M = m.Module.new( "AwardedLoot" )
 local getn = table.getn
 
 ---@class AwardedLoot
----@field award fun( player_name: string, item_id: number )
+---@field award fun( player_name: string, item_id: number, roll_type: RollType, rolling_strategy: RollingStrategyType )
 ---@field unaward fun( player_name: string, item_id: number )
 ---@field get_winners fun()
 ---@field has_item_been_awarded fun( player_name: string, item_id: number ): boolean
 ---@field has_item_been_awarded_to_any_player fun( item_id: ItemId ): boolean
----@field clear fun()
+---@field clear fun( force?: boolean )
 
 function M.new( db, group_roster, config )
   db.awarded_items = db.awarded_items or {}
 
   ---@param player_name string
   ---@param item_id number
-  ---@param item_link string
-  ---@param roll_type string
-  ---@param rolling_strategy string
+  ---@param roll_type RollType
+  ---@param rolling_strategy RollingStrategyType
   local function award( player_name, item_id, roll_type, rolling_strategy )
     M.debug.add( "award" )
     local player = group_roster.find_player( player_name )

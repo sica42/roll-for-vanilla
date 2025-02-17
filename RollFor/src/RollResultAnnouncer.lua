@@ -29,14 +29,19 @@ function M.new( chat, roll_controller, config, softres )
     local roll_type_str = roll_type == RT.MainSpec and "" or string.format( " (%s)", m.roll_type_abbrev_chat( roll_type ) )
     local rerolling = winners[ 1 ].rerolling
     local item = winners[ 1 ].item
- 
-    local sr_players = softres.get( item.id )
-    local sr_player = m.find(winners[ 1 ].name, sr_players, 'name')  
 
-    if sr_player and sr_player.sr_plus then
-      local sr = sr_player.sr_plus
-      roll_value = roll_value - sr
-      roll_value = string.format( "%s+%s=%s", roll_value, sr, blue( roll_value + sr ))
+    local function sr_plus_check( value )
+      local sr_players = softres.get( item.id )
+      local sr_player = m.find(winners[ 1 ].name, sr_players, 'name')
+
+      if sr_player and sr_player.sr_plus then
+        local sr_plus = sr_player.sr_plus
+        value = value - sr_plus
+        local roll_result = string.format( "%s+%s=%s", blue( value ), blue ( sr_plus ), hl( value + sr_plus ) )
+        return roll_result
+      end
+
+      return hl( value )
     end
 
     local function message( rollers, f )
@@ -53,8 +58,8 @@ function M.new( chat, roll_controller, config, softres )
     end
 
     local rollers = m.prettify_table( winners, function( p ) return p.name end )
-    chat.info( message( rollers, hl ) )
-    chat.announce( message( rollers ) )
+    chat.info( message( rollers, sr_plus_check ) )
+    chat.announce( message( rollers, sr_plus_check ) )
   end
 
   ---@param winners Winner[]

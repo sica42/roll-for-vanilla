@@ -3,9 +3,6 @@ local m = RollFor
 
 if m.OptionsGuiElements then return end
 
-
-local tabCount = 0
-
 ---@class OptionsGuiElements
 ---@field CreateBackdrop fun( f: Frame, insert: number, legacy: boolean, transp: number, backdropSetting: table )
 ---@field CreateScrollFrame fun( name: string, parent: Frame ): Frame
@@ -13,24 +10,18 @@ local tabCount = 0
 ---@field CreateTabFrame fun( parent: table, title: string ): Frame
 ---@field CreateArea fun( parent: table, title: string, func: function ): Frame
 
-
 local M = {}
-
-local function SetAllPointsOffset(frame, parent, offset)
-  frame:SetPoint("TOPLEFT", parent, "TOPLEFT", offset, -offset)
-  frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -offset, offset)  
-end
 
 local function GetPerfectPixel()
   if M.pixel then return M.pixel end
 
-  local scale = GetCVar("uiScale")
-  local resolution = GetCVar("gxResolution")
-  local _, _, screenwidth, screenheight = strfind(resolution, "(.+)x(.+)")
+  local scale = m.api.GetCVar("uiScale")
+  local resolution = m.api.GetCVar("gxResolution")
+  local _, _, screenwidth, screenheight = string.find(resolution, "(.+)x(.+)")
 
   M.pixel = 768 / screenheight / scale
   M.pixel = M.pixel > 1 and 1 or M.pixel
-
+  
   return M.pixel
 end
 
@@ -40,27 +31,22 @@ local function GetBorderSize()
   return raw, scaled
 end
 
-function M.EntryUpdate()
-  -- detect and skip during dropdowns
-  local focus = GetMouseFocus()
-  if focus and focus.parent and focus.parent.menu then
-    if this.over then
-      this.tex:Hide()
-      this.over = nil
-    end
-    return
-  end
+function M.SetAllPointsOffset(frame, parent, offset)
+  frame:SetPoint("TOPLEFT", parent, "TOPLEFT", offset, -offset)
+  frame:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -offset, offset)  
+end
 
-  if MouseIsOver(this) and not this.over then
+function M.EntryUpdate()
+  if m.api.MouseIsOver(this) and not this.over then
     this.tex:Show()
     this.over = true
-  elseif not MouseIsOver(this) and this.over then
+  elseif not m.api.MouseIsOver(this) and this.over then
     this.tex:Hide()
     this.over = nil
   end
 end
 
-function M.CreateBackdrop( f, insert, legacy, transp, backdropSetting )
+function M.CreateBackdrop( f, inset, legacy, transp, backdropSetting )
   if not f then return end
 
   local rawborder, border = GetBorderSize()
@@ -89,8 +75,8 @@ function M.CreateBackdrop( f, insert, legacy, transp, backdropSetting )
     if not f.backdrop then
       if f:GetBackdrop() then f:SetBackdrop(nil) end
 
-      local b = CreateFrame("Frame", nil, f)
-      level = f:GetFrameLevel()
+      local b = m.api.CreateFrame("Frame", nil, f)
+      local level = f:GetFrameLevel()
       if level < 1 then
         b:SetFrameLevel( level )
       else
@@ -109,10 +95,10 @@ function M.CreateBackdrop( f, insert, legacy, transp, backdropSetting )
 end
 
 function M.CreateScrollFrame(name, parent)
-  local f = CreateFrame("ScrollFrame", name, parent)
+  local f = m.api.CreateFrame("ScrollFrame", name, parent)
 
   -- create slider
-  f.slider = CreateFrame("Slider", nil, f)
+  f.slider = m.api.CreateFrame("Slider", nil, f)
   f.slider:SetOrientation('VERTICAL')
   f.slider:SetPoint("TOPLEFT", f, "TOPRIGHT", -7, 0)
   f.slider:SetPoint("BOTTOMRIGHT", 0, 0)
@@ -170,7 +156,7 @@ function M.CreateScrollFrame(name, parent)
 end
 
 function M.CreateScrollChild(name, parent)
-  local f = CreateFrame("Frame", name, parent)
+  local f = m.api.CreateFrame("Frame", name, parent)
 
   -- dummy values required
   f:SetWidth(1)
@@ -190,7 +176,7 @@ local width, height = 80, 20
 function M.CreateTabFrame( parent, title )
   if not parent.area.count then parent.area.count = 0 end
 
-  local f = CreateFrame("Button", nil, parent.area)
+  local f = m.api.CreateFrame("Button", nil, parent.area)
   f:SetPoint("TOPLEFT", parent.area, "TOPLEFT", parent.area.count*width, 0)
   f:SetPoint("BOTTOMRIGHT", parent.area, "TOPLEFT", (parent.area.count+1)*width, -height)
   f.parent = parent
@@ -212,7 +198,6 @@ function M.CreateTabFrame( parent, title )
   f.bg:SetAllPoints()
 
   f.text = f:CreateFontString(nil, "LOW", "GameFontWhite")
-  --f.text:SetFont(pfUI.font_default, C.global.font_size)
   f.text:SetAllPoints()
   f.text:SetText(title)
 
@@ -222,7 +207,7 @@ function M.CreateTabFrame( parent, title )
 end
 
 function M.CreateArea( parent, title, func, active_area )
-  local f = CreateFrame("Frame", nil, parent.area)
+  local f = m.api.CreateFrame("Frame", nil, parent.area)
   f:SetPoint("TOPLEFT", parent.area, "TOPLEFT", 0, -height)
   f:SetPoint("BOTTOMRIGHT", parent.area, "BOTTOMRIGHT", 0, 0)
 
@@ -253,7 +238,7 @@ function M.CreateArea( parent, title, func, active_area )
 
   if func then
     f.scroll = M.CreateScrollFrame(nil, f)
-    SetAllPointsOffset(f.scroll, f, 2)
+    M.SetAllPointsOffset(f.scroll, f, 2)
     f.scroll.content = M.CreateScrollChild(nil, f.scroll)
     f.scroll.content.parent = f.scroll
     f.scroll.content:SetScript("OnShow", function()      
