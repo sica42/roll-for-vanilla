@@ -23,7 +23,7 @@ function M.new( db )
     [ "auto_group_loot" ] = { cmd = "auto-group-loot", display = "Auto group loot", help = "toggle auto group loot" },
     [ "auto_master_loot" ] = { cmd = "auto-master-loot", display = "Auto master loot", help = "toggle auto master loot" },
     [ "rolling_popup_lock" ] = { cmd = "rolling-popup-lock", display = "Rolling popup lock", help = "toggle rolling popup lock" },
-    [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },    
+    [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },
   }
 
   local function notify_subscribers( event, value )
@@ -381,7 +381,7 @@ function M.new( db )
     master_loot_frame_rows = get( "master_loot_frame_rows" ),
     configure_master_loot_frame_rows = configure_master_loot_frame_rows,
     notify_subscribers = notify_subscribers,
-    loot_frame_cursor = get ( "loot_frame_cursor" ),
+    loot_frame_cursor = get( "loot_frame_cursor" ),
     award_filter = get( "award_filter" ),
     keep_award_data = get( "keep_award_data" ),
   }

@@ -27,7 +27,6 @@ local button_defaults = {
 
 local M = m.Module.new( "WinnersPopup" )
 
-M.debug.enable( true )
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
 ---@param popup_builder PopupBuilder
@@ -134,26 +133,26 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
 
     local filters = config.award_filter()
     local quality_filter = {}
-    for q, v in pairs ( filters.itemQuality ) do
+    for q, v in pairs( filters.itemQuality ) do
       if v then
-        table.insert( quality_filter, m.Types.ItemQuality[q] )
+        table.insert( quality_filter, m.Types.ItemQuality[ q ] )
       end
     end
 
     local rolltype_filter = {}
-    for t, v in pairs ( filters.rollType ) do
+    for t, v in pairs( filters.rollType ) do
       if v then
         table.insert( rolltype_filter, t )
       end
     end
 
-    data = filter( data , function( item )
+    data = filter( data, function( item )
       local quality = item.quality or 0
-      return m.table_contains_value(quality_filter, quality) and m.table_contains_value(rolltype_filter, item.roll_type)
+      return m.table_contains_value( quality_filter, quality ) and m.table_contains_value( rolltype_filter, item.roll_type )
     end )
 
-    local function mySort(a, b)
-      local valA, valB = a[sort] or '', b[sort] or ''
+    local function mySort( a, b )
+      local valA, valB = a[ sort ] or '', b[ sort ] or ''
 
       if valA ~= valB then
         if sortOrder == 'asc' then
@@ -170,16 +169,18 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
 
     local content = {}
 
-    table.insert(content, {type = "text", value = "Winners"} )
-    table.insert(content, {type = "empty_line"} )
-    table.insert(content, {type = "winner_header"} )
+    table.insert( content, { type = "text", value = "Winners" } )
+    table.insert( content, { type = "empty_line" } )
+    table.insert( content, { type = "winner_header" } )
 
     for _, item in pairs( data ) do
-      table.insert(content, {type = "winner", player_name = item.player_name, player_class = item.player_class, itemLink = item.itemLink, roll_type = item.roll_type, rolling_strategy = item.rolling_strategy, quality = item.quality})
+      table.insert( content,
+        { type = "winner", player_name = item.player_name, player_class = item.player_class, itemLink = item.itemLink, roll_type = item.roll_type, rolling_strategy =
+        item.rolling_strategy, quality = item.quality } )
     end
 
-    table.insert(content, {type = "button", label = "Options" } )
-    table.insert(content, {type = "button", label = "Close" } )
+    table.insert( content, { type = "button", label = "Options" } )
+    table.insert( content, { type = "button", label = "Close" } )
 
     for _, v in ipairs( content ) do
       popup.add_line( v.type, function( type, frame, lines )
@@ -188,23 +189,23 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
         elseif type == "empty_line" then
           frame:SetHeight( v.height or 6 )
         elseif type == "winner_header" then
-          frame['player_header']:SetScript( "OnClick", function()
+          frame[ 'player_header' ]:SetScript( "OnClick", function()
             sort = 'player_name'
             sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
             refresh()
-          end)
+          end )
 
           frame.item_header:SetScript( "OnClick", function()
             sort = 'item_id'
             sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
             refresh()
-          end)
+          end )
 
           frame.type_header:SetScript( "OnClick", function()
             sort = 'roll_type'
             sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
             refresh()
-          end)
+          end )
         elseif type == "winner" then
           local roll_type_abbrev = v.roll_type == 'RR' and 'RR' or v.roll_type == 'NA' and 'NA' or m.roll_type_abbrev( v.roll_type )
           frame:SetItem( v.itemLink )
@@ -240,7 +241,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
             frame:SetPoint( "TOP", line_anchor, "BOTTOM", 0, v.padding and -v.padding or 0 )
           end
         end
-      end, 0)
+      end, 0 )
     end
   end
 
@@ -295,9 +296,6 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
     ping = ping
   }
 end
-
-
-
 
 m.WinnersPopup = M
 return M

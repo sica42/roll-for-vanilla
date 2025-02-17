@@ -1,4 +1,4 @@
-fRollFor = RollFor or {}
+RollFor = RollFor or {}
 local m = RollFor
 
 if m.OptionsPopup then return end
@@ -11,7 +11,6 @@ local info = m.pretty_print
 
 local M = m.Module.new( "OptionsPopup" )
 
-M.debug.enable( true )
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
 ---@param frame_builder FrameBuilderFactory
@@ -19,7 +18,6 @@ M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 ---@param db table
 ---@param config Config
 function M.new( frame_builder, awarded_loot, db, config )
-
   ---@class Frame
   local gui
   local popup
@@ -56,30 +54,28 @@ function M.new( frame_builder, awarded_loot, db, config )
     db.point = { point = anchor_point, relative_point = anchor_relative_point, x = anchor_x, y = anchor_y }
   end
 
-  local function SetNestedValue(root, str, value)
+  local function set_nested_value( root, str, value )
     local current = root
     local lastKey
-
-    for part in string.gmatch(str, "[^%.]+") do
+    for part in string.gmatch( str, "[^%.]+" ) do
       if lastKey then
-        if not current[lastKey] then
-          current[lastKey] = {}
+        if not current[ lastKey ] then
+          current[ lastKey ] = {}
         end
-          current = current[lastKey]
+        current = current[ lastKey ]
       end
       lastKey = part
     end
-    current[lastKey] = value
+    current[ lastKey ] = value
   end
 
-  local function GetNestedValue(root, str)
+  local function get_nested_value( root, str )
     local current = root
-
-    for part in string.gmatch(str, "[^%.]+") do
-      if not current[part] then
+    for part in string.gmatch( str, "[^%.]+" ) do
+      if not current[ part ] then
         return nil
       end
-      current = current[part]
+      current = current[ part ]
     end
     return current
   end
@@ -92,16 +88,16 @@ function M.new( frame_builder, awarded_loot, db, config )
       config.notify_subscribers( this:GetParent().config, this:GetChecked() )
     end
 
-    local function notifyAwards()
+    local function notify_awards()
       config.notify_subscribers( 'award_filter' )
     end
 
     ---@param title string
     ---@param populate function
-    local function CreateGUIEntry( title, populate )
-      if not gui.frames[title] then
-        gui.frames[title] = e.CreateTabFrame(gui.frames, title)
-        gui.frames[title].area = e.CreateArea(gui.frames, title, populate, active_area )
+    local function create_gui_entry( title, populate )
+      if not gui.frames[ title ] then
+        gui.frames[ title ] = e.CreateTabFrame( gui.frames, title )
+        gui.frames[ title ].area = e.CreateArea( gui.frames, title, populate, active_area )
       end
     end
 
@@ -110,7 +106,7 @@ function M.new( frame_builder, awarded_loot, db, config )
     ---@param widget string
     ---@param ufunc? function
     ---@return Frame
-    local function CreateConfig( caption, setting, widget, ufunc )
+    local function create_config( caption, setting, widget, ufunc )
       if this.object_count == nil then
         this.object_count = 0
       else
@@ -121,14 +117,14 @@ function M.new( frame_builder, awarded_loot, db, config )
       --frame:SetWidth( this.parent:GetRight()-this.parent:GetLeft()-20 )
       frame:SetWidth( 361 )
       frame:SetHeight( 22 )
-      frame:SetPoint( "TOPLEFT", this, "TOPLEFT", 5, ( this.object_count * -23 ) -5 )
+      frame:SetPoint( "TOPLEFT", this, "TOPLEFT", 5, (this.object_count * -23) - 5 )
       frame.config = setting
 
-      if not widget or ( widget and widget ~= "button" ) then
+      if not widget or (widget and widget ~= "button") then
         if widget ~= "header" then
-          frame:SetScript("OnUpdate", e.EntryUpdate)
+          frame:SetScript( "OnUpdate", e.entry_update )
           frame.tex = frame:CreateTexture( nil, "BACKGROUND" )
-          frame.tex:SetTexture(1,1,1,.05)
+          frame.tex:SetTexture( 1, 1, 1, .05 )
           frame.tex:SetAllPoints()
           frame.tex:Hide()
         end
@@ -150,85 +146,85 @@ function M.new( frame_builder, awarded_loot, db, config )
         end
         frame.caption:SetJustifyH( "LEFT" )
         frame.caption:SetJustifyV( "BOTTOM" )
-        frame.caption:SetTextColor( .2,1,.8,1 )
+        frame.caption:SetTextColor( .2, 1, .8, 1 )
         frame.caption:SetAllPoints( frame )
       end
 
       if not widget or widget == "text" then
         frame.input = m.api.CreateFrame( "EditBox", nil, frame )
-        m.OptionsGuiElements.CreateBackdrop( frame.input, nil, true )
+        e.create_backdrop( frame.input, nil, true )
         frame.input:SetTextInsets( 5, 5, 5, 5 )
-        frame.input:SetTextColor( .2,1,.8,1 )
+        frame.input:SetTextColor( .2, 1, .8, 1 )
         frame.input:SetJustifyH( "RIGHT" )
         frame.input:SetWidth( 50 )
         frame.input:SetHeight( 18 )
-        frame.input:SetPoint( "RIGHT" , -3, 0 )
+        frame.input:SetPoint( "RIGHT", -3, 0 )
         frame.input:SetFontObject( "GameFontNormal" )
         frame.input:SetAutoFocus( false )
         frame.input:SetText( db[ setting ] )
         frame.input:SetScript( "OnEscapePressed", function( self )
           this:ClearFocus()
-        end)
+        end )
 
         frame.input:SetScript( "OnTextChanged", function( self )
           if ufunc then
             ufunc()
           else
-            if ( type and type ~= "number" ) or tonumber( this:GetText() ) then
-              if tonumber( this:GetText() ) ~= db[setting] then
-                db[setting] = tonumber( this:GetText() )
+            if (type and type ~= "number") or tonumber( this:GetText() ) then
+              if tonumber( this:GetText() ) ~= db[ setting ] then
+                db[ setting ] = tonumber( this:GetText() )
                 if ufunc then ufunc() end
               end
-              this:SetTextColor(.2,1,.8,1)
+              this:SetTextColor( .2, 1, .8, 1 )
             else
-              this:SetTextColor(1,.3,.3,1)
+              this:SetTextColor( 1, .3, .3, 1 )
             end
           end
-        end)
+        end )
       end
 
       if widget == "checkbox" then
-        frame.input = m.api.CreateFrame("CheckButton", nil, frame, "UICheckButtonTemplate")
-        frame.input:SetNormalTexture("")
-        frame.input:SetPushedTexture("")
-        frame.input:SetHighlightTexture("")
-        m.OptionsGuiElements.CreateBackdrop(frame.input, nil, true)
-        frame.input:SetWidth(14)
-        frame.input:SetHeight(14)
-        frame.input:SetPoint("RIGHT" , -3, 1)
-        frame.input:SetScript("OnClick", function ()
+        frame.input = m.api.CreateFrame( "CheckButton", nil, frame, "UICheckButtonTemplate" )
+        frame.input:SetNormalTexture( "" )
+        frame.input:SetPushedTexture( "" )
+        frame.input:SetHighlightTexture( "" )
+        e.create_backdrop( frame.input, nil, true )
+        frame.input:SetWidth( 14 )
+        frame.input:SetHeight( 14 )
+        frame.input:SetPoint( "RIGHT", -3, 1 )
+        frame.input:SetScript( "OnClick", function()
           if this:GetChecked() then
-            SetNestedValue( db, setting, true )
+            set_nested_value( db, setting, true )
           else
-            SetNestedValue( db, setting, false )
+            set_nested_value( db, setting, false )
           end
 
           if ufunc then ufunc() end
-        end)
+        end )
 
-        if GetNestedValue( db, setting ) == true then frame.input:SetChecked() end
+        if get_nested_value( db, setting ) == true then frame.input:SetChecked() end
       end
 
       if widget == "button" then
         frame.button = m.api.CreateFrame( "Button", "rfButton", frame, "UIPanelButtonTemplate" )
-        e.CreateBackdrop( frame.button, nil, true )
+        e.create_backdrop( frame.button, nil, true )
         frame.button:SetNormalTexture( "" )
         frame.button:SetHighlightTexture( "" )
         frame.button:SetPushedTexture( "" )
         frame.button:SetDisabledTexture( "" )
-        frame.button:SetText(caption)
+        frame.button:SetText( caption )
         local w = frame.button:GetTextWidth() + 10
         frame.button:SetWidth( w )
         frame.button:SetHeight( 20 )
-        frame.button:SetPoint( "TOPLEFT", (this.parent:GetWidth() / 2 - w / 2)+10, -5 )
-        frame.button:SetTextColor(1,1,1,1)
+        frame.button:SetPoint( "TOPLEFT", (this.parent:GetWidth() / 2 - w / 2) + 10, -5 )
+        frame.button:SetTextColor( 1, 1, 1, 1 )
         frame.button:SetScript( "OnClick", ufunc )
         frame.button:SetScript( "OnEnter", function()
-          this:SetBackdropBorderColor( .2, 1, .8, 1 )          
-        end)
-        frame.button:SetScript("OnLeave", function()
-          this:SetBackdropBorderColor(.2, .2, .2, 1 )          
-        end)
+          this:SetBackdropBorderColor( .2, 1, .8, 1 )
+        end )
+        frame.button:SetScript( "OnLeave", function()
+          this:SetBackdropBorderColor( .2, .2, .2, 1 )
+        end )
       end
 
       return frame
@@ -257,9 +253,9 @@ function M.new( frame_builder, awarded_loot, db, config )
     title:SetText( "|cff209ff9RollFor|r" )
     title:SetPoint( "TOPLEFT", gui, "TOPLEFT", 8, -8 )
 
-    local close = m.api.CreateFrame("Button", "rfOptionsClose", gui )
-    close:SetPoint("TOPRIGHT", -7, -7 )
-    e.CreateBackdrop( close )
+    local close = m.api.CreateFrame( "Button", "rfOptionsClose", gui )
+    close:SetPoint( "TOPRIGHT", -7, -7 )
+    e.create_backdrop( close )
     close:SetHeight( 10 )
     close:SetWidth( 10 )
     close.texture = close:CreateTexture( "rfOptionsCloseTex" )
@@ -267,36 +263,36 @@ function M.new( frame_builder, awarded_loot, db, config )
     close.texture:ClearAllPoints()
     close.texture:SetAllPoints( close )
     close.texture:SetVertexColor( 1, .25, .25, 1 )
-    close:SetScript("OnEnter", function ()
-      this.backdrop:SetBackdropBorderColor(1,.25,.25,1)
-    end)
+    close:SetScript( "OnEnter", function()
+      this.backdrop:SetBackdropBorderColor( 1, .25, .25, 1 )
+    end )
 
-    close:SetScript("OnLeave", function ()
-      e.CreateBackdrop( this )
-    end)
+    close:SetScript( "OnLeave", function()
+      e.create_backdrop( this )
+    end )
 
-    close:SetScript("OnClick", function()
+    close:SetScript( "OnClick", function()
       this:GetParent():Hide()
-    end)
+    end )
 
     gui.frames = {}
-    gui.frames.area = m.api.CreateFrame("Frame", "area", gui )
+    gui.frames.area = m.api.CreateFrame( "Frame", "area", gui )
     gui.frames.area:SetPoint( "TOPLEFT", title, "BOTTOMLEFT", 0, -7 )
     gui.frames.area:SetPoint( "BOTTOMRIGHT", -7, 7 )
-    e.CreateBackdrop( gui.frames.area )
+    e.create_backdrop( gui.frames.area )
 
-    CreateGUIEntry("About", function()
+    create_gui_entry( "About", function()
       this.title = this:CreateFontString( "Status", "LOW", "GameFontWhite" )
       this.title:SetFont( "FONTS\\FRIZQT__.TTF", 18 )
       this.title:SetPoint( "TOPLEFT", 0, -50 )
-      this.title:SetPoint( "RIGHT", this.parent, "RIGHT", 0, 0)
-      this.title:SetJustifyH ( "CENTER" )
+      this.title:SetPoint( "RIGHT", this.parent, "RIGHT", 0, 0 )
+      this.title:SetJustifyH( "CENTER" )
       this.title:SetText( "|cff209ff9RollFor|r" )
 
       this.versionc = this:CreateFontString( "Status", "LOW", "GameFontWhite" )
       this.versionc:SetPoint( "TOPLEFT", 150, -80 )
       this.versionc:SetWidth( 100 )
-      this.versionc:SetJustifyH ( "LEFT" )
+      this.versionc:SetJustifyH( "LEFT" )
       this.versionc:SetText( "Version:" )
 
       this.version = this:CreateFontString( "Status", "LOW", "GameFontWhite" )
@@ -321,90 +317,86 @@ function M.new( frame_builder, awarded_loot, db, config )
 
       end)
       ]]
+    end )
 
-    end)
+    create_gui_entry( "Settings", function()
+      create_config( "General settings", "", "header" )
+      create_config( "Master loot warning", "show_ml_warning", "checkbox", notify )
+      create_config( "Auto raid-roll", "auto_raid_roll", "checkbox", notify )
+      create_config( "Auto group loot", "auto_group_loot", "checkbox", notify )
+      create_config( "Auto master loot", "auto_master_loot", "checkbox", notify )
 
-    CreateGUIEntry("Settings", function()
-      CreateConfig( "General settings", "", "header" )
-      CreateConfig( "Master loot warning", "show_ml_warning", "checkbox", notify )
-      CreateConfig( "Auto raid-roll", "auto_raid_roll", "checkbox", notify )
-      CreateConfig( "Auto group loot", "auto_group_loot", "checkbox", notify )
-      CreateConfig( "Auto master loot", "auto_master_loot", "checkbox", notify )
-
-      CreateConfig( "Looting", "", "header" )
-      CreateConfig("Master loot frame rows", "master_loot_frame_rows", "text", function()
+      create_config( "Looting", "", "header" )
+      create_config( "Master loot frame rows", "master_loot_frame_rows", "text", function()
         local v = tonumber( this:GetText() )
         if v and v >= 5 and v <= 20 then
           if db.master_loot_frame_rows ~= v then
             db.master_loot_frame_rows = v
             config.notify_subscribers( "master_loot_frame_rows" )
-            print("rows changed")
           end
-          this:SetTextColor(.2,1,.8,1)
+          this:SetTextColor( .2, 1, .8, 1 )
         else
-          this:SetTextColor(1,.3,.3,1)
+          this:SetTextColor( 1, .3, .3, 1 )
         end
-      end)
-      CreateConfig( "Position loot frame at cursor", "loot_frame_cursor", "checkbox", function()
+      end )
+      create_config( "Position loot frame at cursor", "loot_frame_cursor", "checkbox", function()
         config.notify_subscribers( 'reset_loot_frame' )
-      end)
-      CreateConfig( "Reset loot frame position", "", "button", function()
+      end )
+      create_config( "Reset loot frame position", "", "button", function()
         info( "Loot frame position has been reset." )
         config.notify_subscribers( "reset_loot_frame" )
-      end)
+      end )
 
-      CreateConfig( "Minimap", "", "header" )
-      CreateConfig( "Hide minimap icon", "minimap_button_hidden", "checkbox", notify )
-      CreateConfig( "Lock minimap icon", "minimap_button_locked", "checkbox", notify )
-
-    end)
-    CreateGUIEntry("Rolling", function()
-      CreateConfig( "Roll settings", "", "header")
-      CreateConfig("Default rolling time", "default_rolling_time_seconds", "text", function()
+      create_config( "Minimap", "", "header" )
+      create_config( "Hide minimap icon", "minimap_button_hidden", "checkbox", notify )
+      create_config( "Lock minimap icon", "minimap_button_locked", "checkbox", notify )
+    end )
+    create_gui_entry( "Rolling", function()
+      create_config( "Roll settings", "", "header" )
+      create_config( "Default rolling time", "default_rolling_time_seconds", "text", function()
         local v = tonumber( this:GetText() )
         if v and v >= 4 and v <= 15 then
           db.default_rolling_time_seconds = v
-          this:SetTextColor(.2,1,.8,1)
+          this:SetTextColor( .2, 1, .8, 1 )
         else
-          this:SetTextColor(1,.3,.3,1)
+          this:SetTextColor( 1, .3, .3, 1 )
         end
-      end)
-      CreateConfig( "Rolling popup lock", "rolling_popup_lock", "checkbox", notify )
-      CreateConfig( "Show Raid roll again button", "raid_roll_again", "checkbox", notify )
-      CreateConfig( "MainSpec rolling threshold", "ms_roll_threshold", "text" )
-      CreateConfig( "OffSpec rolling threshold", "os_roll_threshold", "text" )
-      CreateConfig( "Enable transmog rolling", "tmog_rolling_enabled", "checkbox" )
-      CreateConfig( "Transmog rolling threshold", "tmog_roll_threshold", "text" )
-      CreateConfig( "Reset rolling popup position", "", "button", function()
+      end )
+      create_config( "Rolling popup lock", "rolling_popup_lock", "checkbox", notify )
+      create_config( "Show Raid roll again button", "raid_roll_again", "checkbox", notify )
+      create_config( "MainSpec rolling threshold", "ms_roll_threshold", "text" )
+      create_config( "OffSpec rolling threshold", "os_roll_threshold", "text" )
+      create_config( "Enable transmog rolling", "tmog_rolling_enabled", "checkbox" )
+      create_config( "Transmog rolling threshold", "tmog_roll_threshold", "text" )
+      create_config( "Reset rolling popup position", "", "button", function()
         info( "Rolling popup position has been reset." )
         config.notify_subscribers( "reset_rolling_popup" )
-      end)
-    end)
+      end )
+    end )
 
-    CreateGUIEntry("Awards popup", function()
-      CreateConfig( "General", "", "header")
-      CreateConfig( "Always keep awards data", "keep_award_data", "checkbox" )
-      CreateConfig( "Reset awards data", "", "button", function()        
+    create_gui_entry( "Awards popup", function()
+      create_config( "General", "", "header" )
+      create_config( "Always keep awards data", "keep_award_data", "checkbox" )
+      create_config( "Reset awards data", "", "button", function()
         awarded_loot.clear( true )
-      end)
+      end )
 
-      CreateConfig( "Item quality filter", "", "header")
-      CreateConfig( "Poor", "award_filter.itemQuality.Poor", "checkbox", notifyAwards )
-      CreateConfig( "Common", "award_filter.itemQuality.Common", "checkbox", notifyAwards )
-      CreateConfig( "Uncommon", "award_filter.itemQuality.Uncommon", "checkbox", notifyAwards )
-      CreateConfig( "Rare", "award_filter.itemQuality.Rare", "checkbox", notifyAwards )
-      CreateConfig( "Epic", "award_filter.itemQuality.Epic", "checkbox", notifyAwards )
-      CreateConfig( "Legendary", "award_filter.itemQuality.Legendary", "checkbox", notifyAwards )
+      create_config( "Item quality filter", "", "header" )
+      create_config( "Poor", "award_filter.itemQuality.Poor", "checkbox", notify_awards )
+      create_config( "Common", "award_filter.itemQuality.Common", "checkbox", notify_awards )
+      create_config( "Uncommon", "award_filter.itemQuality.Uncommon", "checkbox", notify_awards )
+      create_config( "Rare", "award_filter.itemQuality.Rare", "checkbox", notify_awards )
+      create_config( "Epic", "award_filter.itemQuality.Epic", "checkbox", notify_awards )
+      create_config( "Legendary", "award_filter.itemQuality.Legendary", "checkbox", notify_awards )
 
-      CreateConfig( "Roll type filter", "", "header", notifyAwards )
-      CreateConfig( "MainSpec", "award_filter.rollType.MainSpec", "checkbox", notifyAwards )
-      CreateConfig( "OffSpec", "award_filter.rollType.OffSpec", "checkbox", notifyAwards )
-      CreateConfig( "Transmog", "award_filter.rollType.Transmog", "checkbox", notifyAwards )
-      CreateConfig( "Soft reserve", "award_filter.rollType.SoftRes", "checkbox", notifyAwards )
-      CreateConfig( "Raid roll", "award_filter.rollType.RR", "checkbox", notifyAwards )
-      CreateConfig( "Other", "award_filter.rollType.NA", "checkbox", notifyAwards )
-
-    end)
+      create_config( "Roll type filter", "", "header", notify_awards )
+      create_config( "MainSpec", "award_filter.rollType.MainSpec", "checkbox", notify_awards )
+      create_config( "OffSpec", "award_filter.rollType.OffSpec", "checkbox", notify_awards )
+      create_config( "Transmog", "award_filter.rollType.Transmog", "checkbox", notify_awards )
+      create_config( "Soft reserve", "award_filter.rollType.SoftRes", "checkbox", notify_awards )
+      create_config( "Raid roll", "award_filter.rollType.RR", "checkbox", notify_awards )
+      create_config( "Other", "award_filter.rollType.NA", "checkbox", notify_awards )
+    end )
 
     return gui
   end
@@ -412,7 +404,7 @@ function M.new( frame_builder, awarded_loot, db, config )
   local function refresh()
     M.debug.add( "refresh" )
     for id, frame in pairs( gui.frames ) do
-      if type(frame) == "table" and frame.area then
+      if type( frame ) == "table" and frame.area then
         if active_area ~= "" then
           if id == active_area then
             M.debug.add( "showing " .. id )
@@ -425,7 +417,7 @@ function M.new( frame_builder, awarded_loot, db, config )
           for _, child in ipairs( { frame.area.scroll.content:GetChildren() } ) do
             if child.config and child.input then
               if child.input:GetFrameType() == "CheckButton" then
-                child.input:SetChecked( GetNestedValue( db, child.config ) )
+                child.input:SetChecked( get_nested_value( db, child.config ) )
               elseif child.input:GetFrameType() == "EditBox" then
                 child.input:SetText( db[ child.config ] )
               end

@@ -26,11 +26,13 @@ function M.new( db, group_roster, config )
   local function award( player_name, item_id, roll_type, rolling_strategy )
     M.debug.add( "award" )
     local player = group_roster.find_player( player_name )
-    local class = player and player.class or nil            
+    local class = player and player.class or nil
     local quality, texture = m.get_item_quality_and_texture( item_id )
-    local itemLink = m.fetch_item_link(item_id, quality)
+    local itemLink = m.fetch_item_link( item_id, quality )
 
-    table.insert( db.awarded_items, { player_name = player_name, item_id = item_id, roll_type = roll_type, rolling_strategy = rolling_strategy, player_class = class, quality = quality, itemLink = itemLink } )
+    table.insert( db.awarded_items,
+    { player_name = player_name, item_id = item_id, roll_type = roll_type, rolling_strategy = rolling_strategy, player_class = class, quality = quality, itemLink =
+      itemLink } )
   end
 
   ---@return table
