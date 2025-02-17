@@ -4,7 +4,6 @@ local m = RollFor
 if m.OptionsPopup then return end
 
 local info = m.pretty_print
-local gui
 
 ---@class OptionsPopup
 ---@field show fun( area: string )
@@ -15,13 +14,47 @@ local M = m.Module.new( "OptionsPopup" )
 M.debug.enable( true )
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
----@param popup_builder PopupBuilder
+---@param frame_builder FrameBuilderFactory
 ---@param awarded_loot AwardedLoot
 ---@param db table
 ---@param config Config
-function M.new( popup_builder, awarded_loot, db, config )
+function M.new( frame_builder, awarded_loot, db, config )
+
+  ---@class Frame
+  local gui
   local popup
   local active_area
+
+  local function is_out_of_bounds( x, y, frame_width, frame_height, screen_width, screen_height )
+    local width = frame_width / 2
+    local height = frame_height / 2
+    local left = x - width
+    local right = x + width
+    local top = y + height
+    local bottom = y - height
+
+    return left < 0 or
+        right > screen_width or
+        top > 0 or
+        bottom < -screen_height
+  end
+
+  local function on_drag_stop()
+    if not popup then return end
+    local width, height = popup:GetWidth(), popup:GetHeight()
+    local screen_width, screen_height = m.api.GetScreenWidth(), m.api.GetScreenHeight()
+    local _, _, _, x, y = popup:get_anchor_point()
+
+    if is_out_of_bounds( x, y, width, height, screen_width, screen_height ) then
+      db.point = M.center_point
+      popup:position( M.center_point )
+
+      return
+    end
+
+    local anchor_point, _, anchor_relative_point, anchor_x, anchor_y = popup:get_anchor_point()
+    db.point = { point = anchor_point, relative_point = anchor_relative_point, x = anchor_x, y = anchor_y }
+  end
 
   local function SetNestedValue(root, str, value)
     local current = root
@@ -63,6 +96,8 @@ function M.new( popup_builder, awarded_loot, db, config )
       config.notify_subscribers( 'award_filter' )
     end
 
+    ---@param title string
+    ---@param populate function
     local function CreateGUIEntry( title, populate )
       if not gui.frames[title] then
         gui.frames[title] = e.CreateTabFrame(gui.frames, title)
@@ -86,13 +121,13 @@ function M.new( popup_builder, awarded_loot, db, config )
       --frame:SetWidth( this.parent:GetRight()-this.parent:GetLeft()-20 )
       frame:SetWidth( 361 )
       frame:SetHeight( 22 )
-      frame:SetPoint( "TOPLEFT", this, "TOPLEFT", 5, (this.object_count*-23)-5 )
+      frame:SetPoint( "TOPLEFT", this, "TOPLEFT", 5, ( this.object_count * -23 ) -5 )
       frame.config = setting
 
-      if not widget or (widget and widget ~= "button") then
+      if not widget or ( widget and widget ~= "button" ) then
         if widget ~= "header" then
           frame:SetScript("OnUpdate", e.EntryUpdate)
-          frame.tex = frame:CreateTexture(nil, "BACKGROUND")
+          frame.tex = frame:CreateTexture( nil, "BACKGROUND" )
           frame.tex:SetTexture(1,1,1,.05)
           frame.tex:SetAllPoints()
           frame.tex:Hide()
@@ -175,20 +210,20 @@ function M.new( popup_builder, awarded_loot, db, config )
       end
 
       if widget == "button" then
-        frame.button = m.api.CreateFrame("Button", "rfButton", frame, "UIPanelButtonTemplate")
-        e.CreateBackdrop(frame.button, nil, true)
-        frame.button:SetNormalTexture("")
-        frame.button:SetHighlightTexture("")
-        frame.button:SetPushedTexture("")
-        frame.button:SetDisabledTexture("")
+        frame.button = m.api.CreateFrame( "Button", "rfButton", frame, "UIPanelButtonTemplate" )
+        e.CreateBackdrop( frame.button, nil, true )
+        frame.button:SetNormalTexture( "" )
+        frame.button:SetHighlightTexture( "" )
+        frame.button:SetPushedTexture( "" )
+        frame.button:SetDisabledTexture( "" )
         frame.button:SetText(caption)
         local w = frame.button:GetTextWidth() + 10
         frame.button:SetWidth( w )
-        frame.button:SetHeight(20)
-        frame.button:SetPoint("TOPLEFT", (this.parent:GetWidth() / 2 - w / 2)+10, -5)
+        frame.button:SetHeight( 20 )
+        frame.button:SetPoint( "TOPLEFT", (this.parent:GetWidth() / 2 - w / 2)+10, -5 )
         frame.button:SetTextColor(1,1,1,1)
-        frame.button:SetScript("OnClick", ufunc)
-        frame.button:SetScript("OnEnter", function()
+        frame.button:SetScript( "OnClick", ufunc )
+        frame.button:SetScript( "OnEnter", function()
           this:SetBackdropBorderColor( .2, 1, .8, 1 )          
         end)
         frame.button:SetScript("OnLeave", function()
@@ -199,37 +234,24 @@ function M.new( popup_builder, awarded_loot, db, config )
       return frame
     end
 
-    gui = m.api.CreateFrame( "Frame", "rfOptionsFrame", m.api.UIParent )
-    gui:SetMovable( true )
-    gui:EnableMouse( true )
-    gui:RegisterForDrag( "LeftButton" )
-    gui:SetWidth( 400 )
-    gui:SetHeight( 350 )
-    gui:SetFrameStrata( "DIALOG" )
-    gui:SetPoint( "CENTER", 0, 0 )
-    gui:Hide()
+    local builder = frame_builder.new()
+        :name( "rfOptionsFrame" )
+        :width( 400 )
+        :height( 350 )
+        :bg_file( "Interface/Buttons/WHITE8x8" )
+        :sound()
+        :backdrop_color( 0, 0, 0, .85 )
+        :gui_elements( m.GuiElements )
+        :frame_style( "PrincessKenny" )
+        :border_color( .2, .2, .2, 1 )
+        :movable()
+        :on_drag_stop( on_drag_stop )
+        :esc()
+        :self_centered_anchor()
 
-    gui:SetScript("OnShow",function()
-      print("Show options")
-    end)
+    gui = builder:build()
 
-    gui:SetScript("OnHide",function()
-      print("Hide options")
-      gui:Hide()
-    end)
-
-    gui:SetScript( "OnDragStart", function()
-      this:StartMoving()
-    end)
-
-    gui:SetScript("OnDragStop",function()
-      this:StopMovingOrSizing()
-    end)
-
-    e.CreateBackdrop(gui, nil, true, .85)
-    --CreateBackdropShadow(gui)    
-    m.api.tinsert( m.api.UISpecialFrames, "rfOptionsFrame" )
-
+    ---@diagnostic disable-next-line: undefined-field
     local title = gui:CreateFontString( nil, "ARTWORK", "GameFontNormalSmall" )
     title:SetTextColor( 1, 1, 1 )
     title:SetText( "|cff209ff9RollFor|r" )

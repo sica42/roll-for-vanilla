@@ -232,7 +232,7 @@ local function create_components()
 
   ---@type OptionsPopup
   M.options_popup = m.OptionsPopup.new(
-    m.PopupBuilder.new( m.FrameBuilder ),
+    m.FrameBuilder,
     M.awarded_loot,
     db( "config" ),
     M.config
