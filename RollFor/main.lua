@@ -652,15 +652,14 @@ local function setup_slash_commands()
 
   SLASH_RFW1 = "/rfw"
   M.api().SlashCmdList[ "RFW" ] = M.winners_popup.show
-
   SLASH_RFO1 = "/rfo"
   M.api().SlashCmdList[ "RFO" ] = M.options_popup.show
 
-  SLASH_RFT1 = "/rft"
-  M.api().SlashCmdList[ "RFT" ] = test
+  --SLASH_RFT1 = "/rft"
+  --M.api().SlashCmdList[ "RFT" ] = test
 
-  SLASH_DROPPED1 = "/DROPPED"
-  M.api().SlashCmdList[ "DROPPED" ] = simulate_loot_dropped
+  --SLASH_DROPPED1 = "/DROPPED"
+  --M.api().SlashCmdList[ "DROPPED" ] = simulate_loot_dropped
 end
 
 function M.on_first_enter_world()
