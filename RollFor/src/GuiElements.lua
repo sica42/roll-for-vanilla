@@ -13,6 +13,7 @@ local hl = m.colors.hl
 ---@field icon_text fun( parent: Frame, text: string ): Frame
 ---@field roll fun( parent: Frame ): Frame
 ---@field button fun( parent: Frame ): Frame
+---@field close_button fun( parent: Frame ): Frame
 ---@field info fun( parent: Frame ): Frame
 ---@field dropped_item fun( parent: Frame, text: string ): Frame
 
@@ -36,6 +37,18 @@ local function create_text_in_container( type, parent, container_width, alignmen
   end
 
   return container
+end
+
+local function get_perfect_pixel()
+  if M.pixel then return M.pixel end
+
+  local scale = m.api.GetCVar( "uiScale" )
+  local resolution = m.api.GetCVar( "gxResolution" )
+  local _, _, _, screenheight = string.find( resolution, "(.+)x(.+)" )
+  M.pixel = 768 / screenheight / scale
+  M.pixel = M.pixel > 1 and 1 or M.pixel
+
+  return M.pixel
 end
 
 function M.empty_line( parent )
@@ -192,7 +205,7 @@ function M.icon_text( parent, text )
   return container
 end
 
-function M.winner_header( parent )  
+function M.winner_header( parent )
   local frame = m.api.CreateFrame( "Frame", nil, parent )
   frame:SetWidth( 250 )
   frame:SetHeight( 14 )
@@ -202,9 +215,9 @@ function M.winner_header( parent )
 
   local player_header = create_text_in_container( "Button", frame, 74, "LEFT", "Player" )
   player_header.inner:SetPoint( "LEFT", 2, 0 )
+  player_header.sort = "player_name"
   player_header:SetHeight( 15 )
-  player_header:SetPoint( "LEFT", 0, 0 )  
-
+  player_header:SetPoint( "LEFT", 0, 0 )
   player_header:SetBackdrop( {
     bgFile = "Interface/Buttons/WHITE8x8",
     tile = true,
@@ -215,6 +228,7 @@ function M.winner_header( parent )
 
   local item_header = create_text_in_container( "Button", frame, 148, "LEFT", "Item" )
   item_header.inner:SetPoint( "LEFT", 2, 0 )
+  item_header.sort = "item_id"
   item_header:SetHeight( 15 )
   item_header:SetPoint( "LEFT", frame, "LEFT", 75, 0 )
   item_header:SetBackdrop( {
@@ -225,8 +239,9 @@ function M.winner_header( parent )
   item_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
   frame.item_header = item_header
 
-  local type_header = create_text_in_container( "Button", frame, 26, "RIGHT", "Type" )
+  local type_header = create_text_in_container( "Button", frame, 26, "LEFT", "Type" )
   type_header.inner:SetPoint( "LEFT", 2, 0 )
+  type_header.sort = "roll_type"
   type_header:SetHeight( 15 )
   type_header:SetPoint( "RIGHT", 0, 0 )
   type_header:SetBackdrop( {
@@ -241,7 +256,7 @@ function M.winner_header( parent )
 end
 
 function M.winner( parent )
-  local frame = m.api.CreateFrame( "Button", nil, parent )  
+  local frame = m.api.CreateFrame( "Button", nil, parent )
   frame:SetWidth( 250 )
   frame:SetHeight( 14 )
   frame:SetFrameStrata( "DIALOG" )
@@ -263,26 +278,26 @@ function M.winner( parent )
 
   frame:SetScript( "OnLeave", function()
     blue_hover( 0 )
-  end )  
-  
+  end )
+
   local player_name = M.text( frame )
   player_name:SetPoint( "LEFT", frame, "LEFT", 0, 0 )
   frame.player_name = player_name
 
   --local item_link = M.text( frame )
   local tooltip_link
-  local item_link = create_text_in_container( "Button", frame, 148, "LEFT", "dummy")
+  local item_link = create_text_in_container( "Button", frame, 148, "LEFT", "dummy" )
   item_link:SetPoint( "LEFT", frame, "LEFT", 75, 0 )
   item_link:SetHeight( item_link.inner:GetHeight() )
   frame.item_link = item_link
 
   frame.SetItem = function( _, itemLink )
-    local function truncate_item(itemLink, len)
-      local item = m.ItemUtils.get_item_name( itemLink )
-      if string.len(item) > len then
-        return string.sub( itemLink, 1, string.find( itemLink, '%[' ) ) .. string.sub( item, 1, len ) .. '...]'
+    local function truncate_item( link, len )
+      local item = m.ItemUtils.get_item_name( link )
+      if string.len( item ) > len then
+        return string.sub( link, 1, string.find( link, '%[' ) ) .. string.sub( item, 1, len ) .. '...]'
       end
-      return itemLink
+      return link
     end
 
     item_link.inner:SetText( truncate_item( itemLink, 32 ) )
@@ -304,20 +319,20 @@ function M.winner( parent )
         m.api.DressUpItemLink( itemLink )
         return
       end
-  
-      if m.is_shift_key_down() then        
+
+      if m.is_shift_key_down() then
         m.link_item_in_chat( itemLink )
         return
       end
 
-      m.api.SetItemRef( tooltip_link, tooltip_link , "LeftButton" )
-    end)
+      m.api.SetItemRef( tooltip_link, tooltip_link, "LeftButton" )
+    end )
   end
 
   local roll_type = M.text( frame )
   roll_type:SetPoint( "RIGHT", 0, 0 )
   frame.roll_type = roll_type
-  
+
   return frame
 end
 
@@ -412,6 +427,36 @@ function M.award_button( parent )
   button:SetHeight( 20 )
   button:SetText( "" )
   button:GetFontString():SetPoint( "CENTER", 0, -1 )
+
+  return button
+end
+
+function M.close_button( parent )
+  local button = m.api.CreateFrame( "Button", nil, parent )
+  button:SetBackdrop( {
+    bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+    edgeFile = "Interface\\Buttons\\WHITE8X8",
+    tile = false,
+    tileSize = 0,
+    edgeSize = 0.5, --get_perfect_pixel(),
+    insets = { left = 0, right = 0, top = 0, bottom = 0 }
+  } )
+  button:SetBackdropColor( 0, 0, 0, 1 )
+  button:SetBackdropBorderColor( .2, .2, .2, 1 )
+  button:SetHeight( 10 )
+  button:SetWidth( 10 )
+  button.texture = button:CreateTexture()
+  button.texture:SetTexture( "Interface\\AddOns\\RollFor\\assets\\close.tga", "ARTWORK" )
+  button.texture:ClearAllPoints()
+  button.texture:SetAllPoints( button )
+  button.texture:SetVertexColor( 1, .25, .25, 1 )
+
+  button:SetScript( "OnEnter", function()
+    this:SetBackdropBorderColor( 1, .25, .25, 1 )
+  end )
+  button:SetScript( "OnLeave", function()
+    this:SetBackdropBorderColor( .2, .2, .2, 1 )
+  end )
 
   return button
 end

@@ -5,49 +5,49 @@ if m.WinnersPopup then return end
 
 local c = m.colorize_player_by_class
 local r = m.roll_type_color
-local blue = m.colors.blue
 ---@diagnostic disable-next-line: deprecated
 local getn = table.getn
 local filter = m.filter
 local sort
 local sortOrder = 'desc'
 
-local button_defaults = {
-  width = 80,
-  height = 24,
-  scale = 0.76
-}
-
 ---@class WinnersPopup
 ---@field show fun()
----@field refresh fun( _, content: RollingPopupData )
+---@field refresh fun()
 ---@field hide fun()
 ---@field get_frame fun(): table
 ---@field ping fun()
 
 local M = m.Module.new( "WinnersPopup" )
+--M.debug.enable()
 
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
 ---@param popup_builder PopupBuilder
+---@param frame_builder FrameBuilderFactory
 ---@param db table
 ---@param awarded_loot AwardedLoot
 ---@param roll_controller RollController
 ---@param options_popup OptionsPopup
 ---@param config Config
-function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup, config )
-  ---@type Popup?
-
+function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller, options_popup, config )
+  ----@type Popup?
+  local popup
+  db.point = db.point or M.center_point
   --awarded_loot.award('Zombiehunter', 16939, m.Types.RollType.MainSpec)
   --awarded_loot.award('Kevieboipro', 16939, m.Types.RollType.Transmog)
   --awarded_loot.award('Sica', 5504, m.Types.RollType.MainSpec, m.Types.RollingStrategy.RaidRoll)
   --awarded_loot.award('Sica', 10652 )
   --awarded_loot.award('Sica', 19019,  m.Types.RollType.MainSpec, m.Types.RollingStrategy.SoftResRoll)
 
-  local popup
-  db.point = db.point or M.center_point
-
-  local top_padding = 14
+  local function set_sort()
+    if sort == this.sort then
+      sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
+    else
+      sort = this.sort
+    end
+    config.notify_subscribers( 'award_filter' )
+  end
 
   local function create_popup()
     local function is_out_of_bounds( x, y, frame_width, frame_height, screen_width, screen_height )
@@ -99,28 +99,69 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
 
     local builder = popup_builder
         :name( "rfWinnersFrame" )
-        :width( 200 )
-        :height( 100 )
+        :width( 290 )
+        :height( 200 )
         :point( get_point() )
         :bg_file( "Interface/Buttons/WHITE8x8" )
         :sound()
-        :backdrop_color( 0, 0, 0, 0.6 )
-        :gui_elements( m.GuiElements )
+        :backdrop_color( 0, 0, 0, .7 )
         :frame_style( "PrincessKenny" )
-        :border_color( 0.125, 0.623, 0.976, 0.2 )
+        :border_color( .2, .2, .2, 1 )
         :movable()
         :on_drag_stop( on_drag_stop )
         :self_centered_anchor()
 
-    local result = builder:build()
+    ---@class Frame
+    local main_frame = builder:build()
 
-    return result
+    local close = m.GuiElements.close_button( main_frame )
+    close:SetPoint( "TOPRIGHT", -7, -7 )
+    close:SetScript( "OnClick", function()
+      if popup then popup:Hide() end
+    end )
+
+    local title = m.GuiElements.text( main_frame, "Winners" )
+    title:SetPoint( "TOPLEFT", 0, -10 )
+    title:SetPoint( "RIGHT", 0, 0 )
+
+    local header = m.GuiElements.winner_header( main_frame )
+    header:SetPoint( "TOPLEFT", 20, -30 )
+    header.player_header:SetScript( "OnClick", set_sort )
+    header.item_header:SetScript( "OnClick", set_sort )
+    header.type_header:SetScript( "OnClick", set_sort )
+
+    main_frame.scroll = m.OptionsGuiElements.CreateScrollFrame( nil, main_frame )
+    main_frame.scroll:SetPoint( "TOPLEFT", 20, -45 )
+    main_frame.scroll:SetPoint( "BOTTOMRIGHT", -6, 10 )
+
+    local inner_builder = frame_builder.new()
+        :parent( main_frame.scroll )
+        :name( "WinnersFrameInner" )
+        :width( 250 )
+        :height( 1 )
+        :point( { point = "TOPLEFT", relative_point = "TOPLEFT", x = 0, y = -0 } )
+        :bg_file( "Interface/Buttons/WHITE8x8" )
+        :gui_elements( m.GuiElements )
+        :frame_style( "none" )
+
+    ---@class Frame
+    main_frame.scroll.content = inner_builder:build()
+    main_frame.scroll.content.parent = main_frame.scroll
+    main_frame.scroll.content:SetAllPoints( main_frame.scroll )
+    main_frame.scroll.content:SetScript( "OnUpdate", function()
+      this:GetParent():UpdateScrollState()
+    end )
+
+    main_frame.scroll.content:Show()
+    main_frame.scroll:SetScrollChild( main_frame.scroll.content )
+
+    return main_frame
   end
 
   local function refresh()
     M.debug.add( "refresh" )
     if not popup then popup = create_popup() end
-    popup:clear()
+    popup.scroll.content:clear()
 
     local data = awarded_loot.get_winners()
     for _, v in ipairs( data ) do
@@ -151,7 +192,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
       return m.table_contains_value( quality_filter, quality ) and m.table_contains_value( rolltype_filter, item.roll_type )
     end )
 
-    local function mySort( a, b )
+    local function my_sort( a, b )
       local valA, valB = a[ sort ] or '', b[ sort ] or ''
 
       if valA ~= valB then
@@ -165,84 +206,47 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
       return a.item_id < b.item_id
     end
 
-    if (sort) then table.sort( data, mySort ) end
+    if (sort) then table.sort( data, my_sort ) end
 
     local content = {}
-
-    table.insert( content, { type = "text", value = "Winners" } )
-    table.insert( content, { type = "empty_line" } )
-    table.insert( content, { type = "winner_header" } )
-
     for _, item in pairs( data ) do
-      table.insert( content,
-        { type = "winner", player_name = item.player_name, player_class = item.player_class, itemLink = item.itemLink, roll_type = item.roll_type, rolling_strategy =
-        item.rolling_strategy, quality = item.quality } )
+      table.insert( content, {
+        type = "winner",
+        player_name = item.player_name,
+        player_class = item.player_class,
+        itemLink = item.itemLink,
+        roll_type = item.roll_type,
+        rolling_strategy = item.rolling_strategy,
+        quality = item.quality
+      } )
     end
 
-    table.insert( content, { type = "button", label = "Options" } )
-    table.insert( content, { type = "button", label = "Close" } )
-
+    local line_count = 0
     for _, v in ipairs( content ) do
-      popup.add_line( v.type, function( type, frame, lines )
-        if type == "text" then
-          frame:SetText( v.value )
-        elseif type == "empty_line" then
-          frame:SetHeight( v.height or 6 )
-        elseif type == "winner_header" then
-          frame[ 'player_header' ]:SetScript( "OnClick", function()
-            sort = 'player_name'
-            sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
-            refresh()
-          end )
-
-          frame.item_header:SetScript( "OnClick", function()
-            sort = 'item_id'
-            sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
-            refresh()
-          end )
-
-          frame.type_header:SetScript( "OnClick", function()
-            sort = 'roll_type'
-            sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
-            refresh()
-          end )
-        elseif type == "winner" then
+      popup.scroll.content.add_line( v.type, function( type, frame, lines )
+        if type == "winner" then
           local roll_type_abbrev = v.roll_type == 'RR' and 'RR' or v.roll_type == 'NA' and 'NA' or m.roll_type_abbrev( v.roll_type )
           frame:SetItem( v.itemLink )
           frame.player_name:SetText( c( v.player_name, v.player_class ) )
           frame.roll_type:SetText( r( v.roll_type, roll_type_abbrev ) )
-        elseif type == "button" then
-          frame:SetWidth( v.width or button_defaults.width )
-          frame:SetHeight( v.height or button_defaults.height )
-          frame:SetText( v.label or "" )
-          frame:SetScale( v.scale or button_defaults.scale )
-
-          if v.label == "Close" then
-            frame:SetScript( "OnClick", function()
-              popup:Hide()
-            end )
-          elseif v.label == "Options" then
-            frame:SetScript( "OnClick", function()
-              options_popup.show( "Awards popup" )
-            end )
-          end
+          line_count = line_count + 1
         end
 
-        if type ~= "button" then
-          local count = getn( lines )
-
-          if count == 0 then
-            local y = -top_padding - (v.padding or 0)
-            frame:ClearAllPoints()
-            frame:SetPoint( "TOP", popup, "TOP", 0, y )
-          else
-            local line_anchor = lines[ count ].frame
-            frame:ClearAllPoints()
-            frame:SetPoint( "TOP", line_anchor, "BOTTOM", 0, v.padding and -v.padding or 0 )
-          end
+        local count = getn( lines )
+        if count == 0 then
+          local y = v.padding or 0
+          frame:ClearAllPoints()
+          frame:SetPoint( "TOP", popup.scroll.content, "TOP", 0, y )
+        else
+          local line_anchor = lines[ count ].frame
+          frame:ClearAllPoints()
+          frame:SetPoint( "TOP", line_anchor, "BOTTOM", 0, v.padding and -v.padding or 0 )
         end
       end, 0 )
     end
+
+    local height = 60 + line_count * 14
+    popup:SetHeight( math.min( 400, height ) )
   end
 
   local function show()
@@ -250,8 +254,6 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
 
     if not popup then
       popup = create_popup()
-    else
-      popup:clear()
     end
 
     popup:Show()
@@ -268,7 +270,7 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
 
   local function get_frame()
     if not popup then
-      create_popup()
+      popup = create_popup()
     end
 
     return popup
@@ -278,14 +280,14 @@ function M.new( popup_builder, db, awarded_loot, roll_controller, options_popup,
     m.api.PlaySound( "igMainMenuOpen" )
   end
 
-  local function onUpdate()
+  local function do_update()
     if popup and popup:IsVisible() then
       refresh()
     end
   end
 
-  roll_controller.subscribe( "loot_awarded", onUpdate )
-  config.subscribe( "award_filter", onUpdate )
+  roll_controller.subscribe( "loot_awarded", do_update )
+  config.subscribe( "award_filter", do_update )
 
   ---@type WinnersPopup
   return {

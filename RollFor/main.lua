@@ -241,6 +241,7 @@ local function create_components()
   ---@type WinnersPopup
   M.winners_popup = m.WinnersPopup.new(
     m.PopupBuilder.new( m.FrameBuilder ),
+    m.FrameBuilder,
     db( "winners_popup" ),
     M.awarded_loot,
     M.roll_controller,
