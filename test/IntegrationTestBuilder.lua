@@ -64,6 +64,7 @@ function M.mock_config( configuration )
         str = "/roll"
       }
     end,
+    loot_frame_cursor = function() return false end
   }
 end
 
@@ -184,7 +185,7 @@ function M.new_roll_for()
     local loot_facade = deps[ "LootFacade" ] or M.mock_loot_facade()
     deps[ "LootFacade" ] = loot_facade
 
-    local awarded_loot = require( "src/AwardedLoot" ).new( db( "awarded_loot" ) )
+    local awarded_loot = require( "src/AwardedLoot" ).new( db( "awarded_loot" ), group_roster, config )
     local softres = deps[ "SoftResData" ] and group_aware_softres( group_roster, awarded_loot, deps[ "SoftResData" ] ) or
         group_aware_softres( group_roster, awarded_loot )
     deps[ "SoftRes" ] = softres

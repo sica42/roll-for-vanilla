@@ -31,8 +31,8 @@ function M.new( db, group_roster, config )
     local itemLink = m.fetch_item_link( item_id, quality )
 
     table.insert( db.awarded_items,
-    { player_name = player_name, item_id = item_id, roll_type = roll_type, rolling_strategy = rolling_strategy, player_class = class, quality = quality, itemLink =
-      itemLink } )
+    { player_name = player_name, item_id = item_id, roll_type = roll_type, rolling_strategy = rolling_strategy, player_class = class, quality = quality,
+      itemLink = itemLink } )
   end
 
   ---@return table
@@ -63,7 +63,7 @@ function M.new( db, group_roster, config )
 
   local function clear( force )
     M.debug.add( "clear" )
-    if not config.keep_award_data or force then
+    if not config.keep_award_data() or force then
       m.clear_table( db.awarded_items )
     end
   end

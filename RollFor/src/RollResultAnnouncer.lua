@@ -30,18 +30,21 @@ function M.new( chat, roll_controller, config, softres )
     local rerolling = winners[ 1 ].rerolling
     local item = winners[ 1 ].item
 
-    local function sr_plus_check( value )
+    local function sr_plus( value )
       local sr_players = softres.get( item.id )
       local sr_player = m.find(winners[ 1 ].name, sr_players, 'name')
 
       if sr_player and sr_player.sr_plus then
-        local sr_plus = sr_player.sr_plus
-        value = value - sr_plus
-        local roll_result = string.format( "%s+%s=%s", blue( value ), blue ( sr_plus ), hl( value + sr_plus ) )
+        local plus_value = sr_player.sr_plus
+        value = value - plus_value
+        local roll_result = string.format( "%s+%s=%s", value, plus_value, value + plus_value )
         return roll_result
       end
 
-      return hl( value )
+      --return hl( value )
+      return value
+    end
+    local function colorize_roll_value ( string )
     end
 
     local function message( rollers, f )
@@ -50,7 +53,7 @@ function M.new( chat, roll_controller, config, softres )
         rollers,
         rerolling and "re-" or "",
         top_roll and "" or "next ",
-        f and f( roll_value ) or roll_value,
+        f and f( sr_plus( roll_value ) ) or sr_plus( roll_value ),
         -- item_count and item_count > 1 and string.format( "%sx", item_count ) or "",
         item.link,
         roll_type_str
@@ -58,8 +61,8 @@ function M.new( chat, roll_controller, config, softres )
     end
 
     local rollers = m.prettify_table( winners, function( p ) return p.name end )
-    chat.info( message( rollers, sr_plus_check ) )
-    chat.announce( message( rollers, sr_plus_check ) )
+    chat.info( message( rollers, hl ) )
+    chat.announce( message( rollers ) )
   end
 
   ---@param winners Winner[]

@@ -51,7 +51,9 @@ local mock_config = function( config )
         tmog_rolling_enabled = function() return true end,
         rolling_popup = function() return true end,
         default_rolling_time_seconds = function() return 8 end,
-        master_loot_frame_rows = function() return 5 end
+        master_loot_frame_rows = function() return 5 end,
+        keep_award_data = function() return false end,
+        loot_frame_cursor = function() return false end
       }
     end
   }

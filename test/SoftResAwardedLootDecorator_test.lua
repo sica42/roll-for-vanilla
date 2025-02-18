@@ -29,7 +29,7 @@ function SoftResAwardedLootDecoratorSpec:should_return_false_if_the_item_is_hard
   is_in_raid( leader( "Jogobobek" ), "Obszczymucha", "Johnny" )
   local rf = soft_res( hr( 123 ), sr( "Jogobobek", 123 ), sr( "Obszczymucha", 123 ), sr( "Obszczymucha", 123 ) )
   local softres = rf.softres
-  rf.awarded_loot.award( "Johnny", 123 )
+  rf.awarded_loot.award( "Johnny", 123, "MainSpec", "NormalRoll" )
 
   -- When
   local result = softres.is_item_hardressed( 123 )
@@ -61,7 +61,7 @@ function SoftResAwardedLootDecoratorSpec:should_not_return_players_that_received
   is_in_raid( leader( "Jogobobek" ), "Obszczymucha" )
   local rf = soft_res( sr( "Jogobobek", 123 ), sr( "Obszczymucha", 123 ), sr( "Obszczymucha", 123 ) )
   local softres = rf.softres
-  rf.awarded_loot.award( "Jogobobek", 123 )
+  rf.awarded_loot.award( "Jogobobek", 123, "MainSpec", "NormalRoll" )
 
   -- When
   local result = softres.get( 123 )
@@ -78,7 +78,7 @@ function SoftResAwardedLootDecoratorSpec:should_not_subtract_rolls()
   is_in_raid( leader( "Jogobobek" ), "Obszczymucha" )
   local rf = soft_res( sr( "Jogobobek", 123 ), sr( "Obszczymucha", 123 ), sr( "Obszczymucha", 123 ) )
   local softres = rf.softres
-  rf.awarded_loot.award( "Jogobobek", 123 )
+  rf.awarded_loot.award( "Jogobobek", 123, "MainSpec", "NormalRoll" )
 
   -- When
   local result = softres.get( 123 )
