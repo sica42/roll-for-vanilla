@@ -380,8 +380,12 @@ function M.new(
   ---@param item_count number
   local function add_roll_button( buttons, strategy, item, item_count )
     table.insert( buttons, button( "Roll", function()
-      player_selection_frame.hide()
-      start( strategy, item, item_count, config.default_rolling_time_seconds() )
+      if m.is_shift_key_down() then
+        m.slash_command_in_chat( m.Types.RollSlashCommand.NormalRoll, item.link )
+      else
+        player_selection_frame.hide()
+        start( strategy, item, item_count, config.default_rolling_time_seconds() )
+      end
     end ) )
   end
 
