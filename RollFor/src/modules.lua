@@ -742,4 +742,11 @@ function M.link_item_in_chat( item_link )
   end
 end
 
+---@param slash_command RollSlashCommand
+---@param item_link string
+function M.slash_command_in_chat( slash_command, item_link )
+  M.api.ChatFrameEditBox:Show()
+  M.api.ChatFrameEditBox:SetText( string.format( "%s %s ", slash_command, item_link ) )
+end
+
 return M

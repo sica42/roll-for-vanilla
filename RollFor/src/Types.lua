@@ -8,6 +8,13 @@ local M = {}
 ---@alias PlayerName string
 ---@alias ItemId number
 
+---@class RollSlashCommand
+---@field NormalRoll "/rf"
+---@field NoSoftResRoll "/arf"
+---@field RaidRoll "/rr"
+---@field InstaRaidRoll "/irr"
+
+---@type RollSlashCommand
 M.RollSlashCommand = {
   NormalRoll = "/rf",
   NoSoftResRoll = "/arf",
