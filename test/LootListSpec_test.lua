@@ -58,7 +58,7 @@ function LootListSpec:should_display_item_bind_type()
   rf.loot_frame.should_be_hidden()
 
   -- When
-  loot_facade.notify( "LootOpened", boe_item, bop_item, quest_item, coin_item )
+  loot_facade.notify( "LootOpened", boe_item, bop_item, quest_item )
 
   -- Then
   rf.loot_frame.should_display(
