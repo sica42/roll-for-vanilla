@@ -384,7 +384,7 @@ function M.dropped_item( parent, text )
     local comment_width = container.comment:IsVisible() and container.comment:GetWidth() + 7 or 0
     local total_width = container.index:GetWidth() +
         container.icon:GetWidth() + spacing +
-        container.bind:GetWidth() + spacing +
+        container.bind:GetWidth() +
         container.text:GetWidth() + 7 +
         comment_width
 
@@ -453,8 +453,9 @@ function M.dropped_item( parent, text )
 
     if v.bind then
       container.bind.text:SetText( v.bind )
+      container.bind:SetWidth( container.bind.text:GetStringWidth() )
       container.bind:Show()
-      container.text:SetPoint( "LEFT", container.bind, "RIGHT", spacing + bind_spacing, 0 )
+      container.text:SetPoint( "LEFT", container.bind, "RIGHT", bind_spacing, 0 )
     else
       container.bind:Hide()
       container.text:SetPoint( "LEFT", container.icon, "RIGHT", spacing, 0 )

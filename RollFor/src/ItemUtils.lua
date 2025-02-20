@@ -3,8 +3,7 @@ local m = RollFor
 
 if m.ItemUtils then return end
 
-local red = m.colors.red
-local green = m.colors.green
+local red, white = m.colors.red, m.colors.white
 
 local M = {}
 
@@ -143,7 +142,6 @@ M.BindType = BindType
 ---@field parse_link fun( item_link: string ): ItemLink? -- Sometimes we need to parse the link from the "[Item Name]x4." string.
 ---@field parse_all_links fun( item_links: string ): ItemLink[]
 ---@field get_tooltip_link fun( item_link: ItemLink ): TooltipItemLink
----@field bind_description fun( bind: BindType ): string?
 ---@field bind_abbrev fun( bind: BindType ): string?
 ---@field make_item MakeItemFn
 ---@field make_dropped_item MakeDroppedItemFn
@@ -197,23 +195,11 @@ end
 
 ---@param bind BindType
 ---@return string?
-function M.bind_description( bind )
-  if bind == BindType.BindOnPickup or bind == BindType.Soulbound then
-    return red( "Bind on Pickup" )
-  elseif bind == BindType.BindOnEquip then
-    return green( "Bind on Equip" )
-  elseif bind == BindType.Quest then
-    return red( "Quest Item" )
-  end
-end
-
----@param bind BindType
----@return string?
 function M.bind_abbrev( bind )
   if bind == BindType.BindOnPickup or bind == BindType.Soulbound or bind == BindType.Quest then
     return red( "BoP" )
   elseif bind == BindType.BindOnEquip then
-    return green( "BoE" )
+    return white( "BoE" )
   end
 end
 
