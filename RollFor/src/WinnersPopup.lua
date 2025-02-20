@@ -5,11 +5,12 @@ if m.WinnersPopup then return end
 
 local c = m.colorize_player_by_class
 local r = m.roll_type_color
----@diagnostic disable-next-line: deprecated
-local getn = table.getn
 local filter = m.filter
 local sort
-local sortOrder = 'desc'
+local sort_order = "asc"
+
+---@diagnostic disable-next-line: deprecated
+local getn = table.getn
 
 ---@class WinnersPopup
 ---@field show fun()
@@ -28,26 +29,19 @@ M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 ---@param db table
 ---@param awarded_loot AwardedLoot
 ---@param roll_controller RollController
----@param options_popup OptionsPopup
 ---@param config Config
-function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller, options_popup, config )
-  ----@type Popup?
+function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller, config )
+  ---@type Popup?
   local popup
-  db.point = db.point or M.center_point
-  --awarded_loot.award('Zombiehunter', 16939, m.Types.RollType.MainSpec)
-  --awarded_loot.award('Kevieboipro', 16939, m.Types.RollType.Transmog)
-  --awarded_loot.award('Sica', 5504, m.Types.RollType.MainSpec, m.Types.RollingStrategy.RaidRoll)
-  --awarded_loot.award('Sica', 10652 )
-  --awarded_loot.award('Sica', 19019,  m.Types.RollType.MainSpec, m.Types.RollingStrategy.SoftResRoll)
+  local refresh
 
-  local function set_sort()
-    if sort == this.sort then
-      sortOrder = (sortOrder == 'asc') and 'desc' or 'asc'
-    else
-      sort = this.sort
-    end
-    config.notify_subscribers( 'award_filter' )
-  end
+  db.point = db.point or M.center_point
+  --awarded_loot.award( 'Zombiehunter', 16939, m.Types.RollType.MainSpec )
+  --awarded_loot.award( 'Kevieboipro', 16939, m.Types.RollType.Transmog )
+  --awarded_loot.award( 'Sica', 5504, m.Types.RollType.OffSpec, m.Types.RollingStrategy.RaidRoll )
+  --awarded_loot.award( 'Sica', 10652, nil, nil )
+  --awarded_loot.award( 'Sica', 19019, m.Types.RollType.OffSpec, m.Types.RollingStrategy.SoftResRoll )
+  --awarded_loot.award( 'Sica', 83484, m.Types.RollType.SoftRes, m.Types.RollingStrategy.SoftResRoll )
 
   local function create_popup()
     local function is_out_of_bounds( x, y, frame_width, frame_height, screen_width, screen_height )
@@ -97,6 +91,15 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       end
     end
 
+    local function set_sort()
+      if sort == this.sort then
+        sort_order = (sort_order == "asc") and "desc" or "asc"
+      else
+        sort = this.sort
+      end
+      refresh()
+    end
+
     local builder = popup_builder
         :name( "rfWinnersFrame" )
         :width( 290 )
@@ -111,7 +114,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         :on_drag_stop( on_drag_stop )
         :self_centered_anchor()
 
-    ---@class Frame
+    ---@class Popup
     local main_frame = builder:build()
 
     local close = m.GuiElements.close_button( main_frame )
@@ -136,7 +139,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     local inner_builder = frame_builder.new()
         :parent( main_frame.scroll )
-        :name( "WinnersFrameInner" )
+        :name( "rfWinnersFrameInner" )
         :width( 250 )
         :height( 1 )
         :point( { point = "TOPLEFT", relative_point = "TOPLEFT", x = 0, y = -0 } )
@@ -158,7 +161,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     return main_frame
   end
 
-  local function refresh()
+  function refresh()
     M.debug.add( "refresh" )
     if not popup then popup = create_popup() end
     popup.scroll.content:clear()
@@ -174,14 +177,14 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     local filters = config.award_filter()
     local quality_filter = {}
-    for q, v in pairs( filters.itemQuality ) do
+    for q, v in pairs( filters.item_quality ) do
       if v then
         table.insert( quality_filter, m.Types.ItemQuality[ q ] )
       end
     end
 
     local rolltype_filter = {}
-    for t, v in pairs( filters.rollType ) do
+    for t, v in pairs( filters.roll_type ) do
       if v then
         table.insert( rolltype_filter, t )
       end
@@ -193,40 +196,80 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end )
 
     local function my_sort( a, b )
-      local valA, valB = a[ sort ] or '', b[ sort ] or ''
+      if sort == "player_name" then
+        local val_a, val_b = a[ sort ] or "", b[ sort ] or ""
+        local class_a, class_b = a[ "player_class" ] or "", b[ "player_class" ] or ""
 
-      if valA ~= valB then
-        if sortOrder == 'asc' then
-          return valA < valB
+        if class_a ~= class_b then
+          if sort_order == "asc" then
+            return class_a < class_b
+          else
+            return class_a > class_b
+          end
+        end
+        if sort_order == "asc" then
+          return val_a < val_b
         else
-          return valA > valB
+          return val_a > val_b
         end
       end
 
-      return a.item_id < b.item_id
+      if sort == "item_id" then
+        local val_a, val_b = a[ sort ] or "", b[ sort ] or ""
+        local quality_a, quality_b = a[ "quality" ], b[ "quality" ] or 0
+
+        if quality_a ~= quality_b then
+          if sort_order == "asc" then
+            return quality_a > quality_b
+          else
+            return quality_a < quality_b
+          end
+        end
+        if sort_order == "asc" then
+          return val_a > val_b
+        else
+          return val_a < val_b
+        end
+      end
+
+      if sort == "roll_type" then
+        local roll_order = { SoftRes = 1, MainSpec = 2, OffSpec = 3, Transmog = 4, RR = 5, NA = 6 }
+        local val_a, val_b = a[ sort ] or "NA", b[ sort ] or "NA"
+
+        if val_a ~= val_b then
+          if sort_order == "asc" then
+            return roll_order[ val_a ] < roll_order[ val_b ]
+          else
+            return roll_order[ val_a ] > roll_order[ val_b ]
+          end
+        end
+        return a.item_id < b.item_id
+      end
     end
 
     if (sort) then table.sort( data, my_sort ) end
 
     local content = {}
     for _, item in pairs( data ) do
-      table.insert( content, {
-        type = "winner",
-        player_name = item.player_name,
-        player_class = item.player_class,
-        itemLink = item.itemLink,
-        roll_type = item.roll_type,
-        rolling_strategy = item.rolling_strategy,
-        quality = item.quality
-      } )
+      if item.item_link then
+        table.insert( content, {
+          type = "winner",
+          player_name = item.player_name,
+          player_class = item.player_class,
+          item_link = item.item_link,
+          roll_type = item.roll_type,
+          rolling_strategy = item.rolling_strategy,
+          quality = item.quality
+        } )
+      end
     end
 
     local line_count = 0
     for _, v in ipairs( content ) do
       popup.scroll.content.add_line( v.type, function( type, frame, lines )
         if type == "winner" then
-          local roll_type_abbrev = v.roll_type == 'RR' and 'RR' or v.roll_type == 'NA' and 'NA' or m.roll_type_abbrev( v.roll_type )
-          frame:SetItem( v.itemLink )
+          local roll_type_abbrev = v.roll_type == "RR" and "RR" or v.roll_type == "NA" and "NA" or m.roll_type_abbrev( v.roll_type )
+          frame:SetItem( v.item_link )
           frame.player_name:SetText( c( v.player_name, v.player_class ) )
           frame.roll_type:SetText( r( v.roll_type, roll_type_abbrev ) )
           line_count = line_count + 1
@@ -259,6 +302,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     popup:Show()
     sort = nil
     refresh()
+
   end
 
   local function hide()
@@ -280,14 +324,25 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     m.api.PlaySound( "igMainMenuOpen" )
   end
 
-  local function do_update()
+  local function loot_awarded()
     if popup and popup:IsVisible() then
       refresh()
+
     end
   end
 
-  roll_controller.subscribe( "loot_awarded", do_update )
-  config.subscribe( "award_filter", do_update )
+  local function filter_changed()
+    if popup and popup:IsVisible() then
+      refresh()
+      popup.scroll.content.parent:UpdateScrollState()
+      local max = popup.scroll.content.parent:GetVerticalScrollRange()
+      print( "max: " .. max)
+      popup.scroll.content.parent:SetVerticalScroll( max )
+    end
+  end
+
+  roll_controller.subscribe( "loot_awarded", loot_awarded )
+  config.subscribe( "award_filter", filter_changed )
 
   ---@type WinnersPopup
   return {

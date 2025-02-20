@@ -45,8 +45,8 @@ function M.new( db )
     if db.auto_master_loot == nil then db.auto_master_loot = true end
     if not db.award_filter then
       db.award_filter = {
-        itemQuality = { Uncommon = 1, Rare = 1, Epic = 1, Legendary = 1 },
-        rollType = { MainSpec = 1, OffSpec = 1, Transmog = 1, SoftRes = 1, RR = 1 }
+        item_quality = { Uncommon = 1, Rare = 1, Epic = 1, Legendary = 1 },
+        roll_type = { MainSpec = 1, OffSpec = 1, Transmog = 1, SoftRes = 1, RR = 1 }
       }
     end
   end

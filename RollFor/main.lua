@@ -245,7 +245,6 @@ local function create_components()
     db( "winners_popup" ),
     M.awarded_loot,
     M.roll_controller,
-    M.options_popup,
     M.config
   )
 

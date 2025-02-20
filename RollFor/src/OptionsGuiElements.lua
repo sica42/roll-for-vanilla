@@ -123,7 +123,7 @@ function M.CreateScrollFrame( name, parent )
   end
 
   f.Scroll = function( self, step )
-    local step = step or 0
+    step = step or 0
 
     local current = f:GetVerticalScroll()
     local max = f:GetVerticalScrollRange()
