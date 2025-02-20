@@ -55,7 +55,7 @@ function M.new( frame_builder, db, config )
     boss_name_frame = frame_builder.new()
         :name( "RollForBossNameFrame" )
         :width( 380 )
-        :height( 22 )
+        :height( 24 )
         :border_size( 16 )
         :sound()
         :gui_elements( m.GuiElements )
@@ -164,7 +164,6 @@ function M.new( frame_builder, db, config )
   ---@param items LootFrameItem[]
   local function update( items )
     M.debug.add( "update" )
-    create_frames()
     loot_frame.clear()
 
     local content = {}
@@ -180,7 +179,6 @@ function M.new( frame_builder, db, config )
     local anchor
     local item_count = 0
     local height = 25
-
     local frames = {}
 
     for _, v in ipairs( content ) do
@@ -212,12 +210,11 @@ function M.new( frame_builder, db, config )
       end, 0 )
     end
 
-    loot_frame:SetHeight( item_count * height + 2 )
-
     max_frame_width = m.lua.math.max( boss_name_width, max_width )
 
     boss_name_frame:SetWidth( max_frame_width )
     loot_frame:SetWidth( max_frame_width )
+    loot_frame:SetHeight( item_count * height + 2 )
 
     for _, frame in ipairs( frames ) do
       frame:SetWidth( max_frame_width - 2 )
@@ -228,6 +225,9 @@ function M.new( frame_builder, db, config )
     db.point = nil
     if boss_name_frame then boss_name_frame:position( M.center_point ) end
   end )
+
+  create_boss_name_frame()
+  create_frame()
 
   ---@type LootFrame
   return {

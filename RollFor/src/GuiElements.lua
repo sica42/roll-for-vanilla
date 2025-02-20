@@ -345,21 +345,26 @@ local function create_icon_in_container( type, parent, w, h, icon_zoom )
   return result
 end
 
-function M.dropped_item( parent, text )
-  local container = create_text_in_container( "LootButton", parent, 20, nil, nil, "text" )
+---@param parent Frame
+function M.dropped_item( parent )
+  local container = m.api.CreateFrame( "LootButton", nil, parent )
 
   local w = 22
   local h = 22
   local spacing = 6
   local bind_spacing = 3
   local mouse_down = false
-  local icon_zoom = 1
+  local icon_zoom = 2
 
   local item
 
+  container:SetHeight( h )
+  container.name = create_text_in_container( "Frame", container, 20, "LEFT", nil, "text" )
+  container.name.text:SetJustifyH( "LEFT" )
+  container.name.text:SetTextColor( 1, 1, 1 )
   container.index = create_text_in_container( "Frame", container, 20, "CENTER", nil, "text" )
-  container.index:SetPoint( "LEFT", 0, 0 )
-  container.index:SetWidth( 17 )
+  container.index:SetPoint( "LEFT", 1, 0 )
+  container.index:SetWidth( 16 )
   container.index:SetHeight( h )
   container.icon = create_icon_in_container( "Button", container, w, h, icon_zoom )
   container.icon:SetPoint( "LEFT", container.index, "RIGHT", 2, 0 )
@@ -371,26 +376,17 @@ function M.dropped_item( parent, text )
   container.comment = create_text_in_container( "Button", container, 20, "CENTER", nil, "text" )
   container.comment:SetPoint( "RIGHT", -4, 0 )
   container.comment:SetHeight( 16 )
-  container.text:SetTextColor( 1, 1, 1 )
-
-  container:SetHeight( container.text:GetHeight() )
 
   local function resize()
-    local scale = container:GetScale()
     container.icon:Show()
-    container.text:SetWidth( (container.text:GetStringWidth() + 1) * scale )
-    container.text:SetJustifyH( "LEFT" )
 
-    local comment_width = container.comment:IsVisible() and container.comment:GetWidth() + 7 or 0
-    local total_width = container.index:GetWidth() +
-        container.icon:GetWidth() + spacing +
-        container.bind:GetWidth() +
-        container.text:GetWidth() + 7 +
-        comment_width
+    local index_width = container.index:GetWidth() + 1
+    local icon_width = container.icon:GetWidth() + spacing
+    local bind_width = item.bind and (container.bind:GetWidth() + bind_spacing) or 0
+    local text_width = container.name.text:GetStringWidth() + spacing + 1
+    local comment_width = container.comment:IsVisible() and container.comment:GetWidth() + spacing or 0
 
-    if item.bind then
-      total_width = total_width + bind_spacing
-    end
+    local total_width = index_width + icon_width + bind_width + text_width + comment_width
 
     container:SetWidth( total_width )
     container:SetPoint( "LEFT", 0, 0 )
@@ -448,26 +444,25 @@ function M.dropped_item( parent, text )
     item = v
     container.index.text:SetText( v.index )
     container.icon.texture:SetTexture( v.texture )
-    container.text:SetText( m.colorize_item_by_quality( v.name, v.quality ) )
-    container.text:ClearAllPoints()
+    container.name.text:SetText( m.colorize_item_by_quality( v.name, v.quality ) )
 
     if v.bind then
       container.bind.text:SetText( v.bind )
       container.bind:SetWidth( container.bind.text:GetStringWidth() )
       container.bind:Show()
-      container.text:SetPoint( "LEFT", container.bind, "RIGHT", bind_spacing, 0 )
+      container.name:SetPoint( "LEFT", container.bind, "RIGHT", bind_spacing, 0 )
     else
       container.bind:Hide()
-      container.text:SetPoint( "LEFT", container.icon, "RIGHT", spacing, 0 )
+      container.name:SetPoint( "LEFT", container.icon, "RIGHT", spacing, 0 )
     end
 
     if v.comment then
       container.comment.text:SetText( v.comment )
       container.comment:Show()
-      container.text:SetPoint( "RIGHT", container.comment, "LEFT", 0, 0 )
+      container.name:SetPoint( "RIGHT", container.comment, "LEFT", 0, 0 )
     else
       container.comment:Hide()
-      container.text:SetPoint( "RIGHT", container, "RIGHT", 0, 0 )
+      container.name:SetPoint( "RIGHT", container, "RIGHT", 0, 0 )
     end
 
     if v.quantity and v.quantity > 1 then
@@ -492,6 +487,7 @@ function M.dropped_item( parent, text )
 
     container:SetScript( "OnClick", v.is_enabled and not v.is_selected and v.click_fn or modifier_fn )
     container.icon:SetScript( "OnClick", v.is_enabled and not v.is_selected and v.click_fn or modifier_fn )
+    container.comment:SetScript( "OnClick", v.is_enabled and not v.is_selected and v.click_fn or modifier_fn )
 
     -- Fucking hell this took forever to figure out. Fuck you Blizzard.
     -- For looting to work in vanilla, the frame must be of a "LootButton" type and
@@ -565,12 +561,6 @@ function M.dropped_item( parent, text )
 
     not_hovered_color()
   end )
-
-  if text then
-    container.text:SetText( text )
-  else
-    container.text:SetText( "PrincessKenny" )
-  end
 
   container.icon:SetScript( "OnEnter", on_enter )
   container.icon:SetScript( "OnLeave", on_leave )
