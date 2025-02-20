@@ -89,7 +89,10 @@ function M.new( loot_list, api, db, config, player_info )
 
         local coin = item --[[@as Coin]]
         local amount = string.gsub( string.gsub( coin.amount_text, "\n", " " ), " $", "" )
-        info( string.format( "Auto-looting %s", grey( amount ) ) )
+
+        if config.auto_loot_messages() then
+          info( string.format( "Auto-looting %s.", grey( amount ) ) )
+        end
       end
 
       if item.id and slot then
@@ -98,7 +101,10 @@ function M.new( loot_list, api, db, config, player_info )
 
           if index then
             api().GiveMasterLoot( slot, index )
-            info( string.format( "Auto-looting %s.", item.link ) )
+
+            if config.auto_loot_messages() then
+              info( string.format( "Auto-looting %s.", item.link ) )
+            end
           end
         end
       end

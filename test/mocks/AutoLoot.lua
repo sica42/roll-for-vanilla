@@ -7,8 +7,6 @@ local RealAutoLoot = require( "src/AutoLoot" )
 local M = {}
 local mock = m.Interface.mock
 
-local u = require( "test/utils" )
-
 ---@class AutoLootMock : AutoLoot
 
 function M.new( loot_list, api, db, config, player_info )
