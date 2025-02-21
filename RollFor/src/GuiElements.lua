@@ -226,20 +226,7 @@ function M.winner_header( parent )
   player_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
   frame.player_header = player_header
 
-  local item_header = create_text_in_container( "Button", frame, 148, "LEFT", "Item" )
-  item_header.inner:SetPoint( "LEFT", 2, 0 )
-  item_header.sort = "item_id"
-  item_header:SetHeight( 15 )
-  item_header:SetPoint( "LEFT", frame, "LEFT", 75, 0 )
-  item_header:SetBackdrop( {
-    bgFile = "Interface/Buttons/WHITE8x8",
-    tile = true,
-    tileSize = 22,
-  } )
-  item_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
-  frame.item_header = item_header
-
-  local type_header = create_text_in_container( "Button", frame, 26, "LEFT", "Type" )
+  local type_header = create_text_in_container( "Button", frame, 25, "LEFT", "Type" )
   type_header.inner:SetPoint( "LEFT", 2, 0 )
   type_header.sort = "roll_type"
   type_header:SetHeight( 15 )
@@ -252,6 +239,34 @@ function M.winner_header( parent )
   type_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
   frame.type_header = type_header
 
+  local roll_header = create_text_in_container( "Button", frame, 25, "LEFT", "Roll" )
+  roll_header.inner:SetPoint( "LEFT", 2, 0 )
+  roll_header.sort = "winning_roll"
+  roll_header:SetHeight( 15 )
+  roll_header:SetPoint( "RIGHT", type_header, "LEFT", -1, 0 )
+  roll_header:SetBackdrop( {
+    bgFile = "Interface/Buttons/WHITE8x8",
+    tile = true,
+    tileSize = 22,
+  } )
+  roll_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
+  frame.roll_header = roll_header
+
+
+  local item_header = create_text_in_container( "Button", frame, 148, "LEFT", "Item" )
+  item_header.inner:SetPoint( "LEFT", 2, 0 )
+  item_header.sort = "item_id"
+  item_header:SetHeight( 15 )
+  item_header:SetPoint( "LEFT", frame, "LEFT", 75, 0 )
+  item_header:SetPoint( "RIGHT", roll_header, "LEFT", -1, 0 )
+  item_header:SetBackdrop( {
+    bgFile = "Interface/Buttons/WHITE8x8",
+    tile = true,
+    tileSize = 22,
+  } )
+  item_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
+  frame.item_header = item_header
+
   return frame
 end
 
@@ -259,6 +274,8 @@ function M.winner( parent )
   local frame = m.api.CreateFrame( "Button", nil, parent )
   frame:SetWidth( 250 )
   frame:SetHeight( 14 )
+  frame:SetPoint( "LEFT", parent.parent, "LEFT", 0, 0 )
+  frame:SetPoint( "RIGHT", parent.parent, "RIGHT", -13, 0 )
   frame:SetFrameStrata( "DIALOG" )
   frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
   frame:SetBackdrop( {
@@ -281,26 +298,50 @@ function M.winner( parent )
   end )
 
   local player_name = M.text( frame )
-  player_name:SetPoint( "LEFT", frame, "LEFT", 0, 0 )
+  player_name:SetPoint( "LEFT", frame, "LEFT", 2, 0 )
   frame.player_name = player_name
 
-  --local item_link = M.text( frame )
+  local roll_type = create_text_in_container( "Frame", frame, 25, "LEFT", "dummy")
+  roll_type.inner:SetPoint( "LEFT", 5, 0 )
+  roll_type:SetPoint( "RIGHT", 0, 0 )
+  roll_type:SetHeight( 14 )
+  roll_type:SetPoint( "RIGHT", 0, 0 )
+  frame.roll_type = roll_type.inner
+
+  local winning_roll = M.text( frame )
+  winning_roll:SetPoint( "RIGHT", roll_type, "LEFT", -5, 0 )
+  --winning_roll:SetWidth( 35 )
+  winning_roll:SetJustifyH( "LEFT" )
+  frame.winning_roll = winning_roll
+
   local tooltip_link
-  local item_link = create_text_in_container( "Button", frame, 148, "LEFT", "dummy" )
+  local item_link = create_text_in_container( "Button", frame, 1, "LEFT", "dummy" )
   item_link:SetPoint( "LEFT", frame, "LEFT", 75, 0 )
+  item_link:SetPoint( "RIGHT", winning_roll, "LEFT", -1, 0 )
   item_link:SetHeight( item_link.inner:GetHeight() )
   frame.item_link = item_link
 
+
   frame.SetItem = function( _, itemLink )
-    local function truncate_item( link, len )
-      local item = m.ItemUtils.get_item_name( link )
-      if string.len( item ) > len then
-        return string.sub( link, 1, string.find( link, '%[' ) ) .. string.sub( item, 1, len ) .. '...]'
+    local function truncate_text( font_string, max )
+      local item = font_string:GetText()
+      local originalText = m.ItemUtils.get_item_name( font_string:GetText() )
+      local truncatedText = originalText
+
+      while font_string:GetStringWidth() > max do
+        truncatedText = string.sub( truncatedText, 1, -2 )
+        font_string:SetText( "[" .. truncatedText .. "...]" )
       end
-      return link
+
+      if originalText == truncatedText then
+        font_string:SetText( string.gsub( item, originalText, truncatedText ) )
+      else
+        font_string:SetText( string.gsub( item, originalText, truncatedText .. "..." ) )
+      end
     end
 
-    item_link.inner:SetText( truncate_item( itemLink, 32 ) )
+    item_link.inner:SetText( itemLink )
+    truncate_text( item_link.inner, frame:GetParent():GetWidth() - 130 )
 
     tooltip_link = m.ItemUtils.get_tooltip_link( itemLink )
 
@@ -328,10 +369,6 @@ function M.winner( parent )
       m.api.SetItemRef( tooltip_link, tooltip_link, "LeftButton" )
     end )
   end
-
-  local roll_type = M.text( frame )
-  roll_type:SetPoint( "RIGHT", 0, 0 )
-  frame.roll_type = roll_type
 
   return frame
 end
@@ -431,31 +468,67 @@ function M.award_button( parent )
   return button
 end
 
-function M.close_button( parent )
+---@param parent Frame
+---@param text string
+---@param tooltip string
+---@param color table
+---@param font_size number
+function M.tiny_button( parent, text, tooltip, color, font_size )
   local button = m.api.CreateFrame( "Button", nil, parent )
   button:SetBackdrop( {
     bgFile = "Interface/Tooltips/UI-Tooltip-Background",
     edgeFile = "Interface\\Buttons\\WHITE8X8",
     tile = false,
     tileSize = 0,
-    edgeSize = 0.5, --get_perfect_pixel(),
+    edgeSize = 0.5,
     insets = { left = 0, right = 0, top = 0, bottom = 0 }
   } )
   button:SetBackdropColor( 0, 0, 0, 1 )
   button:SetBackdropBorderColor( .2, .2, .2, 1 )
   button:SetHeight( 10 )
   button:SetWidth( 10 )
-  button.texture = button:CreateTexture()
-  button.texture:SetTexture( "Interface\\AddOns\\RollFor\\assets\\close.tga", "ARTWORK" )
-  button.texture:ClearAllPoints()
-  button.texture:SetAllPoints( button )
-  button.texture:SetVertexColor( 1, .25, .25, 1 )
+  local label = button:CreateFontString( nil, "ARTWORK" )
+  label:SetFont( "FONTS\\FRIZQT__.TTF", font_size or 14 )
+  label:SetPoint( "CENTER", 0, 1 )
+  label:SetText( text )
+  label:SetTextColor( color.r, color.g, color.b, color.a or 1 )
 
   button:SetScript( "OnEnter", function()
-    this:SetBackdropBorderColor( 1, .25, .25, 1 )
+    this:SetBackdropBorderColor( color.r, color.g, color.b, color.a or 1 )
+    m.api.GameTooltip:SetOwner( this, "ANCHOR_RIGHT" )
+    m.api.GameTooltip:SetText( tooltip )
+    m.api.GameTooltip:SetScale( 0.8 )
+    m.api.GameTooltip:Show()
   end )
   button:SetScript( "OnLeave", function()
     this:SetBackdropBorderColor( .2, .2, .2, 1 )
+    m.api.GameTooltip:SetScale( 1 )
+    m.api.GameTooltip:Hide()
+  end )
+
+  return button
+end
+
+function M.resize_grip( parent )
+  local button = m.api.CreateFrame( "Button", nil, parent )
+  button:SetWidth( 16 )
+  button:SetHeight( 16 )
+  button.texture = button:CreateTexture()
+  button.texture:SetTexture( "Interface\\AddOns\\RollFor\\assets\\resize-grip.tga", "ARTWORK" )
+  button.texture:ClearAllPoints()
+  button.texture:SetAllPoints( button )
+
+  button:SetScript( "OnEnter", function()
+    this.texture:SetBlendMode( "ADD" )
+  end )
+  button:SetScript( "OnLeave", function()
+    this.texture:SetBlendMode( "BLEND" )
+  end )
+  button:SetScript( "OnMouseDown", function()
+    this:GetParent():StartSizing( "BOTTOMRIGHT" )
+  end )
+  button:SetScript( "OnMouseUp", function()
+    this:GetParent():StopMovingOrSizing( "BOTTOMRIGHT" )
   end )
 
   return button

@@ -44,8 +44,6 @@ function M.new( chat, roll_controller, config, softres )
       --return hl( value )
       return value
     end
-    local function colorize_roll_value ( string )
-    end
 
     local function message( rollers, f )
       return string.format(

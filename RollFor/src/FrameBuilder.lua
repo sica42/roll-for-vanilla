@@ -53,6 +53,8 @@ M.interface = {
 ---@field frame_style fun( self: FrameBuilder, frame_style: string ): FrameBuilder
 ---@field on_drag_stop fun( self: FrameBuilder, callback: function ): FrameBuilder
 ---@field movable fun( self: FrameBuilder ): FrameBuilder
+---@field resizable fun( self ): FrameBuilder
+---@field on_resize fun( self: FrameBuilder, callback: function ): FrameBuilder
 ---@field border_size fun( self: FrameBuilder, border_size: number ): FrameBuilder
 ---@field on_show fun( self: FrameBuilder, on_show: function ): FrameBuilder
 ---@field on_hide fun( self: FrameBuilder, on_hide: function ): FrameBuilder
@@ -192,6 +194,16 @@ function M.new()
         end )
       else
         frame:SetMovable( false )
+      end
+
+      if options.resizable then
+        frame:SetResizable( true )
+
+        if options.on_resize and frame:IsResizable() then
+          frame:SetScript( "OnSizeChanged", options.on_resize )
+        end
+      else
+        frame:SetResizable( false )
       end
 
       frame:EnableMouse( true )
@@ -380,6 +392,16 @@ function M.new()
     return self
   end
 
+  local function resizable( self )
+    options.resizable = true
+    return self
+  end
+
+  local function on_resize( self, callback )
+    options.on_resize = callback
+    return self
+  end
+
   local function border_size( self, v )
     options.border_size = v
     return self
@@ -425,6 +447,8 @@ function M.new()
     frame_style = frame_style,
     on_drag_stop = on_drag_stop,
     movable = movable,
+    resizable = resizable,
+    on_resize = on_resize,
     border_size = border_size,
     on_show = on_show,
     on_hide = on_hide,

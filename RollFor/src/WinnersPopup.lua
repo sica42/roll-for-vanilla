@@ -20,7 +20,7 @@ local getn = table.getn
 ---@field ping fun()
 
 local M = m.Module.new( "WinnersPopup" )
---M.debug.enable()
+M.debug.enable()
 
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
@@ -29,15 +29,19 @@ M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 ---@param db table
 ---@param awarded_loot AwardedLoot
 ---@param roll_controller RollController
+---@param options_popup OptionsPopup
 ---@param config Config
-function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller, config )
+function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller, options_popup, config )
   ---@type Popup?
   local popup
   local refresh
+  local resizing = false
 
   db.point = db.point or M.center_point
-  --awarded_loot.award( 'Zombiehunter', 16939, m.Types.RollType.MainSpec )
-  --awarded_loot.award( 'Kevieboipro', 16939, m.Types.RollType.Transmog )
+  --awarded_loot.award( 'Zombiehunter', 16939, nil, 'Hunter', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=105}, 30 )
+  --awarded_loot.award( 'Kevieboipro', 16939, nil, 'Warrior', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=105}, 20 )
+  --awarded_loot.award( 'Kevieboipro', 19019, nil, 'Warrior', { roll_type='Transmog', rolling_strategy='NormalRoll', winning_roll=105} )
+  --awarded_loot.award( 'Dayknight', 5504, nil, 'Paladin', { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=53} )
   --awarded_loot.award( 'Sica', 5504, m.Types.RollType.OffSpec, m.Types.RollingStrategy.RaidRoll )
   --awarded_loot.award( 'Sica', 10652, nil, nil )
   --awarded_loot.award( 'Sica', 19019, m.Types.RollType.OffSpec, m.Types.RollingStrategy.SoftResRoll )
@@ -59,20 +63,35 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     local function on_drag_stop()
+      print( "drag stop" )
       if not popup then return end
       local width, height = popup:GetWidth(), popup:GetHeight()
       local screen_width, screen_height = m.api.GetScreenWidth(), m.api.GetScreenHeight()
       local _, _, _, x, y = popup:get_anchor_point()
 
       if is_out_of_bounds( x, y, width, height, screen_width, screen_height ) then
-        db.point = M.center_point
-        popup:position( M.center_point )
-
+        popup:position( db.point or M.center_point )
         return
       end
 
       local anchor_point, _, anchor_relative_point, anchor_x, anchor_y = popup:get_anchor_point()
       db.point = { point = anchor_point, relative_point = anchor_relative_point, x = anchor_x, y = anchor_y }
+    end
+
+    local function on_resize( frame )
+      local width = this:GetWidth()
+      local height = this:GetHeight()
+
+      if width <= 260 then
+        width = 260
+        this:SetWidth( width )
+      end
+      if height <= 172 then
+        this:SetHeight( 172 )
+      end
+
+      this.scroll.content:SetWidth( width - 40 )
+      refresh()
     end
 
     local function get_point()
@@ -102,25 +121,49 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     local builder = popup_builder
         :name( "rfWinnersFrame" )
-        :width( 290 )
-        :height( 200 )
+        :width( db.width or 290 )
+        :height( db.height or 200 )
         :point( get_point() )
         :bg_file( "Interface/Buttons/WHITE8x8" )
         :sound()
-        :backdrop_color( 0, 0, 0, .7 )
+        :backdrop_color( 0, 0, 0, .8 )
         :frame_style( "PrincessKenny" )
         :border_color( .2, .2, .2, 1 )
         :movable()
         :on_drag_stop( on_drag_stop )
         :self_centered_anchor()
+        :resizable()
+        :on_resize( on_resize )
 
     ---@class Popup
     local main_frame = builder:build()
 
-    local close = m.GuiElements.close_button( main_frame )
-    close:SetPoint( "TOPRIGHT", -7, -7 )
-    close:SetScript( "OnClick", function()
+    local btn_close = m.GuiElements.tiny_button( main_frame, "x", "Close Window", { r = 1, g = .25, b = .25 } )
+    btn_close:SetPoint( "TOPRIGHT", -7, -7 )
+    btn_close:SetScript( "OnClick", function()
       if popup then popup:Hide() end
+    end )
+
+    local btn_options = m.GuiElements.tiny_button( main_frame, "o", "Open Settings", { r = .125, g = .624, b = .976 } )
+    btn_options:SetPoint( "RIGHT", btn_close, "LEFT", -5, 0 )
+    btn_options:SetScript( "OnMouseUp", function()
+      options_popup.show( "Awards popup" )
+    end )
+
+    local btn_reset = m.GuiElements.tiny_button( main_frame, "R", "Reset Sorting", { r = .125, g = .976, b = .624 }, 9 )
+    btn_reset:SetPoint( "RIGHT", btn_options, "LEFT", -5, 0 )
+    btn_reset:SetScript( "OnMouseUp", function()
+      sort = nil
+      refresh()
+    end )
+
+    local btn_resize = m.GuiElements.resize_grip( main_frame )
+    btn_resize:SetPoint( "BOTTOMRIGHT", 0, 0 )
+    btn_resize:SetScript( "OnMouseUp", function()
+      this:GetParent():StopMovingOrSizing( "BOTTOMRIGHT" )
+      db.width = this:GetParent():GetWidth()
+      db.height = this:GetParent():GetHeight()
+      resizing = false
     end )
 
     local title = m.GuiElements.text( main_frame, "Winners" )
@@ -129,26 +172,33 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     local header = m.GuiElements.winner_header( main_frame )
     header:SetPoint( "TOPLEFT", 20, -30 )
+    header:SetPoint( "RIGHT", -20, 0 )
     header.player_header:SetScript( "OnClick", set_sort )
     header.item_header:SetScript( "OnClick", set_sort )
     header.type_header:SetScript( "OnClick", set_sort )
 
     main_frame.scroll = m.OptionsGuiElements.CreateScrollFrame( nil, main_frame )
     main_frame.scroll:SetPoint( "TOPLEFT", 20, -45 )
-    main_frame.scroll:SetPoint( "BOTTOMRIGHT", -6, 10 )
+    main_frame.scroll:SetPoint( "BOTTOMRIGHT", -6, 15 )
 
     local inner_builder = frame_builder.new()
         :parent( main_frame.scroll )
         :name( "rfWinnersFrameInner" )
         :width( 250 )
-        :height( 1 )
-        :point( { point = "TOPLEFT", relative_point = "TOPLEFT", x = 0, y = -0 } )
+        :height( 100 )
+        :point( { point = "TOPLEFT", relative_point = "TOPLEFT", x = 0, y = 0 } )
         :bg_file( "Interface/Buttons/WHITE8x8" )
         :gui_elements( m.GuiElements )
         :frame_style( "none" )
 
     ---@class Frame
     main_frame.scroll.content = inner_builder:build()
+    --m.OptionsGuiElements.create_backdrop( main_frame.scroll.content )
+
+    --main_frame.scroll.content:SetPoint( "BOTTOMRIGHT", main_frame.scroll, "BOTTOMRIGHT", 0, 0 )
+    --print ( main_frame.scroll.content:GetWidth() .. ', ' .. main_frame.scroll.content:GetHeight() )
+
+    --m.OptionsGuiElements.create_backdrop( main_frame.scroll )
     main_frame.scroll.content.parent = main_frame.scroll
     main_frame.scroll.content:SetAllPoints( main_frame.scroll )
     main_frame.scroll.content:SetScript( "OnUpdate", function()
@@ -162,7 +212,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   end
 
   function refresh()
-    M.debug.add( "refresh" )
+    --M.debug.add( "refresh" )
     if not popup then popup = create_popup() end
     popup.scroll.content:clear()
 
@@ -259,6 +309,8 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
           item_link = item.item_link,
           roll_type = item.roll_type,
           rolling_strategy = item.rolling_strategy,
+          winning_roll = item.winning_roll,
+          sr_plus = item.sr_plus,
           quality = item.quality
         } )
       end
@@ -269,27 +321,26 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       popup.scroll.content.add_line( v.type, function( type, frame, lines )
         if type == "winner" then
           local roll_type_abbrev = v.roll_type == "RR" and "RR" or v.roll_type == "NA" and "NA" or m.roll_type_abbrev( v.roll_type )
+          local sr_plus = ""
+          if v.rolling_strategy == m.Types.RollingStrategy.SoftResRoll and v.roll_type == m.Types.RollType.SoftRes then
+            sr_plus = v.sr_plus and string.format( " (+%s)", v.sr_plus ) or ""
+          end
+
           frame:SetItem( v.item_link )
           frame.player_name:SetText( c( v.player_name, v.player_class ) )
+          frame.winning_roll:SetText( string.format( "%s%s", v.winning_roll or "-", sr_plus) )
           frame.roll_type:SetText( r( v.roll_type, roll_type_abbrev ) )
-          line_count = line_count + 1
-        end
 
-        local count = getn( lines )
-        if count == 0 then
-          local y = v.padding or 0
-          frame:ClearAllPoints()
-          frame:SetPoint( "TOP", popup.scroll.content, "TOP", 0, y )
-        else
-          local line_anchor = lines[ count ].frame
-          frame:ClearAllPoints()
-          frame:SetPoint( "TOP", line_anchor, "BOTTOM", 0, v.padding and -v.padding or 0 )
+          frame:SetPoint( "TOP", popup.scroll.content, "TOP", 0, -line_count * 14 )
+          line_count = line_count + 1
         end
       end, 0 )
     end
 
-    local height = 60 + line_count * 14
-    popup:SetHeight( math.min( 400, height ) )
+    --if not resizing then
+    --local height = 60 + line_count * 14
+    --popup:SetHeight( math.min( 400, height ) )
+    --end
   end
 
   local function show()
@@ -302,7 +353,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     popup:Show()
     sort = nil
     refresh()
-
   end
 
   local function hide()
@@ -327,17 +377,17 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   local function loot_awarded()
     if popup and popup:IsVisible() then
       refresh()
-
+      local max = popup.scroll.content.parent:GetVerticalScrollRange()
+      popup.scroll.content.parent:SetVerticalScroll( max )
     end
   end
 
   local function filter_changed()
     if popup and popup:IsVisible() then
       refresh()
-      popup.scroll.content.parent:UpdateScrollState()
-      local max = popup.scroll.content.parent:GetVerticalScrollRange()
-      print( "max: " .. max)
-      popup.scroll.content.parent:SetVerticalScroll( max )
+      -- stupid, but it forces scroll child to recalulate size
+      popup:SetHeight( popup:GetHeight() + 1 )
+      popup:SetHeight( popup:GetHeight() )
     end
   end
 

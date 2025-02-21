@@ -101,7 +101,7 @@ local function create_components()
   M.version_broadcast = m.VersionBroadcast.new( db( "version_broadcast" ), M.player_info, version.str )
 
   ---@type AwardedLoot
-  M.awarded_loot = m.AwardedLoot.new( db( "awarded_loot" ), M.group_roster, M.config )
+  M.awarded_loot = m.AwardedLoot.new( db( "awarded_loot" ), M.group_roster, M.softres, M.config )
 
   -- TODO: Add type.
   M.softres_db = db( "softres" )
@@ -220,7 +220,7 @@ local function create_components()
   )
 
   ---@type LootAwardCallback
-  M.loot_award_callback = m.LootAwardCallback.new( M.awarded_loot, M.roll_controller, M.winner_tracker, M.group_roster )
+  M.loot_award_callback = m.LootAwardCallback.new( M.awarded_loot, M.roll_controller, M.winner_tracker, M.group_roster, M.softres )
 
   ---@type MasterLoot
   M.master_loot = m.MasterLoot.new(
@@ -245,6 +245,7 @@ local function create_components()
     db( "winners_popup" ),
     M.awarded_loot,
     M.roll_controller,
+    M.options_popup,
     M.config
   )
 

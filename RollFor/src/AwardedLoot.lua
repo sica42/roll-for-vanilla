@@ -9,30 +9,48 @@ local M = m.Module.new( "AwardedLoot" )
 local getn = table.getn
 
 ---@class AwardedLoot
----@field award fun( player_name: string, item_id: number, roll_type: RollType, rolling_strategy: RollingStrategyType )
+---@field award fun( player_name: string, item_id: number, item_link: ItemLink?, player_class: PlayerClass?, winner: table, sr_plus: number? )
 ---@field unaward fun( player_name: string, item_id: number )
 ---@field get_winners fun()
 ---@field has_item_been_awarded fun( player_name: string, item_id: number ): boolean
 ---@field has_item_been_awarded_to_any_player fun( item_id: ItemId ): boolean
 ---@field clear fun( force?: boolean )
 
-function M.new( db, group_roster, config )
+---@param db table
+---@param group_roster GroupRoster
+---@param config Config
+function M.new( db, group_roster, softres, config )
   db.awarded_items = db.awarded_items or {}
 
   ---@param player_name string
   ---@param item_id number
-  ---@param roll_type RollType
-  ---@param rolling_strategy RollingStrategyType
-  local function award( player_name, item_id, roll_type, rolling_strategy )
+  ---@param item_link ItemLink?
+  ---@param player_class PlayerClass?
+  ---@param winner table
+  ---@param sr_plus number?
+  local function award( player_name, item_id, item_link, player_class, winner, sr_plus )
     M.debug.add( "award" )
-    local player = group_roster.find_player( player_name )
-    local class = player and player.class or nil
+    if not player_class then
+      local player = group_roster.find_player( player_name )
+      player_class = player and player.class
+    end
     local quality, _ = m.get_item_quality_and_texture( item_id )
-    local item_link = m.fetch_item_link( item_id, quality )
+    if not item_link then
+      item_link = m.fetch_item_link( item_id, quality )
+    end
 
     table.insert( db.awarded_items,
-    { player_name = player_name, item_id = item_id, roll_type = roll_type, rolling_strategy = rolling_strategy, player_class = class, quality = quality,
-      item_link = item_link } )
+      {
+        player_name = player_name,
+        player_class = player_class,
+        item_id = item_id,
+        item_link = item_link,
+        quality = quality,
+        roll_type = winner and winner.roll_type,
+        rolling_strategy = winner and winner.rolling_strategy,
+        winning_roll = winner and winner.winning_roll,
+        sr_plus = sr_plus
+      } )
   end
 
   ---@return table
