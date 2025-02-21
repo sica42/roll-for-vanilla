@@ -233,7 +233,16 @@ local function create_components()
   M.auto_loot = m.AutoLoot.new( M.loot_list, M.api, db( "auto_loot" ), M.config, M.player_info )
 
   ---@type DroppedLootAnnounce
-  M.dropped_loot_announce = m.DroppedLootAnnounce.new( M.loot_list, M.chat, M.dropped_loot, M.softres, M.winner_tracker, M.player_info, M.auto_loot )
+  M.dropped_loot_announce = m.DroppedLootAnnounce.new(
+    M.loot_list,
+    M.chat,
+    M.dropped_loot,
+    M.softres,
+    M.winner_tracker,
+    M.player_info,
+    M.auto_loot,
+    M.config
+  )
 
   -- TODO: Add type.
   M.softres_gui = m.SoftResGui.new( M.api, M.import_encoded_softres_data, M.softres_check, M.softres, clear_data, M.dropped_loot_announce.reset )

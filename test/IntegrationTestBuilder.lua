@@ -284,7 +284,17 @@ function M.new_roll_for()
 
     require( "src/RollResultAnnouncer" ).new( chat, roll_controller, config )
     local dropped_loot = require( "src/DroppedLoot" ).new( db( "dummy" ) )
-    local dropped_loot_announce = require( "src/DroppedLootAnnounce" ).new( loot_list, chat, dropped_loot, softres, winner_tracker, player_info, auto_loot )
+    local dropped_loot_announce = require( "src/DroppedLootAnnounce" ).new(
+      loot_list,
+      chat,
+      dropped_loot,
+      softres,
+      winner_tracker,
+      player_info,
+      auto_loot,
+      config
+    )
+
     local auto_group_loot = require( "mocks/AutoGroupLoot" ).new()
     local loot_facade_listener = require( "src/LootFacadeListener" ).new(
       loot_facade,
