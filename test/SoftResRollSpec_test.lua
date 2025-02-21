@@ -158,7 +158,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     item_link( item2, 1 ),
     softres_roll( p2, 99, 11 ),
     softres_roll( p1, 69 ),
-    text( "Obszczymucha wins the soft-res roll with a 99.", 11 ),
+    text( "Obszczymucha wins the soft-res roll with 99.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
   rf.confirmation_popup.should_be_hidden()
@@ -443,9 +443,9 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     softres_roll( p2, 99, 11 ),
     softres_roll( p3, 98 ),
     softres_roll( p1, 69 ),
-    text( "Obszczymucha wins the soft-res roll with a 99.", 11 ),
+    text( "Obszczymucha wins the soft-res roll with 99.", 11 ),
     individual_award_button,
-    text( "Jimmy wins the soft-res roll with a 98.", 8 ),
+    text( "Jimmy wins the soft-res roll with 98.", 8 ),
     individual_award_button,
     buttons( "RaidRoll", "AwardOther", "Close" )
   )
@@ -473,7 +473,7 @@ function WaitForRemainingRollsSpec:should_wait_for_all_sr_players_to_roll_and_aw
     softres_roll( p2, 99, 11 ),
     softres_roll( p3, 98 ),
     softres_roll( p1, 69 ),
-    text( "Jimmy wins the soft-res roll with a 98.", 11 ),
+    text( "Jimmy wins the soft-res roll with 98.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
   rf.confirmation_popup.should_be_hidden()

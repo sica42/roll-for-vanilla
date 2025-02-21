@@ -323,7 +323,7 @@ function NoOneRollsSpec:should_display_finish_early_button_that_finishes_early()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     offspec_roll( p2, 96, 11 ),
-    text( "Obszczymucha wins the off-spec roll with a 96.", 11 ),
+    text( "Obszczymucha wins the off-spec roll with 96.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
 end
@@ -902,7 +902,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls()
     item_link( item2, 1 ),
     mainspec_roll( p1, 69, 11 ),
     offspec_roll( p2, 96 ),
-    text( "Psikutas wins the main-spec roll with a 69.", 11 ),
+    text( "Psikutas wins the main-spec roll with 69.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
   rf.confirmation_popup.should_be_hidden()
@@ -1068,9 +1068,9 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
     item_link( item2, 2 ),
     mainspec_roll( p1, 69, 11 ),
     offspec_roll( p2, 96 ),
-    text( "Psikutas wins the main-spec roll with a 69.", 11 ),
+    text( "Psikutas wins the main-spec roll with 69.", 11 ),
     individual_award_button,
-    text( "Obszczymucha wins the off-spec roll with a 96.", 8 ),
+    text( "Obszczymucha wins the off-spec roll with 96.", 8 ),
     individual_award_button,
     buttons( "RaidRoll", "AwardOther", "Close" )
   )
@@ -1097,7 +1097,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
     item_link( item2, 1 ),
     mainspec_roll( p1, 69, 11 ),
     offspec_roll( p2, 96 ),
-    text( "Psikutas wins the main-spec roll with a 69.", 11 ),
+    text( "Psikutas wins the main-spec roll with 69.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
   rf.confirmation_popup.should_be_hidden()
@@ -1190,7 +1190,7 @@ function SomeoneRolledSpec:should_display_close_button_that_closes_the_popup_and
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     offspec_roll( p1, 69, 11 ),
-    text( "Psikutas wins the off-spec roll with a 69.", 11 ),
+    text( "Psikutas wins the off-spec roll with 69.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
 
@@ -1225,7 +1225,7 @@ function SomeoneRolledSpec:should_display_close_button_that_closes_the_popup_and
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
     offspec_roll( p1, 69, 11 ),
-    text( "Psikutas wins the off-spec roll with a 69.", 11 ),
+    text( "Psikutas wins the off-spec roll with 69.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
 end
@@ -1520,7 +1520,7 @@ function NormalTieRollSpec:should_not_consider_ms_and_tm_rolls_tie()
     mainspec_roll( p2, 93, 11 ),
     mainspec_roll( p3, 42 ),
     tmog_roll( p1, 93 ),
-    text( "Obszczymucha wins the main-spec roll with a 93.", 11 ),
+    text( "Obszczymucha wins the main-spec roll with 93.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
   rf.confirmation_popup.should_be_hidden()
@@ -1627,7 +1627,7 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
     mainspec_roll( p1, 24, 11 ),
-    text( "Cosmicshadow wins the main-spec roll with a 24.", 11 ),
+    text( "Cosmicshadow wins the main-spec roll with 24.", 11 ),
     buttons( "RaidRoll", "Close" )
   )
 
@@ -1641,7 +1641,7 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
     mainspec_roll( p1, 24, 11 ),
-    text( "Cosmicshadow wins the main-spec roll with a 24.", 11 ),
+    text( "Cosmicshadow wins the main-spec roll with 24.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
 end

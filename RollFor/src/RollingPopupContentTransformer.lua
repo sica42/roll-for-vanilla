@@ -13,7 +13,6 @@ local c = m.colorize_player_by_class
 local blue = m.colors.blue
 local red = m.colors.red
 local r = m.roll_type_color
-local article = m.article
 
 ---@param label string
 ---@param width number
@@ -128,7 +127,7 @@ function M.new( config )
 
     if roll then
       table.insert( content,
-        { type = "text", value = string.format( "%s wins the %s roll with %s %s.", player, r( roll_type ), article( winning_roll ), roll ), padding = padding } )
+        { type = "text", value = string.format( "%s wins the %s roll with %s.", player, r( roll_type ), roll ), padding = padding } )
     elseif strategy == RS.SoftResRoll then
       local soft_ressed = r( RT.SoftRes, "soft-ressed" )
       table.insert( content, { type = "text", value = string.format( "%s %s this item.", player, soft_ressed ), padding = padding or top_padding } )
