@@ -75,3 +75,17 @@ function M.SendAddonMessage( api, prefix, message, channel )
   api.C_ChatInfo.SendAddonMessage( prefix, message, channel )
 end
 
+---@param api table
+---@param chat Chat
+---@param f function
+function M.in_group_check( api, chat, f )
+  ---@diagnostic disable-next-line: unused-vararg
+  return function( ... )
+    if not api.IsInGroup() then
+      chat.info( "Not in a group." )
+      return
+    end
+
+    f( ... )
+  end
+end
