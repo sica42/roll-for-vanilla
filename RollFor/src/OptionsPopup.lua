@@ -96,8 +96,8 @@ function M.new( frame_builder, awarded_loot, db, config )
     ---@param populate function
     local function create_gui_entry( title, populate )
       if not gui.frames[ title ] then
-        gui.frames[ title ] = e.CreateTabFrame( gui.frames, title )
-        gui.frames[ title ].area = e.CreateArea( gui.frames, title, populate, active_area )
+        gui.frames[ title ] = e.create_tab_frame( gui.frames, title )
+        gui.frames[ title ].area = e.create_area( gui.frames, title, populate, active_area )
       end
     end
 
@@ -216,7 +216,7 @@ function M.new( frame_builder, awarded_loot, db, config )
         local w = frame.button:GetTextWidth() + 10
         frame.button:SetWidth( w )
         frame.button:SetHeight( 20 )
-        frame.button:SetPoint( "TOPLEFT", (this.parent:GetWidth() / 2 - w / 2) + 10, -5 )
+        frame.button:SetPoint( "TOPLEFT", (popup:GetWidth() / 2 - w / 2 - 10), -5 )
         frame.button:SetTextColor( 1, 1, 1, 1 )
         frame.button:SetScript( "OnClick", ufunc )
         frame.button:SetScript( "OnEnter", function()

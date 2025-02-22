@@ -9,9 +9,6 @@ local filter = m.filter
 local sort
 local sort_order = "asc"
 
----@diagnostic disable-next-line: deprecated
-local getn = table.getn
-
 ---@class WinnersPopup
 ---@field show fun()
 ---@field refresh fun()
@@ -35,26 +32,89 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   ---@type Popup?
   local popup
   local refresh
-  local resizing = false
+  local is_resizing
 
   db.point = db.point or M.center_point
-  --awarded_loot.award( 'Zombiehunter', 16939, nil, 'Hunter', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=105}, 30 )
-  --awarded_loot.award( 'Kevieboipro', 16939, nil, 'Warrior', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=105}, 20 )
-  --awarded_loot.award( 'Kevieboipro', 19019, nil, 'Warrior', { roll_type='Transmog', rolling_strategy='NormalRoll', winning_roll=105} )
-  --awarded_loot.award( 'Dayknight', 5504, nil, 'Paladin', { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=53} )
-  --awarded_loot.award( 'Sica', 5504, m.Types.RollType.OffSpec, m.Types.RollingStrategy.RaidRoll )
-  --awarded_loot.award( 'Sica', 10652, nil, nil )
-  --awarded_loot.award( 'Sica', 19019, m.Types.RollType.OffSpec, m.Types.RollingStrategy.SoftResRoll )
-  --awarded_loot.award( 'Sica', 83484, m.Types.RollType.SoftRes, m.Types.RollingStrategy.SoftResRoll )
+  --[[
+  awarded_loot.award( 'Zombiehunter', 16939, nil, 'Hunter', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, 30 )
+  awarded_loot.award( 'Kevieboipro', 16939, nil, 'Warrior', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=98}, 20 )
+  awarded_loot.award( 'Kevieboipro', 19019, nil, 'Warrior', { roll_type='Transmog', rolling_strategy='NormalRoll', winning_roll=89} )
+  awarded_loot.award( 'Dayknight', 5504, nil, 'Paladin', { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=53} )
+  awarded_loot.award( 'Celilae', 5504, nil, 'Paladin', { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=78} )
+  awarded_loot.award( 'Borazor', 16939, nil, 'Hunter', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, 30 )
+  awarded_loot.award( 'Ryiana', 16939, nil, 'Warrior', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=98}, 20 )
+  awarded_loot.award( 'Tornapart', 19019, nil, 'Warrior', { roll_type='Transmog', rolling_strategy='NormalRoll', winning_roll=89} )
+  awarded_loot.award( 'Dayknight', 5504, nil, 'Paladin', { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=53} )
+  awarded_loot.award( 'Celilae', 5504, nil, 'Paladin', { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=78} )
+  ]]
+  --awarded_loot.award( 'Borazor', 16936, nil, 'Hunter', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, 30 )
+
+  local function filter_winners( data )
+    local filters = config.award_filter()
+    local quality_filter = {}
+    for q, v in pairs( filters.item_quality ) do
+      if v then
+        table.insert( quality_filter, m.Types.ItemQuality[ q ] )
+      end
+    end
+
+    local rolltype_filter = {}
+    for t, v in pairs( filters.roll_type ) do
+      if v then
+        table.insert( rolltype_filter, t )
+      end
+    end
+
+    data = filter( data, function( item )
+      local quality = item.quality or 0
+      return m.table_contains_value( quality_filter, quality ) and m.table_contains_value( rolltype_filter, item.roll_type )
+    end )
+
+    return data
+  end
+
+  local function sort_winners( a, b )
+    local val_a, val_b
+    if sort == "winning_roll" then
+      val_a, val_b = a[ sort ] or 0, b[ sort ] or 0
+
+      if sort_order == "asc" then
+        return val_a > val_b
+      else
+        return val_a < val_b
+      end
+    else
+      val_a, val_b = a[ sort ] or "", b[ sort ] or ""
+
+      if sort == "player_name" then
+        local class_a, class_b = a[ "player_class" ] or "", b[ "player_class" ] or ""
+        if class_a ~= class_b then
+          return (sort_order == "asc") == (class_a < class_b)
+        end
+        return a.player_name < b.player_name
+      elseif sort == "item_id" then
+        local quality_a, quality_b = a[ "quality" ] or 0, b[ "quality" ] or 0
+        if quality_a ~= quality_b then
+          return (sort_order == "asc") == (quality_a > quality_b)
+        end
+        return a.item_link < b.item_link
+      elseif sort == "roll_type" then
+        local roll_order = { SoftRes = 1, MainSpec = 2, OffSpec = 3, Transmog = 4, RR = 5, NA = 6 }
+        val_a, val_b = a[ sort ] or "NA", b[ sort ] or "NA"
+        if val_a ~= val_b then
+          return (sort_order == "asc") == (roll_order[ val_a ] < roll_order[ val_b ])
+        end
+        return a.item_id < b.item_id
+      end
+    end
+  end
 
   local function create_popup()
     local function is_out_of_bounds( x, y, frame_width, frame_height, screen_width, screen_height )
-      local width = frame_width / 2
-      local height = frame_height / 2
-      local left = x - width
-      local right = x + width
-      local top = y + height
-      local bottom = y - height
+      local left = x
+      local right = x + frame_width
+      local top = y
+      local bottom = y - frame_height
 
       return left < 0 or
           right > screen_width or
@@ -63,7 +123,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     local function on_drag_stop()
-      print( "drag stop" )
       if not popup then return end
       local width, height = popup:GetWidth(), popup:GetHeight()
       local screen_width, screen_height = m.api.GetScreenWidth(), m.api.GetScreenHeight()
@@ -78,7 +137,9 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       db.point = { point = anchor_point, relative_point = anchor_relative_point, x = anchor_x, y = anchor_y }
     end
 
+    local old_width
     local function on_resize( frame )
+      if not is_resizing then return end
       local width = this:GetWidth()
       local height = this:GetHeight()
 
@@ -86,12 +147,17 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         width = 260
         this:SetWidth( width )
       end
-      if height <= 172 then
-        this:SetHeight( 172 )
+      if height <= 173 then
+        this:SetHeight( 173 )
       end
 
+      if not old_width then old_width = this.scroll.content:GetWidth() end
       this.scroll.content:SetWidth( width - 40 )
-      refresh()
+
+      if (math.abs( (width - 40) - old_width ) > 8) then
+        old_width = this.scroll.content:GetWidth()
+        refresh()
+      end
     end
 
     local function get_point()
@@ -131,7 +197,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         :border_color( .2, .2, .2, 1 )
         :movable()
         :on_drag_stop( on_drag_stop )
-        :self_centered_anchor()
         :resizable()
         :on_resize( on_resize )
 
@@ -157,27 +222,32 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       refresh()
     end )
 
-    local btn_resize = m.GuiElements.resize_grip( main_frame )
+    local btn_resize = m.GuiElements.resize_grip( main_frame,
+      function()
+        is_resizing = true
+      end,
+      function()
+        is_resizing = false
+        db.width = this:GetParent():GetWidth()
+        db.height = this:GetParent():GetHeight()
+      end
+    )
     btn_resize:SetPoint( "BOTTOMRIGHT", 0, 0 )
-    btn_resize:SetScript( "OnMouseUp", function()
-      this:GetParent():StopMovingOrSizing( "BOTTOMRIGHT" )
-      db.width = this:GetParent():GetWidth()
-      db.height = this:GetParent():GetHeight()
-      resizing = false
-    end )
 
     local title = m.GuiElements.text( main_frame, "Winners" )
     title:SetPoint( "TOPLEFT", 0, -10 )
     title:SetPoint( "RIGHT", 0, 0 )
 
-    local header = m.GuiElements.winner_header( main_frame )
-    header:SetPoint( "TOPLEFT", 20, -30 )
-    header:SetPoint( "RIGHT", -20, 0 )
-    header.player_header:SetScript( "OnClick", set_sort )
-    header.item_header:SetScript( "OnClick", set_sort )
-    header.type_header:SetScript( "OnClick", set_sort )
+    local headers = m.GuiElements.winner_header( main_frame )
+    headers:SetPoint( "TOPLEFT", 20, -30 )
+    headers:SetPoint( "RIGHT", -20, 0 )
+    headers.player_header:SetScript( "OnClick", set_sort )
+    headers.item_header:SetScript( "OnClick", set_sort )
+    headers.roll_header:SetScript( "OnClick", set_sort )
+    headers.type_header:SetScript( "OnClick", set_sort )
+    main_frame.headers = headers
 
-    main_frame.scroll = m.OptionsGuiElements.CreateScrollFrame( nil, main_frame )
+    main_frame.scroll = m.OptionsGuiElements.create_scroll_frame( nil, main_frame )
     main_frame.scroll:SetPoint( "TOPLEFT", 20, -45 )
     main_frame.scroll:SetPoint( "BOTTOMRIGHT", -6, 15 )
 
@@ -193,16 +263,10 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     ---@class Frame
     main_frame.scroll.content = inner_builder:build()
-    --m.OptionsGuiElements.create_backdrop( main_frame.scroll.content )
-
-    --main_frame.scroll.content:SetPoint( "BOTTOMRIGHT", main_frame.scroll, "BOTTOMRIGHT", 0, 0 )
-    --print ( main_frame.scroll.content:GetWidth() .. ', ' .. main_frame.scroll.content:GetHeight() )
-
-    --m.OptionsGuiElements.create_backdrop( main_frame.scroll )
     main_frame.scroll.content.parent = main_frame.scroll
     main_frame.scroll.content:SetAllPoints( main_frame.scroll )
     main_frame.scroll.content:SetScript( "OnUpdate", function()
-      this:GetParent():UpdateScrollState()
+      this.parent:UpdateScrollState()
     end )
 
     main_frame.scroll.content:Show()
@@ -212,92 +276,26 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   end
 
   function refresh()
-    --M.debug.add( "refresh" )
+    M.debug.add( "refresh" )
     if not popup then popup = create_popup() end
     popup.scroll.content:clear()
 
+    local got_sr_plus = false
     local data = awarded_loot.get_winners()
+
     for _, v in ipairs( data ) do
       if not v.roll_type then
         v.roll_type = "NA"
       elseif v.roll_type == m.Types.RollType.MainSpec and (v.rolling_strategy == m.Types.RollingStrategy.RaidRoll or v.rolling_strategy == m.Types.RollingStrategy.InstaRaidRoll) then
         v.roll_type = "RR"
       end
+      if v.sr_plus then got_sr_plus = true end
     end
 
-    local filters = config.award_filter()
-    local quality_filter = {}
-    for q, v in pairs( filters.item_quality ) do
-      if v then
-        table.insert( quality_filter, m.Types.ItemQuality[ q ] )
-      end
-    end
+    got_sr_plus = false --temp
 
-    local rolltype_filter = {}
-    for t, v in pairs( filters.roll_type ) do
-      if v then
-        table.insert( rolltype_filter, t )
-      end
-    end
-
-    data = filter( data, function( item )
-      local quality = item.quality or 0
-      return m.table_contains_value( quality_filter, quality ) and m.table_contains_value( rolltype_filter, item.roll_type )
-    end )
-
-    local function my_sort( a, b )
-      if sort == "player_name" then
-        local val_a, val_b = a[ sort ] or "", b[ sort ] or ""
-        local class_a, class_b = a[ "player_class" ] or "", b[ "player_class" ] or ""
-
-        if class_a ~= class_b then
-          if sort_order == "asc" then
-            return class_a < class_b
-          else
-            return class_a > class_b
-          end
-        end
-        if sort_order == "asc" then
-          return val_a < val_b
-        else
-          return val_a > val_b
-        end
-      end
-
-      if sort == "item_id" then
-        local val_a, val_b = a[ sort ] or "", b[ sort ] or ""
-        local quality_a, quality_b = a[ "quality" ], b[ "quality" ] or 0
-
-        if quality_a ~= quality_b then
-          if sort_order == "asc" then
-            return quality_a > quality_b
-          else
-            return quality_a < quality_b
-          end
-        end
-        if sort_order == "asc" then
-          return val_a > val_b
-        else
-          return val_a < val_b
-        end
-      end
-
-      if sort == "roll_type" then
-        local roll_order = { SoftRes = 1, MainSpec = 2, OffSpec = 3, Transmog = 4, RR = 5, NA = 6 }
-        local val_a, val_b = a[ sort ] or "NA", b[ sort ] or "NA"
-
-        if val_a ~= val_b then
-          if sort_order == "asc" then
-            return roll_order[ val_a ] < roll_order[ val_b ]
-          else
-            return roll_order[ val_a ] > roll_order[ val_b ]
-          end
-        end
-        return a.item_id < b.item_id
-      end
-    end
-
-    if (sort) then table.sort( data, my_sort ) end
+    data = filter_winners( data )
+    if (sort) then table.sort( data, sort_winners ) end
 
     local content = {}
     for _, item in pairs( data ) do
@@ -316,19 +314,25 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       end
     end
 
+    popup.headers.roll_header:SetWidth( got_sr_plus and 50 or 25 )
+
     local line_count = 0
     for _, v in ipairs( content ) do
       popup.scroll.content.add_line( v.type, function( type, frame, lines )
         if type == "winner" then
           local roll_type_abbrev = v.roll_type == "RR" and "RR" or v.roll_type == "NA" and "NA" or m.roll_type_abbrev( v.roll_type )
           local sr_plus = ""
-          if v.rolling_strategy == m.Types.RollingStrategy.SoftResRoll and v.roll_type == m.Types.RollType.SoftRes then
-            sr_plus = v.sr_plus and string.format( " (+%s)", v.sr_plus ) or ""
+
+          if got_sr_plus then
+            frame.winning_roll:GetParent():SetWidth( 50 )
+            if v.sr_plus and v.rolling_strategy == m.Types.RollingStrategy.SoftResRoll and v.roll_type == m.Types.RollType.SoftRes then
+              sr_plus = string.format( "(+%s) ", v.sr_plus )
+            end
           end
 
           frame:SetItem( v.item_link )
           frame.player_name:SetText( c( v.player_name, v.player_class ) )
-          frame.winning_roll:SetText( string.format( "%s%s", v.winning_roll or "-", sr_plus) )
+          frame.winning_roll:SetText( string.format( "%s%s", sr_plus, v.winning_roll or "-" ) )
           frame.roll_type:SetText( r( v.roll_type, roll_type_abbrev ) )
 
           frame:SetPoint( "TOP", popup.scroll.content, "TOP", 0, -line_count * 14 )
@@ -336,22 +340,16 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         end
       end, 0 )
     end
-
-    --if not resizing then
-    --local height = 60 + line_count * 14
-    --popup:SetHeight( math.min( 400, height ) )
-    --end
+    popup.scroll:UpdateScrollChildRect()
   end
 
   local function show()
     M.debug.add( "show" )
-
     if not popup then
       popup = create_popup()
     end
 
     popup:Show()
-    sort = nil
     refresh()
   end
 
@@ -377,17 +375,16 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   local function loot_awarded()
     if popup and popup:IsVisible() then
       refresh()
-      local max = popup.scroll.content.parent:GetVerticalScrollRange()
-      popup.scroll.content.parent:SetVerticalScroll( max )
+      if not sort then
+        local max = popup.scroll.content.parent:GetVerticalScrollRange()
+        popup.scroll.content.parent:SetVerticalScroll( max )
+      end
     end
   end
 
   local function filter_changed()
     if popup and popup:IsVisible() then
       refresh()
-      -- stupid, but it forces scroll child to recalulate size
-      popup:SetHeight( popup:GetHeight() + 1 )
-      popup:SetHeight( popup:GetHeight() )
     end
   end
 

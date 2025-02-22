@@ -223,7 +223,7 @@ function M.winner_header( parent )
     tile = true,
     tileSize = 22,
   } )
-  player_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
+  player_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.4 )
   frame.player_header = player_header
 
   local type_header = create_text_in_container( "Button", frame, 25, "LEFT", "Type" )
@@ -236,11 +236,11 @@ function M.winner_header( parent )
     tile = true,
     tileSize = 22,
   } )
-  type_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
+  type_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.4 )
   frame.type_header = type_header
 
-  local roll_header = create_text_in_container( "Button", frame, 25, "LEFT", "Roll" )
-  roll_header.inner:SetPoint( "LEFT", 2, 0 )
+  local roll_header = create_text_in_container( "Button", frame, 25, "RIGHT", "Roll" )
+  roll_header.inner:SetPoint( "RIGHT", -5, 0 )
   roll_header.sort = "winning_roll"
   roll_header:SetHeight( 15 )
   roll_header:SetPoint( "RIGHT", type_header, "LEFT", -1, 0 )
@@ -249,7 +249,7 @@ function M.winner_header( parent )
     tile = true,
     tileSize = 22,
   } )
-  roll_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
+  roll_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.4 )
   frame.roll_header = roll_header
 
 
@@ -264,7 +264,7 @@ function M.winner_header( parent )
     tile = true,
     tileSize = 22,
   } )
-  item_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.3 )
+  item_header:SetBackdropColor( 0.125, 0.624, 0.976, 0.4 )
   frame.item_header = item_header
 
   return frame
@@ -305,14 +305,13 @@ function M.winner( parent )
   roll_type.inner:SetPoint( "LEFT", 5, 0 )
   roll_type:SetPoint( "RIGHT", 0, 0 )
   roll_type:SetHeight( 14 )
-  roll_type:SetPoint( "RIGHT", 0, 0 )
   frame.roll_type = roll_type.inner
 
-  local winning_roll = M.text( frame )
-  winning_roll:SetPoint( "RIGHT", roll_type, "LEFT", -5, 0 )
-  --winning_roll:SetWidth( 35 )
-  winning_roll:SetJustifyH( "LEFT" )
-  frame.winning_roll = winning_roll
+  local winning_roll = create_text_in_container( "Frame", frame, 25, "RIGHT", "dummy")
+  winning_roll.inner:SetPoint( "RIGHT", -5, 0 )
+  winning_roll:SetPoint( "RIGHT", roll_type, "LEFT", -1, 0 )
+  winning_roll:SetHeight( 14 )
+  frame.winning_roll = winning_roll.inner
 
   local tooltip_link
   local item_link = create_text_in_container( "Button", frame, 1, "LEFT", "dummy" )
@@ -320,7 +319,6 @@ function M.winner( parent )
   item_link:SetPoint( "RIGHT", winning_roll, "LEFT", -1, 0 )
   item_link:SetHeight( item_link.inner:GetHeight() )
   frame.item_link = item_link
-
 
   frame.SetItem = function( _, itemLink )
     local function truncate_text( font_string, max )
@@ -341,7 +339,7 @@ function M.winner( parent )
     end
 
     item_link.inner:SetText( itemLink )
-    truncate_text( item_link.inner, frame:GetParent():GetWidth() - 130 )
+    truncate_text( item_link.inner, frame:GetParent():GetWidth() - 105 - winning_roll:GetWidth() )
 
     tooltip_link = m.ItemUtils.get_tooltip_link( itemLink )
 
@@ -489,7 +487,7 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
   button:SetWidth( 10 )
   local label = button:CreateFontString( nil, "ARTWORK" )
   label:SetFont( "FONTS\\FRIZQT__.TTF", font_size or 14 )
-  label:SetPoint( "CENTER", 0, 1 )
+  label:SetPoint( "CENTER", 0, text == 'R' and 1 or 1.5 )
   label:SetText( text )
   label:SetTextColor( color.r, color.g, color.b, color.a or 1 )
 
@@ -509,7 +507,7 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
   return button
 end
 
-function M.resize_grip( parent )
+function M.resize_grip( parent, on_start, on_end )
   local button = m.api.CreateFrame( "Button", nil, parent )
   button:SetWidth( 16 )
   button:SetHeight( 16 )
@@ -526,9 +524,11 @@ function M.resize_grip( parent )
   end )
   button:SetScript( "OnMouseDown", function()
     this:GetParent():StartSizing( "BOTTOMRIGHT" )
+    if on_start then on_start() end
   end )
   button:SetScript( "OnMouseUp", function()
-    this:GetParent():StopMovingOrSizing( "BOTTOMRIGHT" )
+    this:GetParent():StopMovingOrSizing()
+    if on_end then on_end() end
   end )
 
   return button

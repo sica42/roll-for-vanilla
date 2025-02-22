@@ -5,10 +5,10 @@ if m.OptionsGuiElements then return end
 
 ---@class OptionsGuiElements
 ---@field create_backdrop fun( f: Frame, insert: number, legacy: boolean, transp: number, backdropSetting: table )
----@field CreateScrollFrame fun( name: string, parent: Frame ): Frame
----@field CreateScrollChild fun( name: string, parent: Frame ): Frame
----@field CreateTabFrame fun( parent: table, title: string ): Frame
----@field CreateArea fun( parent: table, title: string, func: function ): Frame
+---@field create_scroll_frame fun( name: string, parent: Frame ): Frame
+---@field create_scroll_child fun( name: string, parent: Frame ): Frame
+---@field create_tab_frame fun( parent: table, title: string ): Frame
+---@field create_area fun( parent: table, title: string, func: function ): Frame
 
 local M = {}
 
@@ -17,7 +17,7 @@ local function get_perfect_pixel()
 
   local scale = m.api.GetCVar( "uiScale" )
   local resolution = m.api.GetCVar( "gxResolution" )
-  local _, _, screenwidth, screenheight = string.find( resolution, "(.+)x(.+)" )
+  local _, _, _, screenheight = string.find( resolution, "(.+)x(.+)" )
 
   M.pixel = 768 / screenheight / scale
   M.pixel = M.pixel > 1 and 1 or M.pixel
@@ -87,7 +87,7 @@ function M.create_backdrop( f, inset, legacy, transp, backdropSetting )
   end
 end
 
-function M.CreateScrollFrame( name, parent )
+function M.create_scroll_frame( name, parent )
   local f = m.api.CreateFrame( "ScrollFrame", name, parent )
 
   -- create slider
@@ -109,9 +109,9 @@ function M.CreateScrollFrame( name, parent )
     f.slider:SetMinMaxValues( 0, f:GetVerticalScrollRange() )
     f.slider:SetValue( f:GetVerticalScroll() )
 
-    local m = f:GetHeight() + f:GetVerticalScrollRange()
+    local r = f:GetHeight() + f:GetVerticalScrollRange()
     local v = f:GetHeight()
-    local ratio = v / m
+    local ratio = v / r
 
     if ratio < 1 then
       local size = math.floor( v * ratio )
@@ -148,7 +148,7 @@ function M.CreateScrollFrame( name, parent )
   return f
 end
 
-function M.CreateScrollChild( name, parent )
+function M.create_scroll_child( name, parent )
   local f = m.api.CreateFrame( "Frame", name, parent )
 
   -- dummy values required
@@ -166,7 +166,7 @@ function M.CreateScrollChild( name, parent )
 end
 
 local width, height = 80, 20
-function M.CreateTabFrame( parent, title )
+function M.create_tab_frame( parent, title )
   if not parent.area.count then parent.area.count = 0 end
 
   local f = m.api.CreateFrame( "Button", nil, parent.area )
@@ -199,7 +199,7 @@ function M.CreateTabFrame( parent, title )
   return f
 end
 
-function M.CreateArea( parent, title, func, active_area )
+function M.create_area( parent, title, func, active_area )
   local f = m.api.CreateFrame( "Frame", nil, parent.area )
   f:SetPoint( "TOPLEFT", parent.area, "TOPLEFT", 0, -height )
   f:SetPoint( "BOTTOMRIGHT", parent.area, "BOTTOMRIGHT", 0, 0 )
@@ -230,9 +230,9 @@ function M.CreateArea( parent, title, func, active_area )
   end )
 
   if func then
-    f.scroll = M.CreateScrollFrame( nil, f )
+    f.scroll = M.create_scroll_frame( nil, f )
     M.SetAllPointsOffset( f.scroll, f, 2 )
-    f.scroll.content = M.CreateScrollChild( nil, f.scroll )
+    f.scroll.content = M.create_scroll_child( nil, f.scroll )
     f.scroll.content.parent = f.scroll
     f.scroll.content:SetScript( "OnShow", function()
       if not this.setup then
