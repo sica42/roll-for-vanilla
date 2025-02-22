@@ -804,7 +804,7 @@ function SoftResPlusSpec:should_use_sr_plus_values()
     item_link( item2, 1 ),
     softres_roll( p1, 119, 11 ),
     softres_roll( p2, 99 ),
-    text( "Psikutas wins the soft-res roll with an 119.", 11 ),
+    text( "Psikutas wins the soft-res roll with 119.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
   rf.confirmation_popup.should_be_hidden()
