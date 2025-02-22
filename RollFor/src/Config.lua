@@ -18,6 +18,7 @@ function M.new( db )
   local callbacks = {}
   local toggles = {
     [ "auto_loot" ] = { cmd = "auto-loot", display = "Auto-loot", help = "toggle auto-loot" },
+    [ "superwow_auto_loot_coins" ] = { cmd = "superwow-auto-loot-coins", display = "Auto-loot coins with SuperWoW", help = "toggle auto-loot coins with SuperWoW" },
     [ "auto_loot_messages" ] = { cmd = "auto-loot-messages", display = "Auto-loot messages", help = "toggle auto-loot messages" },
     [ "auto_loot_announce" ] = { cmd = "auto-loot-announce", display = "Announce auto-looted items", help = "toggle announcements of auto-loot items" },
     [ "show_ml_warning" ] = { cmd = "ml", display = "Master loot warning", help = "toggle master loot warning" },
@@ -40,6 +41,7 @@ function M.new( db )
     if not db.ms_roll_threshold then db.ms_roll_threshold = 100 end
     if not db.os_roll_threshold then db.os_roll_threshold = 99 end
     if not db.tmog_roll_threshold then db.tmog_roll_threshold = 98 end
+    if not db.superwow_auto_loot_coins then db.superwow_auto_loot_coins = true end
     if db.tmog_rolling_enabled == nil then db.tmog_rolling_enabled = true end
     if db.show_ml_warning == nil then db.show_ml_warning = false end
     if db.default_rolling_time_seconds == nil then db.default_rolling_time_seconds = 8 end
