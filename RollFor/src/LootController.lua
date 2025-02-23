@@ -253,7 +253,7 @@ function M.new( player_info, loot_facade, loot_list, loot_frame, roll_controller
 
           if is_coin or selected then return end
 
-          if not player_info.is_master_looter() then
+          if m.is_master_loot() and not player_info.is_master_looter() then
             chat.info( "You are not the master looter.", m.colors.red )
             return
           end
