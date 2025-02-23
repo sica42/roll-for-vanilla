@@ -34,7 +34,9 @@ local function mock_config()
         tmog_rolling_enabled = function() return true end,
         rolling_popup = function() return true end,
         raid_roll_again = function() return false end,
-        default_rolling_time_seconds = function() return 8 end
+        default_rolling_time_seconds = function() return 8 end,
+        get_award_filter = function() return {} end,
+        keep_award_data = function() return false end
       }
     end
   }
