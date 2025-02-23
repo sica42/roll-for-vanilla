@@ -377,16 +377,24 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   function refresh()
     if not popup then popup = create_popup() end
     scroll_frame.content:clear()
-    local data = awarded_loot.get_winners()
+    local db_data = awarded_loot.get_winners()
+    local data = {}
 
     local winners_count = 0
-    for _, v in ipairs( data ) do
-      if not v.roll_type then
-        v.roll_type = "NA"
-      elseif v.roll_type == m.Types.RollType.MainSpec and (v.rolling_strategy == m.Types.RollingStrategy.RaidRoll or v.rolling_strategy == m.Types.RollingStrategy.InstaRaidRoll) then
-        v.roll_type = "RR"
-      end
-      winners_count = winners_count +1
+    for _, v in ipairs( db_data ) do
+      table.insert( data, {
+        player_name = v.player_name,
+        player_class = v.player_class,
+        item_id = v.item_id,
+        item_link = v.item_link,
+        roll_type = v.roll_type or "NA",
+        rolling_strategy = (v.rolling_strategy == m.Types.RollingStrategy.RaidRoll or v.rolling_strategy == m.Types.RollingStrategy.InstaRaidRoll) and "RR"
+            or v.rolling_strategy,
+        winning_roll = v.winning_roll,
+        sr_plus = v.sr_plus,
+        quality = v.quality
+      } )
+      winners_count = winners_count + 1
     end
 
     if winners_count == 0 then
