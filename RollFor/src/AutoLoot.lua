@@ -91,7 +91,7 @@ function M.new( loot_list, api, db, config, player_info )
       -- Looting coins is hidden under a secure button and cannot be done
       -- through vanilla API. If the user has the SuperWoW mod, we can call an
       -- extra function instead.
-      if api().SUPERWOW_VERSION and item.type == item_utils.LootType.Coin then
+      if config.superwow_auto_loot_coins() and api().SUPERWOW_VERSION and item.type == item_utils.LootType.Coin then
         api().LootSlot( slot, 1 )
 
         local coin = item --[[@as Coin]]
