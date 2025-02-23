@@ -41,17 +41,17 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
   db.point = db.point or M.center_point
   --[[
-  awarded_loot.award( 'Zombiehunter', 16939, nil, 'Hunter', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, 30 )
-  awarded_loot.award( 'Kevieboipro', 16939, nil, 'Warrior', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=98}, 20 )
-  awarded_loot.award( 'Kevieboipro', 19019, nil, 'Warrior', { roll_type='Transmog', rolling_strategy='NormalRoll', winning_roll=89} )
-  awarded_loot.award( 'Dayknight', 5504, nil, 'Paladin', { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=53} )
-  awarded_loot.award( 'Celilae', 5504, nil, 'Paladin', { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=78} )
-  awarded_loot.award( 'Borazor', 16939, nil, 'Hunter', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, 30 )
-  awarded_loot.award( 'Ryiana', 16939, nil, 'Warrior', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=98}, 20 )
-  awarded_loot.award( 'Tornapart', 19019, nil, 'Warrior', { roll_type='Transmog', rolling_strategy='NormalRoll', winning_roll=89} )
-  awarded_loot.award( 'Dayknight', 5504, nil, 'Paladin', { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=53} )
-  awarded_loot.award( 'Celilae', 5504, nil, 'Paladin', { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=78} )
-  awarded_loot.award( 'Borazor', 16936, nil, 'Hunter', { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, 30 )
+  awarded_loot.award( 'Zombiehunter', 16939, { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, nil, 'Hunter', 30 )
+  awarded_loot.award( 'Kevieboipro', 16939, { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=98}, nil, 'Warrior', 20 )
+  awarded_loot.award( 'Kevieboipro', 19019, { roll_type='Transmog', rolling_strategy='NormalRoll', winning_roll=89}, nil, 'Warrior' )
+  awarded_loot.award( 'Dayknight', 5504, { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=53}, nil, 'Paladin')
+  awarded_loot.award( 'Celilae', 5504, { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=78} , nil, 'Paladin' )
+  awarded_loot.award( 'Borazor', 16939, { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, nil, 'Hunter', 30 )
+  awarded_loot.award( 'Ryiana', 16939, { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=98}, nil, 'Warrior', 20 )
+  awarded_loot.award( 'Tornapart', 19019,  { roll_type='Transmog', rolling_strategy='NormalRoll', winning_roll=89}, nil, 'Warrior' )
+  awarded_loot.award( 'Dayknight', 5504, { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=53}, nil, 'Paladin' )
+  awarded_loot.award( 'Celilae', 5504, { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=78}, nil, 'Paladin' )
+  awarded_loot.award( 'Borazor', 16936, { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, nil, 'Hunter', 30 )
   ]]
 
   local function filter_winners( data )
