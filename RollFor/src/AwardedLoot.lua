@@ -81,6 +81,7 @@ function M.new( db, group_roster, config )
     M.debug.add( "clear" )
     if not config.keep_award_data() or force then
       m.clear_table( db.awarded_items )
+      config.notify_subscribers( 'award_filter' )
     end
   end
 

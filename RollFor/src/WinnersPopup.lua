@@ -379,12 +379,19 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     scroll_frame.content:clear()
     local data = awarded_loot.get_winners()
 
+    local winners_count = 0
     for _, v in ipairs( data ) do
       if not v.roll_type then
         v.roll_type = "NA"
       elseif v.roll_type == m.Types.RollType.MainSpec and (v.rolling_strategy == m.Types.RollingStrategy.RaidRoll or v.rolling_strategy == m.Types.RollingStrategy.InstaRaidRoll) then
         v.roll_type = "RR"
       end
+      winners_count = winners_count +1
+    end
+
+    if winners_count == 0 then
+      scroll_frame:UpdateScrollChildRect()
+      return
     end
 
     data = filter_winners( data )
