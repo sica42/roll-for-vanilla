@@ -30,12 +30,15 @@ M.interface = {
 ---@field GetWidth fun(): number
 ---@field GetHeight fun(): number
 ---@field ClearAllPoints fun()
+---@field SetAllPoints fun( frame: Frame, relativeTo?: Frame|string, doResize?: boolean )
+---@field SetScript fun( frame: Frame, scriptTypeName: string, script: function|nil )
 ---@field IsVisible fun( self ): boolean
 ---@field GetName fun(): string?
 
 ---@alias Anchor table
 
 ---@class FrameBuilder
+---@field parent fun( self: FrameBuilder, parent: Frame ): FrameBuilder
 ---@field name fun( self: FrameBuilder, name: string ): FrameBuilder
 ---@field height fun( self: FrameBuilder, height: number ): FrameBuilder
 ---@field width fun( self: FrameBuilder, width: number ): FrameBuilder
@@ -49,6 +52,8 @@ M.interface = {
 ---@field frame_style fun( self: FrameBuilder, frame_style: string ): FrameBuilder
 ---@field on_drag_stop fun( self: FrameBuilder, callback: function ): FrameBuilder
 ---@field movable fun( self: FrameBuilder ): FrameBuilder
+---@field resizable fun( self ): FrameBuilder
+---@field on_resize fun( self: FrameBuilder, callback: function ): FrameBuilder
 ---@field border_size fun( self: FrameBuilder, border_size: number ): FrameBuilder
 ---@field on_show fun( self: FrameBuilder, on_show: function ): FrameBuilder
 ---@field on_hide fun( self: FrameBuilder, on_hide: function ): FrameBuilder
@@ -80,7 +85,8 @@ function M.new()
     end
 
     local function create_main_frame( anchor )
-      local frame = m.create_backdrop_frame( m.api, "Frame", options.name, m.api.UIParent )
+      local parent = options.parent or m.api.UIParent
+      local frame = m.create_backdrop_frame( m.api, "Frame", options.name, parent )
 
       frame:Hide()
       frame:SetWidth( options.width or 280 )
@@ -94,9 +100,9 @@ function M.new()
         local p = options.point
         local f = anchor or frame
 
-        f:SetPoint( p.point, m.api.UIParent, p.relative_point, p.x, p.y )
+        f:SetPoint( p.point, parent, p.relative_point, p.x, p.y )
       else
-        frame:SetPoint( "CENTER", anchor or m.api.UIParent, "CENTER", 0, 0 )
+        frame:SetPoint( "CENTER", anchor or parent, "CENTER", 0, 0 )
       end
 
       if options.frame_level then
@@ -106,14 +112,16 @@ function M.new()
       end
 
       if options.frame_style then
-        frame:SetBackdrop( {
-          bgFile = options.bg_file or "Interface/Tooltips/UI-Tooltip-Background",
-          edgeFile = "Interface\\Buttons\\WHITE8X8",
-          tile = false,
-          tileSize = 0,
-          edgeSize = 0.8,
-          insets = { left = 0, right = 0, top = 0, bottom = 0 }
-        } )
+        if options.frame_style ~= "none" then
+          frame:SetBackdrop( {
+            bgFile = options.bg_file or "Interface/Tooltips/UI-Tooltip-Background",
+            edgeFile = "Interface\\Buttons\\WHITE8X8",
+            tile = false,
+            tileSize = 0,
+            edgeSize = 0.8,
+            insets = { left = 0, right = 0, top = 0, bottom = 0 }
+          } )
+        end
       else
         frame:SetBackdrop( {
           bgFile = options.bg_file or "Interface/Tooltips/UI-Tooltip-Background",
@@ -196,6 +204,16 @@ function M.new()
         end )
       else
         frame:SetMovable( false )
+      end
+
+      if options.resizable then
+        frame:SetResizable( true )
+
+        if options.on_resize and frame:IsResizable() then
+          frame:SetScript( "OnSizeChanged", options.on_resize )
+        end
+      else
+        frame:SetResizable( false )
       end
 
       frame:EnableMouse( true )
@@ -309,6 +327,11 @@ function M.new()
     return frame, self_centered_anchor
   end
 
+  local function parent( self, v )
+    options.parent = v
+    return self
+  end
+
   local function name( self, v )
     options.name = v
     return self
@@ -380,6 +403,16 @@ function M.new()
     return self
   end
 
+  local function resizable( self )
+    options.resizable = true
+    return self
+  end
+
+  local function on_resize( self, callback )
+    options.on_resize = callback
+    return self
+  end
+
   local function border_size( self, v )
     options.border_size = v
     return self
@@ -411,6 +444,7 @@ function M.new()
   end
 
   return {
+    parent = parent,
     name = name,
     height = height,
     width = width,
@@ -424,6 +458,8 @@ function M.new()
     frame_style = frame_style,
     on_drag_stop = on_drag_stop,
     movable = movable,
+    resizable = resizable,
+    on_resize = on_resize,
     border_size = border_size,
     on_show = on_show,
     on_hide = on_hide,

@@ -102,7 +102,7 @@ local function create_components()
   M.version_broadcast = m.VersionBroadcast.new( db( "version_broadcast" ), M.player_info, version.str )
 
   ---@type AwardedLoot
-  M.awarded_loot = m.AwardedLoot.new( db( "awarded_loot" ) )
+  M.awarded_loot = m.AwardedLoot.new( db( "awarded_loot" ), M.group_roster, M.config )
 
   -- TODO: Add type.
   M.softres_db = db( "softres" )
@@ -219,7 +219,7 @@ local function create_components()
   )
 
   ---@type LootAwardCallback
-  M.loot_award_callback = m.LootAwardCallback.new( M.awarded_loot, M.roll_controller, M.winner_tracker, M.group_roster )
+  M.loot_award_callback = m.LootAwardCallback.new( M.awarded_loot, M.roll_controller, M.winner_tracker, M.group_roster, M.softres )
 
   ---@type MasterLoot
   M.master_loot = m.MasterLoot.new(
@@ -244,6 +244,16 @@ local function create_components()
     M.config
   )
 
+  ---@type WinnersPopup
+  M.winners_popup = m.WinnersPopup.new(
+    m.PopupBuilder.new( m.FrameBuilder ),
+    m.FrameBuilder,
+    db( "winners_popup" ),
+    M.awarded_loot,
+    M.roll_controller,
+    M.config
+  )
+
   -- TODO: Add type.
   M.softres_gui = m.SoftResGui.new( M.api, M.import_encoded_softres_data, M.softres_check, M.softres, clear_data, M.dropped_loot_announce.reset )
 
@@ -254,7 +264,7 @@ local function create_components()
   M.usage_printer = m.UsagePrinter.new( M.chat )
 
   -- TODO: Add type.
-  M.minimap_button = m.MinimapButton.new( M.api, db( "minimap_button" ), M.softres_gui.toggle, M.softres_check, M.config )
+  M.minimap_button = m.MinimapButton.new( M.api, db( "minimap_button" ), M.softres_gui.toggle, M.winners_popup.toggle, M.softres_check, M.config )
 
   -- TODO: Add type.
   M.master_loot_warning = m.MasterLootWarning.new( M.api, M.config, m.BossList.zones, M.player_info )
@@ -634,6 +644,8 @@ local function setup_slash_commands()
   SLASH_SRO1 = "/sro"
   M.api().SlashCmdList[ "SRO" ] = M.name_matcher.manual_match
 
+  SLASH_RFW1 = "/rfw"
+  M.api().SlashCmdList[ "RFW" ] = M.winners_popup.show
   SLASH_RFT1 = "/rft"
   M.api().SlashCmdList[ "RFT" ] = test
 

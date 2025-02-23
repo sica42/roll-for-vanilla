@@ -3,6 +3,7 @@ local M = {}
 function M.new()
   ---@type FrameBuilder
   local builder = {
+    parent = function( self ) return self end,
     name = function( self ) return self end,
     height = function( self ) return self end,
     width = function( self ) return self end,
@@ -20,6 +21,8 @@ function M.new()
     backdrop_color = function( self ) return self end,
     movable = function( self ) return self end,
     on_drag_stop = function( self ) return self end,
+    resizable = function( self ) return self end,
+    on_resize = function( self) return self end,
     on_hide = function( self ) return self end,
     lock = function( self ) return self end,
     unlock = function( self ) return self end,
@@ -29,6 +32,7 @@ function M.new()
     build = function()
       ---@type Frame
       return {
+        parent = function() end,
         add_line = function() return {} end,
         clear = function() end,
         border_color = function() end,
@@ -48,6 +52,8 @@ function M.new()
         GetWidth = function() return 1 end,
         GetHeight = function() return 1 end,
         ClearAllPoints = function() end,
+        SetAllPoints = function() end,
+        SetScript = function() end,
         IsVisible = function( self ) return self.visible end,
         resize = function() end,
         GetName = function() return "PrincessKenny" end

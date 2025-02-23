@@ -47,6 +47,12 @@ function M.new( db )
     if db.auto_master_loot == nil then db.auto_master_loot = true end
     if db.auto_loot == nil then db.auto_loot = true end
     if db.auto_loot_announce == nil then db.auto_loot_announce = true end
+    if not db.award_filter then
+      db.award_filter = {
+        item_quality = { Uncommon = 1, Rare = 1, Epic = 1, Legendary = 1 },
+        roll_type = { MainSpec = 1, OffSpec = 1, Transmog = 1, SoftRes = 1, RR = 1 }
+      }
+    end
   end
 
   local function print( toggle_key )
@@ -348,6 +354,10 @@ function M.new( db )
     }
   end
 
+  local function set_award_filter( filter, setting, value )
+    db.award_filter[ filter ][ setting ] = value
+  end
+
   init()
 
   local function get( setting_key ) return function() return db[ setting_key ] end end
@@ -378,6 +388,10 @@ function M.new( db )
     default_rolling_time_seconds = get( "default_rolling_time_seconds" ),
     master_loot_frame_rows = get( "master_loot_frame_rows" ),
     configure_master_loot_frame_rows = configure_master_loot_frame_rows,
+    notify_subscribers = notify_subscribers,
+    get_award_filter = get( "award_filter" ),
+    set_award_filter = set_award_filter,
+    keep_award_data = get( "keep_award_data" ),
   }
 
   for toggle_key, _ in pairs( toggles ) do

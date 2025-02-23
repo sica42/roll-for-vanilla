@@ -293,6 +293,323 @@ function M.award_button( parent )
   return button
 end
 
+---@param parent Frame
+---@param text string
+---@param tooltip string
+---@param color table
+---@param font_size number
+function M.tiny_button( parent, text, tooltip, color, font_size )
+  local button = m.api.CreateFrame( "Button", nil, parent )
+  button:SetBackdrop( {
+    bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+    edgeFile = "Interface\\Buttons\\WHITE8X8",
+    tile = false,
+    tileSize = 0,
+    edgeSize = 0.5,
+    insets = { left = 0, right = 0, top = 0, bottom = 0 }
+  } )
+  button:SetBackdropColor( 0, 0, 0, 1 )
+  button:SetBackdropBorderColor( .2, .2, .2, 1 )
+  button:SetHeight( 10 )
+  button:SetWidth( 10 )
+  local label = button:CreateFontString( nil, "ARTWORK" )
+  label:SetFont( "FONTS\\FRIZQT__.TTF", font_size or 14 )
+  label:SetPoint( "CENTER", 0, text == 'R' and 1 or 1.5 )
+  label:SetText( text )
+  label:SetTextColor( color.r, color.g, color.b, color.a or 1 )
+
+  button:SetScript( "OnEnter", function()
+    this:SetBackdropBorderColor( color.r, color.g, color.b, color.a or 1 )
+    m.api.GameTooltip:SetOwner( this, "ANCHOR_RIGHT" )
+    m.api.GameTooltip:SetText( tooltip )
+    m.api.GameTooltip:SetScale( 0.8 )
+    m.api.GameTooltip:Show()
+  end )
+  button:SetScript( "OnLeave", function()
+    this:SetBackdropBorderColor( .2, .2, .2, 1 )
+    m.api.GameTooltip:SetScale( 1 )
+    m.api.GameTooltip:Hide()
+  end )
+
+  return button
+end
+
+---@param parent Frame
+---@param on_start function
+---@param on_end function
+function M.resize_grip( parent, on_start, on_end )
+  local button = m.api.CreateFrame( "Button", nil, parent )
+  button:SetWidth( 16 )
+  button:SetHeight( 16 )
+  button.texture = button:CreateTexture()
+  button.texture:SetTexture( "Interface\\AddOns\\RollFor\\assets\\resize-grip.tga", "ARTWORK" )
+  button.texture:ClearAllPoints()
+  button.texture:SetAllPoints( button )
+
+  button:SetScript( "OnEnter", function()
+    this.texture:SetBlendMode( "ADD" )
+  end )
+  button:SetScript( "OnLeave", function()
+    this.texture:SetBlendMode( "BLEND" )
+  end )
+  button:SetScript( "OnMouseDown", function()
+    this:GetParent():StartSizing( "BOTTOMRIGHT" )
+    if on_start then on_start() end
+  end )
+  button:SetScript( "OnMouseUp", function()
+    this:GetParent():StopMovingOrSizing()
+    if on_end then on_end() end
+  end )
+
+  return button
+end
+
+function M.checkbox( parent, text, on_change )
+  local frame = m.api.CreateFrame( "Frame", nil, parent )
+  frame:SetPoint( "LEFT", 5, 0 )
+  frame:SetHeight( 14 )
+
+  local cb = m.api.CreateFrame( "CheckButton", nil, frame, "UICheckButtonTemplate" )
+  cb:SetWidth( 14 )
+  cb:SetHeight( 14 )
+  cb:SetPoint( "LEFT", 2, 0 )
+  cb:SetNormalTexture( "" )
+  cb:SetPushedTexture( "" )
+  cb:SetHighlightTexture( "" )
+  cb:SetBackdrop( {
+    bgFile = "Interface/Buttons/WHITE8x8",
+    edgeFile = "Interface/Buttons/WHITE8x8",
+    tile = false,
+    tileSize = 0,
+    edgeSize = 0.5,
+    insets = { left = 0, right = 0, top = 0, bottom = 0 }
+  } )
+  cb:SetBackdropColor( 0, 0, 0, 1 )
+  cb:SetBackdropBorderColor( .2, .2, .2, 1 )
+  cb:SetScript( "OnClick", function()
+    if on_change then on_change( cb:GetChecked() ) end
+  end )
+  frame.checkbox = cb
+
+  local label = create_text_in_container( "Button", frame, 1, "LEFT", text )
+  label.inner:SetJustifyH( "LEFT" )
+  label:SetWidth( label.inner:GetWidth() )
+  label:SetPoint( "LEFT", cb, "RIGHT", 5, 0 )
+  label:SetScript( "OnClick", function()
+    cb:SetChecked( not cb:GetChecked() )
+    if on_change then on_change( cb:GetChecked() ) end
+  end )
+
+  frame:SetWidth( cb:GetWidth() + label:GetWidth() + 5 )
+
+  return frame
+end
+
+function M.winners_header( parent, on_click )
+  local frame = m.api.CreateFrame( "Frame", nil, parent )
+  frame:SetWidth( 250 )
+  frame:SetHeight( 14 )
+  frame:SetFrameStrata( "DIALOG" )
+  frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
+  frame:EnableMouse( true )
+
+  local headers = {
+    { text = "Player", name = "player_name",  width = 74 },
+    { text = "Item",   name = "item_id",      width = 150 },
+    { text = "Roll",   name = "winning_roll", width = 25 },
+    { text = "Type",   name = "roll_type",    width = 25 }
+  }
+
+  for _, v in pairs( headers ) do
+    local header = create_text_in_container( "Button", frame, v.width, nil, v.text )
+    header.sort = v.name
+    header:SetHeight( 14 )
+    header.inner:SetPoint( v.name == "winning_roll" and "RIGHT" or "LEFT", v.name == "winning_roll" and -5 or 2, 0 )
+    header:SetBackdrop( {
+      bgFile = "Interface/Buttons/WHITE8x8",
+      tile = true,
+      tileSize = 22,
+    } )
+    header:SetBackdropColor( 0.125, 0.624, 0.976, 0.4 )
+    header:SetScript( "OnClick", on_click )
+    frame[ v.name .. "_header" ] = header
+  end
+
+  frame.player_name_header:SetPoint( "LEFT", 0, 0 )
+  frame.roll_type_header:SetPoint( "RIGHT", 0, 0 )
+  frame.winning_roll_header:SetPoint( "RIGHT", frame.roll_type_header, "LEFT", -1, 0 )
+  frame.item_id_header:SetPoint( "LEFT", frame.player_name_header, "RIGHT", 1, 0 )
+  frame.item_id_header:SetPoint( "RIGHT", frame.winning_roll_header, "LEFT", -1, 0 )
+
+  return frame
+end
+
+function M.winner( parent )
+  local frame = m.api.CreateFrame( "Button", nil, parent )
+  frame:SetWidth( 250 )
+  frame:SetHeight( 14 )
+  frame:SetPoint( "LEFT", parent:GetParent(), "LEFT", 0, 0 )
+  frame:SetPoint( "RIGHT", parent:GetParent(), "RIGHT", -13, 0 )
+  frame:SetFrameStrata( "DIALOG" )
+  frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
+  frame:SetBackdrop( {
+    bgFile = "Interface/Buttons/WHITE8x8",
+    tile = true,
+    tileSize = 22,
+  } )
+
+  local function blue_hover( a )
+    frame:SetBackdropColor( 0.125, 0.624, 0.976, a )
+  end
+
+  blue_hover( 0 )
+  frame:SetScript( "OnEnter", function()
+    blue_hover( 0.2 )
+  end )
+
+  frame:SetScript( "OnLeave", function()
+    blue_hover( 0 )
+  end )
+
+  local player_name = create_text_in_container( "Frame", frame, 74, "LEFT", "dummy" )
+  player_name.inner:SetJustifyH( "LEFT" )
+  player_name:SetPoint( "LEFT", frame, "LEFT", 2, 0 )
+  player_name:SetHeight( 14 )
+  frame.player_name = player_name.inner
+
+  local roll_type = create_text_in_container( "Frame", frame, 25, nil, "dummy" )
+  roll_type.inner:SetJustifyH( "LEFT" )
+  roll_type.inner:SetPoint( "LEFT", 5, 0 )
+  roll_type:SetPoint( "RIGHT", 0, 0 )
+  roll_type:SetHeight( 14 )
+  frame.roll_type = roll_type.inner
+
+  local winning_roll = create_text_in_container( "Frame", frame, 25, nil, "dummy" )
+  winning_roll.inner:SetJustifyH( "RIGHT" )
+  winning_roll.inner:SetPoint( "RIGHT", -5, 0 )
+  winning_roll:SetPoint( "RIGHT", roll_type, "LEFT", -1, 0 )
+  winning_roll:SetHeight( 14 )
+  frame.winning_roll = winning_roll.inner
+
+  local tooltip_link
+  local item_link = create_text_in_container( "Button", frame, 1, "LEFT", "dummy" )
+  item_link.inner:SetJustifyH( "LEFT" )
+  item_link:SetPoint( "LEFT", player_name, "RIGHT", 1, 0 )
+  item_link:SetPoint( "RIGHT", winning_roll, "LEFT", -1, 0 )
+  item_link:SetHeight( item_link.inner:GetHeight() )
+  frame.item_link = item_link
+
+  frame.SetItem = function( _, itemLink )
+    local function truncate_text( font_string, max )
+      local item = font_string:GetText()
+      local originalText = string.gsub( m.ItemUtils.get_item_name( font_string:GetText() ), "([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1" )
+      local truncatedText = originalText
+
+      while font_string:GetStringWidth() > max do
+        truncatedText = string.sub( truncatedText, 1, -2 )
+        font_string:SetText( "[" .. truncatedText .. "...]" )
+      end
+
+      if originalText == truncatedText then
+        font_string:SetText( string.gsub( item, originalText, truncatedText ) )
+      else
+        font_string:SetText( string.gsub( item, originalText, truncatedText .. "..." ) )
+      end
+    end
+
+    item_link.inner:SetText( itemLink )
+    truncate_text( item_link.inner, frame:GetParent():GetParent():GetWidth() - 90 - winning_roll:GetWidth() )
+
+    tooltip_link = m.ItemUtils.get_tooltip_link( itemLink )
+
+    item_link:SetScript( "OnEnter", function()
+      blue_hover( 0.2 )
+    end )
+
+    item_link:SetScript( "OnLeave", function()
+      blue_hover( 0 )
+    end )
+
+    item_link:SetScript( "OnClick", function()
+      if not tooltip_link then return end
+
+      if m.is_ctrl_key_down() then
+        m.api.DressUpItemLink( itemLink )
+        return
+      end
+
+      if m.is_shift_key_down() then
+        m.link_item_in_chat( itemLink )
+        return
+      end
+
+      m.api.SetItemRef( tooltip_link, tooltip_link, "LeftButton" )
+    end )
+  end
+
+  return frame
+end
+
+function M.create_scroll_frame( parent, name )
+  local f = m.api.CreateFrame( "ScrollFrame", name, parent )
+
+  f.slider = m.api.CreateFrame( "Slider", nil, f )
+  f.slider:SetOrientation( 'VERTICAL' )
+  f.slider:SetPoint( "TOPLEFT", f, "TOPRIGHT", -7, 0 )
+  f.slider:SetPoint( "BOTTOMRIGHT", 0, 0 )
+  f.slider:SetThumbTexture( "Interface\\AddOns\\RollFor\\assets\\col.tga" )
+  f.slider.thumb = f.slider:GetThumbTexture()
+  f.slider.thumb:SetHeight( 50 )
+  f.slider.thumb:SetTexture( .125, .624, .976, .5 )
+
+  f.slider:SetScript( "OnValueChanged", function()
+    f:SetVerticalScroll( this:GetValue() )
+    f.update_scroll_state()
+  end )
+
+  f.update_scroll_state = function()
+    f.slider:SetMinMaxValues( 0, f:GetVerticalScrollRange() )
+    f.slider:SetValue( f:GetVerticalScroll() )
+
+    local r = f:GetHeight() + f:GetVerticalScrollRange()
+    local v = f:GetHeight()
+    local ratio = v / r
+
+    if ratio < 1 then
+      local size = math.floor( v * ratio )
+      f.slider.thumb:SetHeight( size )
+      f.slider:Show()
+    else
+      f.slider:Hide()
+    end
+  end
+
+  f.scroll = function( self, step )
+    step = step or 0
+
+    local current = f:GetVerticalScroll()
+    local max = f:GetVerticalScrollRange()
+    local new = current - step
+
+    if new >= max then
+      f:SetVerticalScroll( max )
+    elseif new <= 0 then
+      f:SetVerticalScroll( 0 )
+    else
+      f:SetVerticalScroll( new )
+    end
+
+    f:update_scroll_state()
+  end
+
+  f:EnableMouseWheel( 1 )
+  f:SetScript( "OnMouseWheel", function()
+    this:scroll( arg1 * 10 )
+  end )
+
+  return f
+end
+
 function M.info( parent )
   local frame = m.api.CreateFrame( "Frame", nil, parent )
   frame:SetWidth( 11 )
