@@ -10,17 +10,17 @@ M.mod = math.mod ---@diagnostic disable-line: undefined-field
 function M.link_item_in_chat( item_link )
   if M.api.ChatEdit_InsertLink then
     M.api.ChatEdit_InsertLink( item_link )
-  elseif M.api.ChatFrame1EditBox:IsVisible() then
-    M.api.ChatFrame1EditBox:Insert( item_link )
+  elseif M.api.ChatFrameEditBox:IsVisible() then
+    M.api.ChatFrameEditBox:Insert( item_link )
   end
 end
 
 ---@param slash_command RollSlashCommand
 ---@param item_link string
 function M.slash_command_in_chat( slash_command, item_link )
-  M.api.ChatFrame1EditBox:Show()
-  M.api.ChatFrame1EditBox:SetText( string.format( "%s %s ", slash_command, item_link ) )
-  M.api.ChatFrame1EditBox:SetFocus()
+  M.api.ChatFrameEditBox:Show()
+  M.api.ChatFrameEditBox:SetText( string.format( "%s %s ", slash_command, item_link ) )
+  M.api.ChatFrameEditBox:SetFocus()
 end
 
 ---@param api table
