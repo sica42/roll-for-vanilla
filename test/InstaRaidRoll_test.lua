@@ -36,7 +36,8 @@ local function mock_config()
         raid_roll_again = function() return false end,
         default_rolling_time_seconds = function() return 8 end,
         get_award_filter = function() return {} end,
-        keep_award_data = function() return false end
+        keep_award_data = function() return false end,
+        notify_subscribers = function() end
       }
     end
   }
