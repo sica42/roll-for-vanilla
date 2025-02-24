@@ -320,15 +320,19 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
 
   button:SetScript( "OnEnter", function()
     this:SetBackdropBorderColor( color.r, color.g, color.b, color.a or 1 )
-    m.api.GameTooltip:SetOwner( this, "ANCHOR_RIGHT" )
-    m.api.GameTooltip:SetText( tooltip )
-    m.api.GameTooltip:SetScale( 0.8 )
-    m.api.GameTooltip:Show()
+    if tooltip then
+      m.api.GameTooltip:SetOwner( this, "ANCHOR_RIGHT" )
+      m.api.GameTooltip:SetText( tooltip )
+      m.api.GameTooltip:SetScale( 0.8 )
+      m.api.GameTooltip:Show()
+    end
   end )
   button:SetScript( "OnLeave", function()
     this:SetBackdropBorderColor( .2, .2, .2, 1 )
-    m.api.GameTooltip:SetScale( 1 )
-    m.api.GameTooltip:Hide()
+    if tooltip then
+      m.api.GameTooltip:SetScale( 1 )
+      m.api.GameTooltip:Hide()
+    end
   end )
 
   return button
@@ -508,6 +512,7 @@ function M.winner( parent )
       while font_string:GetStringWidth() > max do
         truncatedText = string.sub( truncatedText, 1, -2 )
         font_string:SetText( "[" .. truncatedText .. "...]" )
+        if string.len(truncatedText) < 4 then break end
       end
 
       if originalText == truncatedText then

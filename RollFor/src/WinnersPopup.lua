@@ -5,6 +5,7 @@ if m.WinnersPopup then return end
 
 local c = m.colorize_player_by_class
 local r = m.roll_type_color
+local getn = m.getn
 local filter = m.filter
 local sort
 local sort_order = "asc"
@@ -142,24 +143,30 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     local old_width
-    local function on_resize( frame )
+    local function on_resize()
       if not is_resizing then return end
-      local max_width, max_height = 265, 173
+      local min_width, max_width, min_height, max_height = 225, 400, 173, 600
       local width = this:GetWidth()
       local height = this:GetHeight()
 
-      if width <= max_width then
+      if width <= min_width then
+        width = min_width
+        this:SetWidth( width )
+      end
+      if width >= max_width then
         width = max_width
         this:SetWidth( width )
       end
-      if height <= max_height then
+      if height <= min_height then
+        this:SetHeight( min_height )
+      end
+      if height >= max_height then
         this:SetHeight( max_height )
       end
 
       if not old_width then old_width = scroll_frame.content:GetWidth() end
-      scroll_frame.content:SetWidth( width - 40 )
 
-      if (math.abs( (width - 40) - old_width ) > 10) or (width <= max_width) then
+      if (math.abs( (width - 40) - old_width ) > 10) or (width <= min_width) then
         old_width = scroll_frame.content:GetWidth()
         refresh()
       end
@@ -426,7 +433,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     headers.winning_roll_header:SetWidth( (show_sr_plus and got_sr_plus) and 50 or 25 )
 
-    local line_count = 0
     for _, v in ipairs( content ) do
       scroll_frame.content.add_line( v.type, function( type, frame, lines )
         if type == "winner" then
@@ -436,7 +442,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
           if show_sr_plus and got_sr_plus then
             frame.winning_roll:GetParent():SetWidth( 50 )
             if v.sr_plus and v.rolling_strategy == m.Types.RollingStrategy.SoftResRoll and v.roll_type == m.Types.RollType.SoftRes then
-              sr_plus = string.format( "(+%s) ", v.sr_plus )
+              sr_plus = string.format( "+%s ", v.sr_plus )
             end
           else
             frame.winning_roll:GetParent():SetWidth( 25 )
@@ -447,8 +453,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
           frame.winning_roll:SetText( string.format( "%s%s", sr_plus, v.winning_roll or "-" ) )
           frame.roll_type:SetText( r( v.roll_type, roll_type_abbrev ) )
 
-          frame:SetPoint( "TOP", scroll_frame.content, "TOP", 0, -line_count * 14 )
-          line_count = line_count + 1
+          frame:SetPoint( "TOP", scroll_frame.content, "TOP", 0, -getn( lines ) * 14 )
         end
       end, 0 )
     end
