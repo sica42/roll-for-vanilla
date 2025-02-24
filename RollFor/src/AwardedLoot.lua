@@ -8,7 +8,7 @@ local M = m.Module.new( "AwardedLoot" )
 local getn = m.getn
 
 ---@class AwardedLoot
----@field award fun( player_name: string, item_id: number, winner: table?, item_link: ItemLink?, player_class: PlayerClass?, sr_plus: number? )
+---@field award fun( player_name: string, item_id: number, roll_data: RollData?, rolling_strategy: RollingStrategyType?, item_link: ItemLink?, player_class: PlayerClass?, sr_plus: number? )
 ---@field unaward fun( player_name: string, item_id: number )
 ---@field get_winners fun()
 ---@field has_item_been_awarded fun( player_name: string, item_id: number ): boolean
@@ -23,15 +23,16 @@ function M.new( db, group_roster, config )
 
   ---@param player_name string
   ---@param item_id number
-  ---@param winner table?
+  ---@param roll_data RollData?
+  ---@param rolling_strategy RollingStrategyType?
   ---@param item_link ItemLink?
   ---@param player_class PlayerClass?
   ---@param sr_plus number?
-  local function award( player_name, item_id, winner, item_link, player_class, sr_plus )
+  local function award( player_name, item_id, roll_data, rolling_strategy, item_link, player_class, sr_plus )
     M.debug.add( "award" )
     if not player_class then
-      if winner and winner.player_class then
-        player_class = winner.player_class
+      if roll_data and roll_data.player_class then
+        player_class = roll_data.player_class
       else
         local player = group_roster.find_player( player_name )
         player_class = player and player.class
@@ -48,9 +49,9 @@ function M.new( db, group_roster, config )
       item_id = item_id,
       item_link = item_link,
       quality = quality,
-      roll_type = winner and winner.roll_type,
-      rolling_strategy = winner and winner.rolling_strategy,
-      winning_roll = winner and winner.roll,
+      rolling_strategy = rolling_strategy,
+      roll_type = roll_data and roll_data.roll_type,
+      winning_roll = roll_data and roll_data.roll,
       sr_plus = sr_plus
     } )
   end

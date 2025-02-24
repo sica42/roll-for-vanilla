@@ -387,9 +387,9 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         player_class = v.player_class,
         item_id = v.item_id,
         item_link = v.item_link,
-        roll_type = v.roll_type or "NA",
-        rolling_strategy = (v.rolling_strategy == m.Types.RollingStrategy.RaidRoll or v.rolling_strategy == m.Types.RollingStrategy.InstaRaidRoll) and "RR"
-            or v.rolling_strategy,
+        roll_type = (v.rolling_strategy == m.Types.RollingStrategy.RaidRoll or v.rolling_strategy == m.Types.RollingStrategy.InstaRaidRoll) and "RR"
+            or v.roll_type or "NA",
+        rolling_strategy = v.rolling_strategy,
         winning_roll = v.winning_roll,
         sr_plus = v.sr_plus,
         quality = v.quality

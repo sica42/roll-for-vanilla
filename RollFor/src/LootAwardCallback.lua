@@ -23,15 +23,20 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, sof
   local function on_loot_awarded( item_id, item_link, player_name, player_class )
     M.debug.add( string.format( "on_loot_awarded( %s, %s, %s, %s )", item_id, item_link, player_name, player_class or "nil" ) )
     local roll_tracker = roll_controller.get_roll_tracker( item_id )
-    local roll_data = roll_tracker.get()
-    local last_iteration =  getn( roll_data.iterations )
-    local winner = m.find( player_name, roll_data.iterations[ last_iteration ].rolls, 'player_name' )
+    local rolls_data = roll_tracker.get()
+    local last_iteration = getn( rolls_data.iterations )
+    local roll_data = m.find( player_name, rolls_data.iterations[ last_iteration ].rolls, 'player_name' )
     local sr_players = softres.get( item_id )
-    local sr_player = m.find( player_name, sr_players, 'name')
+    local sr_player = m.find( player_name, sr_players, 'name' )
+    local rolling_strategy
     local class
 
-    if winner then
-      winner.rolling_strategy = roll_data.iterations[ last_iteration ].rolling_strategy
+    if roll_data then
+      rolling_strategy = rolls_data.iterations[ last_iteration ].rolling_strategy
+    else
+      local winners = winner_tracker.find_winners( item_link )
+      local winner = m.find( player_name, winners, 'winner_name' )
+      rolling_strategy = winner and winner.rolling_strategy
     end
 
     if not player_class then
@@ -39,7 +44,15 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, sof
       class = player and player.class or nil
     end
 
-    awarded_loot.award( player_name, item_id, winner, item_link, player_class or class, sr_player and sr_player.sr_plus )
+    awarded_loot.award(
+      player_name,
+      item_id,
+      roll_data,
+      rolling_strategy,
+      item_link,
+      player_class or class,
+      sr_player and sr_player.sr_plus
+    )
 
     if player_class then
       roll_controller.loot_awarded( item_id, item_link, player_name, player_class )
