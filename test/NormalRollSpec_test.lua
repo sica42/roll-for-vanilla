@@ -10,7 +10,6 @@ local gui = require( "test/gui_helpers" )
 local item_link, text, buttons, empty_line = gui.item_link, gui.text, gui.buttons, gui.empty_line
 local enabled_item, disabled_item, selected_item = gui.enabled_item, gui.disabled_item, gui.selected_item
 local mainspec_roll, offspec_roll, roll_placeholder = gui.mainspec_roll, gui.offspec_roll, gui.roll_placeholder
-local tmog_roll = gui.tmog_roll
 local individual_award_button = gui.individual_award_button
 
 NoOneRollsSpec = {}
@@ -1439,10 +1438,10 @@ end
 function NormalTieRollSpec:should_not_consider_ms_and_tm_rolls_tie()
   -- Given
   local loot_facade, chat = mock_loot_facade(), mock_chat()
-  local item, item2, p1, p2, p3 = i( "Hearthstone", 123 ), i( "Bag", 69 ), p( "Psikutas" ), p( "Obszczymucha" ), p( "Ponpon" )
+  local item, item2, p1, p2 = i( "Hearthstone", 123 ), i( "Bag", 69 ), p( "Psikutas" ), p( "Obszczymucha" )
   local rf = new_roll_for()
       :loot_facade( loot_facade )
-      :raid_roster( p1, p2, p3 )
+      :raid_roster( p1, p2 )
       :chat( chat )
       :build()
   u.mock( "GiveMasterLoot", function( slot ) loot_facade.notify( "LootSlotCleared", slot ) end )
@@ -1488,39 +1487,27 @@ function NormalTieRollSpec:should_not_consider_ms_and_tm_rolls_tie()
   )
 
   -- When
-  rf.roll( p3, 42, 1, 100 )
-  rf.roll( p2, 93, 1, 100 )
-  rf.ace_timer.repeating_tick( 5 )
+  rf.roll( p1, 42, 1, 100 )
+  rf.roll( p2, 42, 1, 99 )
+  rf.ace_timer.repeating_tick( 7 )
 
   -- Then
   chat.raid( "Stopping rolls in 3" )
-
-  -- When
-  rf.ace_timer.repeating_tick()
-
-  -- Then
   chat.raid( "2" )
-
-  -- When
-  rf.roll( p1, 93, 1, 98 )
-  rf.ace_timer.repeating_tick( 1 )
-
-  -- Then
   chat.raid( "1" )
 
   -- When
   rf.ace_timer.repeating_tick( 1 )
 
   -- Then
-  chat.console( "RollFor: Obszczymucha rolled the highest (93) for [Bag]." )
-  chat.raid( "Obszczymucha rolled the highest (93) for [Bag]." )
+  chat.console( "RollFor: Psikutas rolled the highest (42) for [Bag]." )
+  chat.raid( "Psikutas rolled the highest (42) for [Bag]." )
   chat.console( "RollFor: Rolling for [Bag] finished." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p2, 93, 11 ),
-    mainspec_roll( p3, 42 ),
-    tmog_roll( p1, 93 ),
-    text( "Obszczymucha wins the main-spec roll with 93.", 11 ),
+    mainspec_roll( p1, 42, 11 ),
+    offspec_roll( p2, 42 ),
+    text( "Psikutas wins the main-spec roll with 42.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
   rf.confirmation_popup.should_be_hidden()
@@ -1537,7 +1524,7 @@ function NormalTieRollSpec:should_not_consider_ms_and_tm_rolls_tie()
 
   -- Then
   rf.confirmation_popup.should_be_hidden()
-  chat.console( "RollFor: Obszczymucha received [Bag]." )
+  chat.console( "RollFor: Psikutas received [Bag]." )
   rf.loot_frame.should_display(
     enabled_item( 1, "Hearthstone" )
   )

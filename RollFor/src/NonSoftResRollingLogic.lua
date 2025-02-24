@@ -130,29 +130,29 @@ function M.new(
     local function count_top_roll_winners()
       if roll_count == 0 then return 0 end
 
-      local function split_by_roll()
+      local function split_by_roll_and_type()
         local result = {}
         local last_roll
+        local last_type
 
         for _, roll in ipairs( all_rolls ) do
-          if not last_roll or last_roll ~= roll.roll then
+          if not last_roll or last_roll ~= roll.roll or last_type ~= roll.roll_type then
             table.insert( result, { roll } )
             last_roll = roll.roll
+            last_type = roll.roll_type
           else
             table.insert( result[ getn( result ) ], roll )
           end
         end
-
         return result
       end
 
       local result = 0
 
-      for _, rolls in ipairs( split_by_roll() ) do
+      for _, rolls in ipairs( split_by_roll_and_type() ) do
         result = result + getn( rolls )
         if result >= item_count then return result end
       end
-
       return result
     end
 
