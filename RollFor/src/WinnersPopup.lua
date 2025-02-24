@@ -37,21 +37,21 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   local scroll_frame
   local is_resizing
   local show_sr_plus
-  local award_filters = config.get_award_filter()
+  local award_filters = config.award_filter()
 
   db.point = db.point or M.center_point
   --[[
-  awarded_loot.award( 'Zombiehunter', 16939, { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, nil, 'Hunter', 30 )
-  awarded_loot.award( 'Kevieboipro', 16939, { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=98}, nil, 'Warrior', 20 )
-  awarded_loot.award( 'Kevieboipro', 19019, { roll_type='Transmog', rolling_strategy='NormalRoll', winning_roll=89}, nil, 'Warrior' )
-  awarded_loot.award( 'Dayknight', 5504, { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=53}, nil, 'Paladin')
-  awarded_loot.award( 'Celilae', 5504, { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=78} , nil, 'Paladin' )
-  awarded_loot.award( 'Borazor', 16939, { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, nil, 'Hunter', 30 )
-  awarded_loot.award( 'Ryiana', 16939, { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=98}, nil, 'Warrior', 20 )
-  awarded_loot.award( 'Tornapart', 19019,  { roll_type='Transmog', rolling_strategy='NormalRoll', winning_roll=89}, nil, 'Warrior' )
-  awarded_loot.award( 'Dayknight', 5504, { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=53}, nil, 'Paladin' )
-  awarded_loot.award( 'Celilae', 5504, { roll_type='MainSpec', rolling_strategy='NormalRoll', winning_roll=78}, nil, 'Paladin' )
-  awarded_loot.award( 'Borazor', 16936, { roll_type='SoftRes', rolling_strategy='SoftResRoll', winning_roll=112}, nil, 'Hunter', 30 )
+  awarded_loot.award( 'Zombiehunter', 16939, { roll_type = 'SoftRes', roll = 112, player_name = "", player_class = "" }, 'SoftResRoll', nil, 'Hunter', 30 )
+  awarded_loot.award( 'Kevieboipro', 16939, { roll_type = 'SoftRes', roll = 98, player_name = "", player_class = "" }, 'SoftResRoll', nil, 'Warrior', 20 )
+  awarded_loot.award( 'Kevieboipro', 19019, { roll_type = 'Transmog', roll = 89, player_name = "", player_class = "" }, "NormalRoll", nil, 'Warrior' )
+  awarded_loot.award( 'Dayknight', 5504, { roll_type = 'MainSpec', roll = 53, player_name = "", player_class = "" }, "NormalRoll", nil, 'Paladin' )
+  awarded_loot.award( 'Celilae', 5504, { roll_type = 'MainSpec', roll = 78, player_name = "", player_class = "" }, "NormalRoll", nil, 'Paladin' )
+  awarded_loot.award( 'Borazor', 16939, { roll_type = 'SoftRes', roll = 112, player_name = "", player_class = "" }, "SoftResRoll", nil, 'Hunter', 30 )
+  awarded_loot.award( 'Ryiana', 16939, { roll_type = 'SoftRes', roll = 98, player_name = "", player_class = "" }, "SoftResRoll", nil, 'Warrior', 20 )
+  awarded_loot.award( 'Tornapart', 19019, { roll_type = 'Transmog', roll = 89, player_name = "", player_class = "" }, "NormalRoll", nil, 'Warrior' )
+  awarded_loot.award( 'Dayknight', 5504, { roll_type = 'MainSpec', roll = 53, player_name = "", player_class = "" }, "NormalRoll", nil, 'Paladin' )
+  awarded_loot.award( 'Celilae', 5504, { roll_type = 'MainSpec', roll = 78, player_name = "", player_class = "" }, "NormalRoll", nil, 'Paladin' )
+  awarded_loot.award( 'Borazor', 16936, { roll_type = 'SoftRes', roll = 112, player_name = "", player_class = "" }, "SoftResRoll", nil, 'Hunter', 30 )
   ]]
 
   local function filter_winners( data )
@@ -246,7 +246,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
       local cb = m.GuiElements.checkbox( this, text, function( value )
         if p > 0 then
-          config.set_award_filter( cb_filter, cb_setting, value )
+          award_filters[ cb_filter ][ cb_setting ] = value
         elseif setting == "show_sr_plus" then
           show_sr_plus = value
         end

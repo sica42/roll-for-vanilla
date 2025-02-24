@@ -356,10 +356,6 @@ function M.new( db )
     }
   end
 
-  local function set_award_filter( filter, setting, value )
-    db.award_filter[ filter ][ setting ] = value
-  end
-
   init()
 
   local function get( setting_key ) return function() return db[ setting_key ] end end
@@ -391,8 +387,7 @@ function M.new( db )
     master_loot_frame_rows = get( "master_loot_frame_rows" ),
     configure_master_loot_frame_rows = configure_master_loot_frame_rows,
     notify_subscribers = notify_subscribers,
-    get_award_filter = get( "award_filter" ),
-    set_award_filter = set_award_filter,
+    award_filter = get( "award_filter" ),
     keep_award_data = get( "keep_award_data" ),
   }
 
