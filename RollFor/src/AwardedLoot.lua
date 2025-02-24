@@ -30,8 +30,12 @@ function M.new( db, group_roster, config )
   local function award( player_name, item_id, winner, item_link, player_class, sr_plus )
     M.debug.add( "award" )
     if not player_class then
-      local player = group_roster.find_player( player_name )
-      player_class = player and player.class
+      if winner and winner.player_class then
+        player_class = winner.player_class
+      else
+        local player = group_roster.find_player( player_name )
+        player_class = player and player.class
+      end
     end
     local quality, _ = m.get_item_quality_and_texture( m.api, item_id )
     if not item_link then
@@ -46,7 +50,7 @@ function M.new( db, group_roster, config )
       quality = quality,
       roll_type = winner and winner.roll_type,
       rolling_strategy = winner and winner.rolling_strategy,
-      winning_roll = winner and winner.winning_roll,
+      winning_roll = winner and winner.roll,
       sr_plus = sr_plus
     } )
   end

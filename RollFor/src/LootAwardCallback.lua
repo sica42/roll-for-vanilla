@@ -3,6 +3,8 @@ local m = RollFor
 
 if m.LootAwardCallback then return end
 
+local getn = m.getn
+
 local M = m.Module.new( "LootAwardCallback" )
 
 ---@class LootAwardCallback
@@ -20,11 +22,17 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, sof
   ---@param player_class PlayerClass?
   local function on_loot_awarded( item_id, item_link, player_name, player_class )
     M.debug.add( string.format( "on_loot_awarded( %s, %s, %s, %s )", item_id, item_link, player_name, player_class or "nil" ) )
-    local winners = winner_tracker.find_winners( item_link )
-    local winner = m.find( player_name, winners, 'winner_name' )
+    local roll_tracker = roll_controller.get_roll_tracker( item_id )
+    local roll_data = roll_tracker.get()
+    local last_iteration =  getn( roll_data.iterations )
+    local winner = m.find( player_name, roll_data.iterations[ last_iteration ].rolls, 'player_name' )
     local sr_players = softres.get( item_id )
     local sr_player = m.find( player_name, sr_players, 'name')
     local class
+
+    if winner then
+      winner.rolling_strategy = roll_data.iterations[ last_iteration ].rolling_strategy
+    end
 
     if not player_class then
       local player = group_roster.find_player( player_name )
