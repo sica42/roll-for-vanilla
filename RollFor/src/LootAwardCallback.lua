@@ -23,16 +23,15 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, sof
   local function on_loot_awarded( item_id, item_link, player_name, player_class )
     M.debug.add( string.format( "on_loot_awarded( %s, %s, %s, %s )", item_id, item_link, player_name, player_class or "nil" ) )
     local roll_tracker = roll_controller.get_roll_tracker( item_id )
-    local rolls_data = roll_tracker.get()
-    local last_iteration = getn( rolls_data.iterations )
-    local roll_data = m.find( player_name, rolls_data.iterations[ last_iteration ].rolls, 'player_name' )
+    local _, current_iteration = roll_tracker.get()
+    local roll_data = m.find( player_name, current_iteration.rolls, 'player_name' )
     local sr_players = softres.get( item_id )
     local sr_player = m.find( player_name, sr_players, 'name' )
     local rolling_strategy
     local class
 
     if roll_data then
-      rolling_strategy = rolls_data.iterations[ last_iteration ].rolling_strategy
+      rolling_strategy = current_iteration.rolling_strategy
     else
       local winners = winner_tracker.find_winners( item_link )
       local winner = m.find( player_name, winners, 'winner_name' )
