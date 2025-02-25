@@ -65,7 +65,8 @@ function M.handle_events( main )
       main.master_loot_warning.on_player_target_changed()
       main.auto_master_loot.on_player_target_changed( arg1 )
     elseif event == "UI_ERROR_MESSAGE" then
-      local message = arg1
+      local message = m.vanilla and arg1 or arg2
+
       if message == "That player's inventory is full" then
         main.master_loot.on_recipient_inventory_full()
         main.roll_controller.player_has_full_bags()
