@@ -52,12 +52,14 @@ function M.new( db )
       return nil
     end
 
-    -- data = libStub( "LibDeflate" ):DecompressZlib( data )
-    --
-    -- if not data then
-    --   m.pretty_print( "Couldn't decompress softres data!", m.colors.red )
-    --   return nil
-    -- end
+    if m.bcc then
+      data = LibStub( "LibDeflate" ):DecompressZlib( data )
+
+      if not data then
+        m.pretty_print( "Couldn't decompress softres data!", m.colors.red )
+        return nil
+      end
+    end
 
     local json = lib_stub( "Json-0.1.2" )
     local success, result = pcall( function() return json.decode( data ) end )
