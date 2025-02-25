@@ -103,6 +103,7 @@ function M.mock_wow_api()
   M.modules().api.UnitGUID = function() return "PrincessKenny" end
   M.modules().api.LootSlot = function() end
   M.modules().api.GetLootMethod = function() return "master" end
+  M.modules().api.IsInGroup = function() return true end
   M.modules().api.SOUNDKIT = {
     IG_MAIN_MENU_OPEN = 850,
     IG_MAIN_MENU_CLOSE = 851

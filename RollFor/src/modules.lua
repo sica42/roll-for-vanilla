@@ -216,7 +216,7 @@ function M.clone( t )
 end
 
 function M.is_master_loot()
-  return M.api.GetLootMethod() == "master"
+  return M.api.IsInGroup() and M.api.GetLootMethod() == "master"
 end
 
 function M.target_name()
