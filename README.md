@@ -7,7 +7,7 @@ A World of Warcraft (1.12.1 and 2.5.2) addon that manages rolling for items.
 
 **Classic Look**
 
-<img src="docs/classic-look.png">
+<img src="docs/classic-look.png?v=2">
 
 Enable: `/rf config classic-look`
 
