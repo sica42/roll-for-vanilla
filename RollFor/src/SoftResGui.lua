@@ -182,7 +182,8 @@ local function create_frame( api, on_import, on_clear, on_cancel, on_dirty )
   local label = frame:CreateFontString( nil, "OVERLAY", "GameFontNormal" )
   label:SetPoint( "BOTTOMLEFT", frame, "BOTTOMLEFT", 20, 22 )
   label:SetTextColor( 1, 1, 1, 1 )
-  label:SetText( string.format( "%s      %s %s", m.colors.blue( "RollFor" ), hl( "raidres.fly.dev" ), "data import" ) )
+  local sr_website = m.vanilla and "raidres.fly.dev" or "    softres.it"
+  label:SetText( string.format( "%s      %s %s", m.colors.blue( "RollFor" ), hl( sr_website ), "data import" ) )
 
   ---@diagnostic disable-next-line: undefined-global
   table.insert( UISpecialFrames, "RollForSoftResLootFrame" )

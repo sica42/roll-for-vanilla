@@ -74,7 +74,7 @@ function M.new( api, db, manage_softres_fn, softres_check, config )
       if m.vanilla then self = this end
 
       self.icon:SetTexCoord( 0.05, 0.95, 0.05, 0.95 )
-      if not was_dragging then self:OnClick() end
+      if m.vanilla and not was_dragging then self:OnClick() end
     end
 
     function frame.OnEnter( self )

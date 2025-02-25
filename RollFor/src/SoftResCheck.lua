@@ -18,37 +18,39 @@ local ResultType = {
   Ok = "Ok"
 }
 
-local function show( players )
-  local p = function( text ) m.pretty_print( text, colors.orange ) end
-  p( "Players who did not soft-res:" )
-
-  local buffer = ""
-
-  for i = 1, getn( players ) do
-    local separator = ""
-
-    if buffer ~= "" then
-      separator = separator .. ", "
-    end
-
-    local next = colors.hl( players[ i ].name )
-
-    if string.len( buffer .. separator .. next ) > 255 then
-      p( buffer )
-      buffer = next
-    else
-      buffer = buffer .. separator .. next
-    end
-  end
-
-  if buffer ~= "" then
-    p( buffer )
-  end
-end
-
 function M.new( softres, group_roster, name_matcher, ace_timer, absent_softres, db )
   local refetch_retries = 0
   local hr_refetch_retries = 0
+
+  local function show( players )
+    local p = function( text ) m.pretty_print( text, colors.orange ) end
+    p( "Players who did not soft-res:" )
+
+    local buffer = ""
+
+    for i = 1, getn( players ) do
+      local separator = ""
+
+      if buffer ~= "" then
+        separator = separator .. ", "
+      end
+
+      local player_name = players[ i ].name
+      local grouped_player = group_roster.find_player( player_name )
+      local next = grouped_player and m.colorize_player_by_class( grouped_player.name, grouped_player.class ) or player_name
+
+      if string.len( buffer .. separator .. next ) > 255 then
+        p( buffer )
+        buffer = next
+      else
+        buffer = buffer .. separator .. next
+      end
+    end
+
+    if buffer ~= "" then
+      p( buffer )
+    end
+  end
 
   local function show_who_is_not_softressing( silent )
     local players = group_roster.get_all_players_in_my_group()
@@ -184,8 +186,9 @@ function M.new( softres, group_roster, name_matcher, ace_timer, absent_softres, 
     m.NameMatchReport.report( name_matcher )
 
     local colorize = function( player )
-      local c = group_roster.is_player_in_my_group( player.name ) and colors.white or colors.red
-      return player.rolls > 1 and string.format( "%s (%s)", c( player.name ), player.rolls ) or string.format( "%s", c( player.name ) )
+      local grouped_player = group_roster.find_player( player.name )
+      local name = grouped_player and m.colorize_player_by_class( grouped_player.name, grouped_player.class ) or colors.red( player.name )
+      return player.rolls > 1 and string.format( "%s (%s)", name, player.rolls ) or string.format( "%s", name )
     end
 
     if item_count > 0 then

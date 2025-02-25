@@ -5,7 +5,8 @@
     "utf8",
     "_",
     "RollForDb",
-    "RollForCharDb"
+    "RollForCharDb",
+    "LibStub"
   ],
   "Lua.workspace.checkThirdParty": false,
   "Lua.workspace.ignoreDir": [
@@ -13,7 +14,6 @@
     "libs"
   ],
   "workspace.library": [],
-    "diagnostics.disable": [
-    ],
+  "diagnostics.disable": [],
   "Lua.hint.enable": true
 }

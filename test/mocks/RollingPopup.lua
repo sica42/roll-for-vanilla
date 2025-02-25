@@ -65,7 +65,6 @@ function M.new( popup_builder, db, config )
     local buttons = model.type == "Tie" and model.roll_data.buttons or model.buttons
 
     if not buttons then
-      u.pdump( model )
       error( "There were no buttons to click." )
     end
 

@@ -81,7 +81,8 @@ Disable this feature with:
 ---
 
 ### Soft res integration
- * Integrates with https://raidres.fly.dev.
+ * Integrates with https://raidres.fly.dev (1.12.1).
+ * Integrates with https://softres.it (2.5.2) via Gargul Export.
  * Minimap icon shows soft res status and who did not soft res.
  * Fully automated (shows who soft ressed, only accepts rolls from players who SR).
 
@@ -91,7 +92,7 @@ Disable this feature with:
  * Supports "**two top rolls win**" rolling.
  * Supports **raid rolls**.
  * Supports offspec rolls (`/roll 99`).
- * Supports transmog rolls (`/roll 98`).
+ * Supports transmog rolls (`/roll 98`) (1.12.1).
  * Automatically resolves tied rolls.
  * Highly customizable - see `/rf config` and `/rf config help`.
 
@@ -144,9 +145,9 @@ instead of `/rf`. "arf" stands for "All Roll For".
 
 ## Soft-Res setup
 
-1. Create a Soft Res list at https://raidres.fly.dev.  
+1. Create a Soft Res list at https://raidres.fly.dev (1.12.1) or https://softres.it (2.5.2).  
 2. Ask raiders to add their items.
-3. When ready, lock the raid and click on **RollFor export** button.
+3. When ready, lock the raid and click on **RollFor export** (raidres.fly.dev) or **Gargul Export** (softes.it) button.
 
 <img src="docs/raidres-export.jpg" alt="Raidres export" style="width:720px;height:350">
 
