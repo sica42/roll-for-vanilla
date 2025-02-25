@@ -53,7 +53,6 @@ function M.new()
         GetHeight = function() return 1 end,
         ClearAllPoints = function() end,
         SetAllPoints = function() end,
-        SetScript = function() end,
         GetParent = function() end,
         IsVisible = function( self ) return self.visible end,
         resize = function() end,

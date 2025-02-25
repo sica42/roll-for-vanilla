@@ -319,11 +319,8 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
   if not color then
     color = { r = 1, g = .25, b = .25 }
   end
-  local padding_top = 1.5
-  if string.upper( text ) == text then
-    padding_top = 1
-  end
 
+  local padding_top = string.upper( text ) == text and .5 or 1.5
   local label = button:CreateFontString( nil, "ARTWORK" )
   label:SetFont( "FONTS\\FRIZQT__.TTF", font_size or 14 )
   label:SetPoint( "CENTER", 0, padding_top )
@@ -407,7 +404,7 @@ function M.checkbox( parent, text, on_change )
   end )
   frame.checkbox = cb
 
-  local label = create_text_in_container( "Button", frame, 1, "LEFT", text )
+  local label = M.create_text_in_container( "Button", frame, 1, "LEFT", text )
   label.inner:SetJustifyH( "LEFT" )
   label:SetWidth( label.inner:GetWidth() )
   label:SetPoint( "LEFT", cb, "RIGHT", 5, 0 )
@@ -437,7 +434,7 @@ function M.winners_header( parent, on_click )
   }
 
   for _, v in pairs( headers ) do
-    local header = create_text_in_container( "Button", frame, v.width, nil, v.text )
+    local header = M.create_text_in_container( "Button", frame, v.width, nil, v.text )
     header.sort = v.name
     header:SetHeight( 14 )
     header.inner:SetPoint( v.name == "winning_roll" and "RIGHT" or "LEFT", v.name == "winning_roll" and -5 or 2, 0 )
@@ -487,20 +484,20 @@ function M.winner( parent )
     blue_hover( 0 )
   end )
 
-  local player_name = create_text_in_container( "Frame", frame, 74, "LEFT", "dummy" )
+  local player_name = M.create_text_in_container( "Frame", frame, 74, "LEFT", "dummy" )
   player_name.inner:SetJustifyH( "LEFT" )
   player_name:SetPoint( "LEFT", frame, "LEFT", 2, 0 )
   player_name:SetHeight( 14 )
   frame.player_name = player_name.inner
 
-  local roll_type = create_text_in_container( "Frame", frame, 25, nil, "dummy" )
+  local roll_type = M.create_text_in_container( "Frame", frame, 25, nil, "dummy" )
   roll_type.inner:SetJustifyH( "LEFT" )
   roll_type.inner:SetPoint( "LEFT", 5, 0 )
   roll_type:SetPoint( "RIGHT", 0, 0 )
   roll_type:SetHeight( 14 )
   frame.roll_type = roll_type.inner
 
-  local winning_roll = create_text_in_container( "Frame", frame, 25, nil, "dummy" )
+  local winning_roll = M.create_text_in_container( "Frame", frame, 25, nil, "dummy" )
   winning_roll.inner:SetJustifyH( "RIGHT" )
   winning_roll.inner:SetPoint( "RIGHT", -5, 0 )
   winning_roll:SetPoint( "RIGHT", roll_type, "LEFT", -1, 0 )
@@ -508,7 +505,7 @@ function M.winner( parent )
   frame.winning_roll = winning_roll.inner
 
   local tooltip_link
-  local item_link = create_text_in_container( "Button", frame, 1, "LEFT", "dummy" )
+  local item_link = M.create_text_in_container( "Button", frame, 1, "LEFT", "dummy" )
   item_link.inner:SetJustifyH( "LEFT" )
   item_link:SetPoint( "LEFT", player_name, "RIGHT", 1, 0 )
   item_link:SetPoint( "RIGHT", winning_roll, "LEFT", -1, 0 )
@@ -535,7 +532,7 @@ function M.winner( parent )
     end
 
     item_link.inner:SetText( itemLink )
-    truncate_text( item_link.inner, frame:GetParent():GetParent():GetWidth() - 90 - winning_roll:GetWidth() )
+    truncate_text( item_link.inner, frame:GetParent():GetParent():GetParent():GetWidth() - 145 - winning_roll:GetWidth() )
 
     tooltip_link = m.ItemUtils.get_tooltip_link( itemLink )
 

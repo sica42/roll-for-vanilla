@@ -3,7 +3,6 @@ local M = {}
 function M.new()
   ---@type FrameBuilder
   local builder = {
-    parent = function( self ) return self end,
     name = function( self ) return self end,
     type = function( self ) return self end,
     parent = function( self ) return self end,
@@ -60,7 +59,6 @@ function M.new()
         GetHeight = function() return 1 end,
         ClearAllPoints = function() end,
         SetAllPoints = function() end,
-        SetScript = function() end,
         IsVisible = function( self ) return self.visible end,
         resize = function() end,
         GetName = function() return "PrincessKenny" end,

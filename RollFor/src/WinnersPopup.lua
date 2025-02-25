@@ -102,7 +102,11 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         if quality_a ~= quality_b then
           return (sort_order == "asc") == (quality_a > quality_b)
         end
-        return m.ItemUtils.get_item_name( a.item_link ) < m.ItemUtils.get_item_name( b.item_link )
+        if a.item_link and b.item_link then
+          return m.ItemUtils.get_item_name( a.item_link ) < m.ItemUtils.get_item_name( b.item_link )
+        else
+          return
+        end
       elseif sort == "roll_type" then
         local roll_order = { SoftRes = 1, MainSpec = 2, OffSpec = 3, Transmog = 4, RR = 5, NA = 6 }
         val_a, val_b = a[ sort ] or "NA", b[ sort ] or "NA"
@@ -115,31 +119,15 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   end
 
   local function create_popup()
-    local function is_out_of_bounds( x, y, frame_width, frame_height, screen_width, screen_height )
-      local left = x
-      local right = x + frame_width
-      local top = y
-      local bottom = y - frame_height
-
-      return left < 0 or
-          right > screen_width or
-          top > 0 or
-          bottom < -screen_height
-    end
-
     local function on_drag_stop()
       if not popup then return end
-      local width, height = popup:GetWidth(), popup:GetHeight()
-      local screen_width, screen_height = m.api.GetScreenWidth(), m.api.GetScreenHeight()
-      local _, _, _, x, y = popup:get_anchor_point()
-
-      if is_out_of_bounds( x, y, width, height, screen_width, screen_height ) then
+      if m.is_frame_out_of_bounds( popup ) then
         popup:position( db.point or M.center_point )
         return
       end
 
-      local anchor_point, _, anchor_relative_point, anchor_x, anchor_y = popup:get_anchor_point()
-      db.point = { point = anchor_point, relative_point = anchor_relative_point, x = anchor_x, y = anchor_y }
+      local anchor = popup:get_anchor_point()
+      db.point = { point = anchor.point, relative_point = anchor.relative_point, x = anchor.x, y = anchor.y }
     end
 
     local old_width
@@ -173,14 +161,8 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     local function get_point()
-      if popup then
-        local width, height = popup:GetWidth(), popup:GetHeight()
-        local screen_width, screen_height = m.api.GetScreenWidth(), m.api.GetScreenHeight()
-        local x, y = popup:get_anchor_center()
-
-        if is_out_of_bounds( x, y, width, height, screen_width, screen_height ) then
-          return M.center_point
-        end
+      if popup and m.is_frame_out_of_bounds( popup ) then
+        return M.center_point
       elseif db.point then
         return db.point
       else
@@ -202,8 +184,8 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       local dropdown = m.api.CreateFrame( "Frame", nil, parent )
       dropdown:SetFrameStrata( "TOOLTIP" )
       dropdown:SetPoint( "TOPLEFT", parent, "BOTTOMLEFT", 0, 0 )
-      dropdown:SetWidth( 50 )
-      dropdown:SetHeight( 50 )
+      --dropdown:SetWidth( 50 )
+      --dropdown:SetHeight( 50 )
       dropdown:SetBackdrop( {
         bgFile = "Interface/Buttons/WHITE8x8",
         edgeFile = "Interface/Buttons/WHITE8x8",
@@ -282,7 +264,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         :bg_file( "Interface/Buttons/WHITE8x8" )
         :sound()
         :backdrop_color( 0, 0, 0, .8 )
-        :frame_style( "PrincessKenny" )
+        :frame_style( "Modern" )
         :border_color( .2, .2, .2, 1 )
         :movable()
         :on_drag_stop( on_drag_stop )
@@ -364,10 +346,10 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         :name( "rfWinnersFrameInner" )
         :width( 250 )
         :height( 100 )
-        :point( { point = "TOPLEFT", relative_point = "TOPLEFT", x = 0, y = 0 } )
+        :point( { point = "TOPLEFT", relative_point = "TOPLEFT", relative_frame = "rfWinnersFrame", x = 0, y = 0 } )
         :bg_file( "Interface/Buttons/WHITE8x8" )
         :gui_elements( m.GuiElements )
-        :frame_style( "none" )
+        :frame_style( "None" )
 
     ---@class Frame
     scroll_frame.content = inner_builder:build()

@@ -13,6 +13,7 @@ M.interface = {
 ---@alias FrameStyle
 ---| "Modern"
 ---| "Classic"
+---| "None"
 
 ---@class Vector2
 ---@field x number
@@ -423,11 +424,6 @@ function M.new()
     add_api_to( frame, self_centered_anchor )
 
     return frame, self_centered_anchor
-  end
-
-  local function parent( self, v )
-    options.parent = v
-    return self
   end
 
   local function name( self, v )
