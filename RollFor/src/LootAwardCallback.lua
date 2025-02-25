@@ -8,7 +8,7 @@ local getn = m.getn
 local M = m.Module.new( "LootAwardCallback" )
 
 ---@class LootAwardCallback
----@field on_loot_awarded fun( item_id: number, item_link: string, player_name: string, player_class: string? )
+---@field on_loot_awarded fun( item_id: number, item_link: string, player_name: string, player_class: string?, is_trade: boolean? )
 
 ---@param awarded_loot AwardedLoot
 ---@param roll_controller RollController
@@ -20,7 +20,7 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, sof
   ---@param item_link string
   ---@param player_name string
   ---@param player_class PlayerClass?
-  local function on_loot_awarded( item_id, item_link, player_name, player_class )
+  local function on_loot_awarded( item_id, item_link, player_name, player_class, is_trade )
     M.debug.add( string.format( "on_loot_awarded( %s, %s, %s, %s )", item_id, item_link, player_name, player_class or "nil" ) )
     local roll_tracker = roll_controller.get_roll_tracker( item_id )
     local _, current_iteration = roll_tracker.get()
@@ -52,6 +52,8 @@ function M.new( awarded_loot, roll_controller, winner_tracker, group_roster, sof
       player_class or class,
       sr_player and sr_player.sr_plus
     )
+
+    if is_trade then return end
 
     if player_class then
       roll_controller.loot_awarded( item_id, item_link, player_name, player_class )

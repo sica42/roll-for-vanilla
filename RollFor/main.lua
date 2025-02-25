@@ -38,6 +38,21 @@ local function on_softres_status_changed()
   update_minimap_icon()
 end
 
+local function on_raid_trade( giver_name, recipient_name, item_name )
+  local item_id = M.dropped_loot.get_dropped_item_id( item_name )
+
+  if item_id then
+    local quality, _ = m.get_item_quality_and_texture( m.api, item_id )
+    local item_link = m.fetch_item_link( item_id, quality )
+
+    M.loot_award_callback.on_loot_awarded( item_id, item_link, recipient_name, nil, true )
+    if item_id and M.awarded_loot.has_item_been_awarded( giver_name, item_id ) then
+      info( string.format( "%s traded %s to %s.", hl( giver_name ), item_link, hl( recipient_name ) ) )
+      M.awarded_loot.unaward( giver_name, item_id )
+    end
+  end
+end
+
 local function trade_complete_callback( recipient_name, items_given, items_received )
   for i = 1, getn( items_given ) do
     local item = items_given[ i ]
@@ -528,6 +543,11 @@ function M.on_chat_msg_system( message )
 
   for player_name in string.gmatch( message, "(.-) is now the loot master%." ) do
     on_master_looter_changed( player_name )
+    return
+  end
+
+  for giver_name, item_name, recipient_name in string.gmatch( message, "([^%s]+) trades item (.+) to ([^%s]+)%." ) do
+    on_raid_trade( giver_name, recipient_name, item_name )
     return
   end
 end

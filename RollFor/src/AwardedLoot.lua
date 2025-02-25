@@ -99,6 +99,7 @@ function M.new( db, group_roster, config )
 
       if awarded_item.player_name == player_name and awarded_item.item_id == item_id then
         table.remove( db.awarded_items, i )
+        config.notify_subscribers( 'award_filter' )
         return
       end
     end
