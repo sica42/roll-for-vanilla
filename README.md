@@ -1,7 +1,18 @@
 # RollFor
-A World of Warcraft (1.12.1) addon that manages rolling for items.  
+A World of Warcraft (1.12.1 and 2.5.2) addon that manages rolling for items.  
 
 ## Demo
+
+### NEW
+
+**Classic Look**
+
+<img src="docs/classic-look.png">
+
+Enable: `/rf config classic-look`
+
+See the classic-look in action: https://youtu.be/G37j5XXBKxs
+
 
 ### Overview
 
