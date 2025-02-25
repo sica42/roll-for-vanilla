@@ -37,7 +37,6 @@ function M.new()
     build = function()
       ---@type Frame
       return {
-        parent = function() end,
         add_line = function() return {} end,
         clear = function() end,
         border_color = function() end,
