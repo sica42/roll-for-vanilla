@@ -294,10 +294,10 @@ function M.award_button( parent )
 end
 
 ---@param parent Frame
----@param text string
----@param tooltip string
----@param color table
----@param font_size number
+---@param text string?
+---@param tooltip string?
+---@param color table?
+---@param font_size number?
 function M.tiny_button( parent, text, tooltip, color, font_size )
   local button = m.api.CreateFrame( "Button", nil, parent )
   button:SetBackdrop( {
@@ -312,9 +312,21 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
   button:SetBackdropBorderColor( .2, .2, .2, 1 )
   button:SetHeight( 10 )
   button:SetWidth( 10 )
+
+  if not text then
+    text = "x"
+  end
+  if not color then
+    color = { r = 1, g = .25, b = .25 }
+  end
+  local padding_top = 1.5
+  if string.upper( text ) == text then
+    padding_top = 1
+  end
+
   local label = button:CreateFontString( nil, "ARTWORK" )
   label:SetFont( "FONTS\\FRIZQT__.TTF", font_size or 14 )
-  label:SetPoint( "CENTER", 0, text == 'R' and 1 or 1.5 )
+  label:SetPoint( "CENTER", 0, padding_top )
   label:SetText( text )
   label:SetTextColor( color.r, color.g, color.b, color.a or 1 )
 
@@ -512,7 +524,7 @@ function M.winner( parent )
       while font_string:GetStringWidth() > max do
         truncatedText = string.sub( truncatedText, 1, -2 )
         font_string:SetText( "[" .. truncatedText .. "...]" )
-        if string.len(truncatedText) < 4 then break end
+        if string.len( truncatedText ) < 4 then break end
       end
 
       if originalText == truncatedText then
