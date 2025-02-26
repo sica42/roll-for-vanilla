@@ -15,6 +15,7 @@ local hl = m.colors.hl
 ---@field button fun( parent: Frame ): Frame
 ---@field info fun( parent: Frame ): Frame
 ---@field dropped_item fun( parent: Frame, text: string ): Frame
+---@field tiny_button fun( parent: Frame, text: string?, tooltip: string?, color: table?, font-size: number?):Frame
 
 local M = {}
 

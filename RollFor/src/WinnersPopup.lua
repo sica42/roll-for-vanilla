@@ -34,7 +34,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   local sort_order = "asc"
   local scroll_frame
   local is_resizing
-  local show_sr_plus
   local award_filters = config.award_filter()
 
   db.point = db.point or M.center_point
@@ -67,7 +66,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     local old_width
     local function on_resize()
       if not is_resizing then return end
-      local min_width, max_width, min_height, max_height = 225, 400, 173, 600
+      local min_width, max_width, min_height, max_height = 225, 500, 173, 600
 
       local width = math.max( min_width, math.min( max_width, this:GetWidth() ) )
       if width ~= this:GetWidth() then
@@ -170,11 +169,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
             populate()
           end
           for _, v in ipairs( this.checkboxes ) do
-            if v.setting == "show_sr_plus" then
-              v.checkbox:SetChecked( show_sr_plus )
-            else
-              v.checkbox:SetChecked( award_filters[ v.filter ][ v.setting ] )
-            end
+            v.checkbox:SetChecked( award_filters[ v.filter ][ v.setting ] )
           end
         end )
       end
@@ -187,11 +182,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       local cb_setting = string.sub( setting, p + 1 )
 
       local cb = m.GuiElements.checkbox( this, text, function( value )
-        if p > 0 then
-          award_filters[ cb_filter ][ cb_setting ] = value
-        elseif setting == "show_sr_plus" then
-          show_sr_plus = value
-        end
+        award_filters[ cb_filter ][ cb_setting ] = value
         refresh()
       end )
       table.insert( this.checkboxes, cb )
@@ -258,7 +249,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end )
 
     create_dropdown( headers.winning_roll_header, function()
-      create_checkbox_entry( "Show SR+", "show_sr_plus" )
+      create_checkbox_entry( "Show SR+", "winning_roll.show_sr_plus" )
     end )
 
     create_dropdown( headers.roll_type_header, function()
@@ -388,6 +379,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     data = filter_winners( data )
     if (sort) then table.sort( data, sort_winners ) end
 
+    local show_sr_plus = award_filters[ "winning_roll" ][ "show_sr_plus" ]
     local got_sr_plus = false
     local content = {}
     for _, item in pairs( data ) do

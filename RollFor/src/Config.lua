@@ -59,6 +59,7 @@ function M.new( db, event_bus )
     if not db.award_filter then
       db.award_filter = {
         item_quality = { Uncommon = 1, Rare = 1, Epic = 1, Legendary = 1 },
+        winning_roll = {},
         roll_type = { MainSpec = 1, OffSpec = 1, Transmog = 1, SoftRes = 1, RR = 1 }
       }
     end
