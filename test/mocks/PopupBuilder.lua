@@ -4,6 +4,7 @@ function M.new()
   ---@type PopupBuilder
   local builder = {
     name = function( self ) return self end,
+    parent = function( self ) return self end,
     height = function( self ) return self end,
     width = function( self ) return self end,
     point = function( self ) return self end,

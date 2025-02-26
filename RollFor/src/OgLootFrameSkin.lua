@@ -350,6 +350,7 @@ function M.new( frame_builder )
   local function header( on_drag_stop, on_show, on_hide )
     local frame = frame_builder.new() ---@type Frame
         :name( "RollForLootFrameHeader" )
+        :parent( m.api.UIParent )
         :width( min_width )
         :height( header_height )
         :sound()

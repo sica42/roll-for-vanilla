@@ -12,6 +12,7 @@ local getn = m.getn
 
 ---@class PopupBuilder
 ---@field name fun( self: PopupBuilder, name: string ): PopupBuilder
+---@field parent fun( self: PopupBuilder, parent: Frame ): PopupBuilder
 ---@field height fun( self: PopupBuilder, height: number ): PopupBuilder
 ---@field width fun( self: PopupBuilder, width: number ): PopupBuilder
 ---@field point fun( self: PopupBuilder, p: table ): PopupBuilder
