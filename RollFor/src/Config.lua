@@ -415,7 +415,6 @@ function M.new( db, event_bus )
     default_rolling_time_seconds = get( "default_rolling_time_seconds" ),
     master_loot_frame_rows = get( "master_loot_frame_rows" ),
     configure_master_loot_frame_rows = configure_master_loot_frame_rows,
-    notify_subscribers = notify_subscribers,
     award_filter = get( "award_filter" ),
     keep_award_data = get( "keep_award_data" ),
   }

@@ -10,7 +10,6 @@ local filter = m.filter
 
 ---@class WinnersPopup
 ---@field show fun()
----@field refresh fun()
 ---@field hide fun()
 ---@field toggle fun()
 
@@ -117,8 +116,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   end
 
   local function make_content()
-    local main_frame = popup
-
     local function set_sort()
       if sort == this.sort then
         sort_order = (sort_order == "asc") and "desc" or "asc"
@@ -167,15 +164,22 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       if populate then
         dropdown:SetScript( "OnShow", function()
           if not this.setup then
-            populate()
             this.setup = true
+            populate()
+          end
+          for _, v in ipairs( this.checkboxes ) do
+            if v.setting == "show_sr_plus" then
+              v.checkbox:SetChecked( show_sr_plus )
+            else
+              v.checkbox:SetChecked( award_filters[ v.filter ][ v.setting ])
+            end
           end
         end )
       end
     end
 
     local function create_checkbox_entry( text, setting )
-      this.count = this.count and this.count + 1 or 1
+      if not this.checkboxes then this.checkboxes = {} end
       local p = string.find( setting, ".", 1, true ) or 0
       local cb_filter = string.sub( setting, 1, p - 1 )
       local cb_setting = string.sub( setting, p + 1 )
@@ -188,20 +192,18 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         end
         refresh()
       end )
-      cb:SetPoint( "TOP", 0, -((this.count - 1) * 17) - 7 )
-
-      if p > 0 then
-        cb.checkbox:SetChecked( award_filters[ cb_filter ][ cb_setting ] )
-      elseif setting == "show_sr_plus" then
-        cb.checkbox:SetChecked( show_sr_plus )
-      end
+      table.insert( this.checkboxes, cb )
+      cb:SetPoint( "TOP", 0, -((getn( this.checkboxes ) - 1) * 17) - 7 )
+      cb.filter = cb_filter
+      cb.setting = cb_setting or setting
 
       if cb:GetWidth() > this:GetWidth() - 15 then
         this:SetWidth( cb:GetWidth() + 15 )
       end
-      this:SetHeight( this.count * 17 + 11 )
+      this:SetHeight( getn( this.checkboxes ) * 17 + 11 )
     end
 
+    local main_frame = popup
     local btn_close = m.GuiElements.tiny_button( main_frame, "x", "Close Window", { r = 1, g = .25, b = .25 } )
     btn_close:SetPoint( "TOPRIGHT", -7, -7 )
     btn_close:SetScript( "OnClick", function()
@@ -461,9 +463,11 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       refresh()
       if not sort then
         local max = scroll_frame:GetVerticalScrollRange()
+        local tick = 0
         scroll_frame:SetScript( "OnUpdate", function()
           local new_max = scroll_frame:GetVerticalScrollRange()
-          if new_max > max then
+          tick = tick + 1
+          if new_max > max or tick > 5 then
             scroll_frame:SetVerticalScroll( new_max )
             scroll_frame:SetScript( "OnUpdate", nil )
           end
@@ -472,19 +476,18 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
   end
 
-  local function filter_changed()
+  local function award_data_updated()
     if popup and popup:IsVisible() then
       refresh()
     end
   end
 
   roll_controller.subscribe( "loot_awarded", loot_awarded )
-  config.subscribe( "award_filter", filter_changed )
+  awarded_loot.subscribe( "award_data_updated", award_data_updated )
 
   ---@type WinnersPopup
   return {
     show = show,
-    refresh = refresh,
     hide = hide,
     toggle = toggle
   }

@@ -14,12 +14,14 @@ local getn = m.getn
 ---@field has_item_been_awarded fun( player_name: string, item_id: number ): boolean
 ---@field has_item_been_awarded_to_any_player fun( item_id: ItemId ): boolean
 ---@field clear fun( force: boolean?)
+---@field subscribe fun( event_type: string, callback: fun( data: any ) )
 
 ---@param db table
 ---@param group_roster GroupRoster
 ---@param config Config
 function M.new( db, group_roster, config )
   db.awarded_items = db.awarded_items or {}
+  local callbacks = {}
 
   ---@param player_name string
   ---@param item_id number
@@ -56,6 +58,19 @@ function M.new( db, group_roster, config )
     } )
   end
 
+  local function subscribe( event_type, callback )
+    callbacks[ event_type ] = callbacks[ event_type ] or {}
+    table.insert( callbacks[ event_type ], callback )
+  end
+
+  local function notify_subscribers( event_type, data )
+    M.debug.add( event_type )
+
+    for _, callback in ipairs( callbacks[ event_type ] or {} ) do
+      callback( data )
+    end
+  end
+
   ---@return table
   local function get_winners()
     return db.awarded_items
@@ -86,7 +101,7 @@ function M.new( db, group_roster, config )
     M.debug.add( "clear" )
     if not config.keep_award_data() or force then
       m.clear_table( db.awarded_items )
-      config.notify_subscribers( 'award_filter' )
+      notify_subscribers( 'award_data_updated' )
     end
   end
 
@@ -99,7 +114,7 @@ function M.new( db, group_roster, config )
 
       if awarded_item.player_name == player_name and awarded_item.item_id == item_id then
         table.remove( db.awarded_items, i )
-        config.notify_subscribers( 'award_filter' )
+        notify_subscribers( 'award_data_updated' )
         return
       end
     end
@@ -112,7 +127,8 @@ function M.new( db, group_roster, config )
     get_winners = get_winners,
     has_item_been_awarded = has_item_been_awarded,
     has_item_been_awarded_to_any_player = has_item_been_awarded_to_any_player,
-    clear = clear
+    clear = clear,
+    subscribe = subscribe
   }
 end
 
