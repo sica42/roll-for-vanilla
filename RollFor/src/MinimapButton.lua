@@ -208,6 +208,7 @@ function M.new( api, db, manage_softres_fn, softres_check, config )
         y = math.max( -86, math.min( 110 * sin, 82 ) )
       end
 
+      self:ClearAllPoints()
       self:SetPoint( "CENTER", x, y )
     end
 
@@ -240,6 +241,9 @@ function M.new( api, db, manage_softres_fn, softres_check, config )
     frame:SetScript( "OnMouseUp", frame.OnMouseUp )
 
     frame:UpdatePosition()
+
+    frame:SetScript( "OnEvent", function() frame:UpdatePosition() end )
+    frame:RegisterEvent( "PLAYER_ENTERING_WORLD" )
 
     return frame
   end
