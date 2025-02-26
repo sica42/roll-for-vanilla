@@ -103,14 +103,16 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         :point( get_point() )
         :bg_file( "Interface/Buttons/WHITE8x8" )
         :sound()
-        :backdrop_color( 0, 0, 0, .8 )
-        :frame_style( "Modern" )
-        :border_color( .2, .2, .2, 1 )
         :movable()
         :on_drag_stop( on_drag_stop )
         :resizable()
         :on_resize( on_resize )
         :build()
+
+    if not m.classic then
+      frame:backdrop_color( 0, 0, 0, .8 )
+      frame:border_color( .2, .2, .2, 1 )
+    end
 
     return frame
   end
@@ -171,7 +173,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
             if v.setting == "show_sr_plus" then
               v.checkbox:SetChecked( show_sr_plus )
             else
-              v.checkbox:SetChecked( award_filters[ v.filter ][ v.setting ])
+              v.checkbox:SetChecked( award_filters[ v.filter ][ v.setting ] )
             end
           end
         end )
@@ -204,23 +206,23 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     local main_frame = popup
-    local btn_close = m.GuiElements.tiny_button( main_frame, "x", "Close Window", { r = 1, g = .25, b = .25 } )
-    btn_close:SetPoint( "TOPRIGHT", -7, -7 )
+    local btn_close = m.GuiElements.tiny_button( main_frame, "x", "Close Window" )
+    btn_close:SetPoint( "TOPRIGHT", m.classic and -9 or -7, m.classic and -9 or -7 )
     btn_close:SetScript( "OnClick", function()
       if popup then popup:Hide() end
     end )
 
     --[[
     local btn_options = m.GuiElements.tiny_button( main_frame, "o", "Open Settings", { r = .125, g = .624, b = .976 } )
-    btn_options:SetPoint( "RIGHT", btn_close, "LEFT", -5, 0 )
+    btn_options:SetPoint( "RIGHT", btn_close, "LEFT", m.classic and -2 or -5, 0 )
     btn_options:SetScript( "OnMouseUp", function()
-      options_popup_fn( "Awards popup" )
+      --options_popup_fn( "Awards popup" )
     end )
     ]]
 
-    local btn_reset = m.GuiElements.tiny_button( main_frame, "R", "Reset Sorting", { r = .125, g = .976, b = .624 }, 9 )
-    btn_reset:SetPoint( "RIGHT", btn_close, "LEFT", -5, 0 )
-    btn_reset:SetScript( "OnMouseUp", function()
+    local btn_reset = m.GuiElements.tiny_button( main_frame, "R", "Reset Sorting", { r = .125, g = .976, b = .624 } )
+    btn_reset:SetPoint( "RIGHT", btn_close, "LEFT", m.classic and -2 or -5, 0 )
+    btn_reset:SetScript( "OnClick", function()
       sort = nil
       refresh()
     end )
@@ -235,14 +237,15 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         db.height = this:GetParent():GetHeight()
       end
     )
-    btn_resize:SetPoint( "BOTTOMRIGHT", 0, 0 )
+    btn_resize:SetPoint( "BOTTOMRIGHT", m.classic and -4 or 0, m.classic and 4 or 0 )
 
+    local padding_top = m.classic and -20 or -10
     local title = m.GuiElements.text( main_frame, "Winners" )
-    title:SetPoint( "TOPLEFT", 0, -10 )
+    title:SetPoint( "TOPLEFT", 0, padding_top )
     title:SetPoint( "RIGHT", 0, 0 )
 
     headers = m.GuiElements.winners_header( main_frame, set_sort )
-    headers:SetPoint( "TOPLEFT", 20, -30 )
+    headers:SetPoint( "TOPLEFT", 20, padding_top - 20 )
     headers:SetPoint( "RIGHT", -20, 0 )
 
     create_dropdown( headers.item_id_header, function()
@@ -268,8 +271,8 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end )
 
     scroll_frame = m.GuiElements.create_scroll_frame( main_frame )
-    scroll_frame:SetPoint( "TOPLEFT", 20, -45 )
-    scroll_frame:SetPoint( "BOTTOMRIGHT", -6, 15 )
+    scroll_frame:SetPoint( "TOPLEFT", 20, padding_top - 35 )
+    scroll_frame:SetPoint( "BOTTOMRIGHT", -6, m.classic and 20 or 15 )
 
     local inner_builder = frame_builder.new()
         :parent( scroll_frame )

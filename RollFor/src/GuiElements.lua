@@ -300,32 +300,70 @@ end
 ---@param font_size number?
 function M.tiny_button( parent, text, tooltip, color, font_size )
   local button = m.api.CreateFrame( "Button", nil, parent )
-  button:SetBackdrop( {
-    bgFile = "Interface/Tooltips/UI-Tooltip-Background",
-    edgeFile = "Interface\\Buttons\\WHITE8X8",
-    tile = false,
-    tileSize = 0,
-    edgeSize = 0.5,
-    insets = { left = 0, right = 0, top = 0, bottom = 0 }
-  } )
-  button:SetBackdropColor( 0, 0, 0, 1 )
-  button:SetBackdropBorderColor( .2, .2, .2, 1 )
-  button:SetHeight( 10 )
-  button:SetWidth( 10 )
+  if not text then text = 'x' end
 
-  if not text then
-    text = "x"
-  end
-  if not color then
-    color = { r = 1, g = .25, b = .25 }
+  if m.classic then
+    if not color then color = { r = .9, g = .8, b = .25 } end
+    button:SetWidth( 18 )
+    button:SetHeight( 18 )
+
+    local highlight_texture = button:CreateTexture( nil, "HIGHLIGHT" )
+    highlight_texture:SetTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Highlight" )
+    highlight_texture:SetTexCoord( .1875, .78125, .21875, .78125 )
+    highlight_texture:SetBlendMode( "ADD" )
+    highlight_texture:SetAllPoints( button )
+
+    if text == 'x' then
+      button:SetNormalTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Up" )
+      button:SetPushedTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Down" )
+    else
+      button:SetNormalTexture( "Interface\\AddOns\\RollFor\\assets\\tiny-button-up.tga" )
+      button:SetPushedTexture( "Interface\\AddOns\\RollFor\\assets\\tiny-button-down.tga" )
+    end
+    button:GetNormalTexture():SetTexCoord( .1875, .78125, .21875, .78125 )
+    button:GetPushedTexture():SetTexCoord( .1875, .78125, .21875, .78125 )
+
+    if text ~= 'x' then
+      button:SetText( text )
+      button:SetPushedTextOffset( -1.5, -1.5 )
+
+      if string.upper( text ) == text then
+        button:GetFontString():SetPoint( "CENTER", 0, 0 )
+        font_size = font_size or 13
+      else
+        button:GetFontString():SetPoint( "CENTER", -1, 2 )
+        font_size = font_size or 15
+      end
+    end
+  else
+    if not color then color = { r = 1, g = .25, b = .25 } end
+    button:SetBackdrop( {
+      bgFile = "Interface/Tooltips/UI-Tooltip-Background",
+      edgeFile = "Interface\\Buttons\\WHITE8X8",
+      tile = false,
+      tileSize = 0,
+      edgeSize = 0.5,
+      insets = { left = 0, right = 0, top = 0, bottom = 0 }
+    } )
+    button:SetBackdropColor( 0, 0, 0, 1 )
+    button:SetBackdropBorderColor( .2, .2, .2, 1 )
+    button:SetHeight( 10 )
+    button:SetWidth( 10 )
+    button:SetText( text )
+    button:SetPushedTextOffset( 0, 0 )
+    if string.upper( text ) == text then
+      button:GetFontString():SetPoint( "CENTER", 0, 0 )
+      font_size = font_size or 10
+    else
+      button:GetFontString():SetPoint( "CENTER", -.5, 1.5 )
+      font_size = font_size or 14
+    end
   end
 
-  local padding_top = string.upper( text ) == text and .5 or 1.5
-  local label = button:CreateFontString( nil, "ARTWORK" )
-  label:SetFont( "FONTS\\FRIZQT__.TTF", font_size or 14 )
-  label:SetPoint( "CENTER", 0, padding_top )
-  label:SetText( text )
-  label:SetTextColor( color.r, color.g, color.b, color.a or 1 )
+  if not m.classic or text ~= "x" then
+    button:GetFontString():SetFont( "FONTS\\FRIZQT__.TTF", font_size )
+    button:GetFontString():SetTextColor( color.r, color.g, color.b, color.a or 1 )
+  end
 
   button:SetScript( "OnEnter", function()
     this:SetBackdropBorderColor( color.r, color.g, color.b, color.a or 1 )
@@ -569,7 +607,7 @@ function M.create_scroll_frame( parent, name )
 
   f.slider = m.api.CreateFrame( "Slider", nil, f )
   f.slider:SetOrientation( 'VERTICAL' )
-  f.slider:SetPoint( "TOPLEFT", f, "TOPRIGHT", -7, 0 )
+  f.slider:SetPoint( "TOPLEFT", f, "TOPRIGHT", m.classic and -13 or -7, 0 )
   f.slider:SetPoint( "BOTTOMRIGHT", 0, 0 )
   f.slider:SetThumbTexture( "Interface\\AddOns\\RollFor\\assets\\col.tga" )
   f.slider.thumb = f.slider:GetThumbTexture()

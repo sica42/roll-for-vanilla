@@ -62,6 +62,7 @@ function M.new( db, event_bus )
         roll_type = { MainSpec = 1, OffSpec = 1, Transmog = 1, SoftRes = 1, RR = 1 }
       }
     end
+    m.classic = db.classic_look
   end
 
   local function print( toggle_key )
