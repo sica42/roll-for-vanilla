@@ -16,6 +16,7 @@ local hl = m.colors.hl
 ---@field info fun( parent: Frame ): Frame
 ---@field dropped_item fun( parent: Frame, text: string ): Frame
 ---@field tiny_button fun( parent: Frame, text: string?, tooltip: string?, color: table?, font-size: number?):Frame
+---@field titlebar fun( parent: Frame, title: string, on_close: function )
 
 local M = {}
 
@@ -356,7 +357,7 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
       button:GetFontString():SetPoint( "CENTER", 0, 0 )
       font_size = font_size or 10
     else
-      button:GetFontString():SetPoint( "CENTER", -.5, 1.5 )
+      button:GetFontString():SetPoint( "CENTER", 0, 1.5 )
       font_size = font_size or 14
     end
   end
@@ -457,6 +458,58 @@ function M.checkbox( parent, text, on_change )
   return frame
 end
 
+---@param parent Frame
+---@param title string
+---@param on_close function
+function M.titlebar ( parent, title, on_close )
+  local frame = m.api.CreateFrame( "Frame", nil, parent )
+  frame:SetHeight( 32 )
+  if not m.classic then
+    frame:SetPoint( "TOPLEFT", 0, 5 )
+    frame:SetPoint( "RIGHT", 0, 0 )
+  else
+    frame:SetPoint( "TOPLEFT", 3, 2 )
+    frame:SetPoint( "RIGHT", -3, 2 )
+    frame:SetBackdrop( {
+      bgFile = "Interface\\AddOns\\RollFor\\assets\\titlebar-top.tga",
+      tile = true,
+      tileSize = 32,
+      edgeSize = 0,
+      insets = { left = 30, right = 30, top = 0, bottom = 0 }
+    } )
+
+    local topLeft = frame:CreateTexture(nil, "BORDER")
+    topLeft:SetTexture("Interface\\AddOns\\RollFor\\assets\\titlebar-topleft.tga")
+    topLeft:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+    topLeft:SetWidth( 64 )
+    topLeft:SetHeight( 32 )
+
+    local topRight = frame:CreateTexture(nil, "BORDER")
+    topRight:SetTexture("Interface\\AddOns\\RollFor\\assets\\titlebar-topright.tga")
+    topRight:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
+    topRight:SetWidth( 64 )
+    topRight:SetHeight( 32 )
+  end
+
+  local label = frame:CreateFontString( nil, "ARTWORK", "GameFontNormalSmall" )
+  label:SetPoint( "TOPLEFT", 0, -12 )
+  label:SetPoint( "RIGHT", m.classic and -19 or 0, 0 )
+  label:SetTextColor( 1, 1, 1 )
+  label:SetText( title )
+
+  local btn_close = M.tiny_button( parent, "x", "Close Window" )
+  btn_close:SetPoint( "TOPRIGHT", m.classic and -7 or -5, m.classic and -5 or -5 )
+  btn_close:SetScript( "OnClick", function()
+    if on_close then
+      on_close()
+    else
+      if parent then parent:Hide() end
+    end
+  end )
+
+  return frame
+end
+
 function M.winners_header( parent, on_click )
   local frame = m.api.CreateFrame( "Frame", nil, parent )
   frame:SetWidth( 250 )
@@ -469,7 +522,7 @@ function M.winners_header( parent, on_click )
     { text = "Player", name = "player_name",  width = 74 },
     { text = "Item",   name = "item_id",      width = 150 },
     { text = "Roll",   name = "winning_roll", width = 25 },
-    { text = "Type",   name = "roll_type",    width = 25 }
+    { text = "Type",   name = "roll_type",    width = 30 }
   }
 
   for _, v in pairs( headers ) do
@@ -529,9 +582,9 @@ function M.winner( parent )
   player_name:SetHeight( 14 )
   frame.player_name = player_name.inner
 
-  local roll_type = M.create_text_in_container( "Frame", frame, 25, nil, "dummy" )
+  local roll_type = M.create_text_in_container( "Frame", frame, 30, nil, "dummy" )
   roll_type.inner:SetJustifyH( "LEFT" )
-  roll_type.inner:SetPoint( "LEFT", 5, 0 )
+  roll_type.inner:SetPoint( "LEFT", 7, 0 )
   roll_type:SetPoint( "RIGHT", 0, 0 )
   roll_type:SetHeight( 14 )
   frame.roll_type = roll_type.inner

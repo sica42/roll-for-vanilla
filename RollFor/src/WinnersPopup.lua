@@ -197,11 +197,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     local main_frame = popup
-    local btn_close = m.GuiElements.tiny_button( main_frame, "x", "Close Window" )
-    btn_close:SetPoint( "TOPRIGHT", m.classic and -9 or -7, m.classic and -9 or -7 )
-    btn_close:SetScript( "OnClick", function()
-      if popup then popup:Hide() end
-    end )
+    m.GuiElements.titlebar( main_frame, "Winners" )
 
     --[[
     local btn_options = m.GuiElements.tiny_button( main_frame, "o", "Open Settings", { r = .125, g = .624, b = .976 } )
@@ -212,7 +208,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     ]]
 
     local btn_reset = m.GuiElements.tiny_button( main_frame, "R", "Reset Sorting", { r = .125, g = .976, b = .624 } )
-    btn_reset:SetPoint( "RIGHT", btn_close, "LEFT", m.classic and -2 or -5, 0 )
+    btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -19, m.classic and -5 or -5 )
     btn_reset:SetScript( "OnClick", function()
       sort = nil
       refresh()
@@ -231,9 +227,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     btn_resize:SetPoint( "BOTTOMRIGHT", m.classic and -4 or 0, m.classic and 4 or 0 )
 
     local padding_top = m.classic and -20 or -10
-    local title = m.GuiElements.text( main_frame, "Winners" )
-    title:SetPoint( "TOPLEFT", 0, padding_top )
-    title:SetPoint( "RIGHT", 0, 0 )
 
     headers = m.GuiElements.winners_header( main_frame, set_sort )
     headers:SetPoint( "TOPLEFT", 20, padding_top - 20 )
