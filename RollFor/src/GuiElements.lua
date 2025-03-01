@@ -461,7 +461,7 @@ end
 ---@param parent Frame
 ---@param title string
 ---@param on_close function
-function M.titlebar ( parent, title, on_close )
+function M.titlebar( parent, title, on_close )
   local frame = m.api.CreateFrame( "Frame", nil, parent )
   frame:SetHeight( 32 )
   if not m.classic then
@@ -478,15 +478,15 @@ function M.titlebar ( parent, title, on_close )
       insets = { left = 30, right = 30, top = 0, bottom = 0 }
     } )
 
-    local topLeft = frame:CreateTexture(nil, "BORDER")
-    topLeft:SetTexture("Interface\\AddOns\\RollFor\\assets\\titlebar-topleft.tga")
-    topLeft:SetPoint("TOPLEFT", frame, "TOPLEFT", 0, 0)
+    local topLeft = frame:CreateTexture( nil, "BORDER" )
+    topLeft:SetTexture( "Interface\\AddOns\\RollFor\\assets\\titlebar-topleft.tga" )
+    topLeft:SetPoint( "TOPLEFT", frame, "TOPLEFT", 0, 0 )
     topLeft:SetWidth( 64 )
     topLeft:SetHeight( 32 )
 
-    local topRight = frame:CreateTexture(nil, "BORDER")
-    topRight:SetTexture("Interface\\AddOns\\RollFor\\assets\\titlebar-topright.tga")
-    topRight:SetPoint("TOPRIGHT", frame, "TOPRIGHT", 0, 0)
+    local topRight = frame:CreateTexture( nil, "BORDER" )
+    topRight:SetTexture( "Interface\\AddOns\\RollFor\\assets\\titlebar-topright.tga" )
+    topRight:SetPoint( "TOPRIGHT", frame, "TOPRIGHT", 0, 0 )
     topRight:SetWidth( 64 )
     topRight:SetHeight( 32 )
   end
@@ -518,15 +518,20 @@ function M.winners_header( parent, on_click )
   frame:SetFrameLevel( parent:GetFrameLevel() + 1 )
   frame:EnableMouse( true )
 
+  ---@diagnostic disable-next-line: undefined-global
+  local font_file = pfUI and pfUI.version and pfUI.font_default or "FONTS\\ARIALN.TTF"
+  local font_size =  11
+
   local headers = {
     { text = "Player", name = "player_name",  width = 74 },
     { text = "Item",   name = "item_id",      width = 150 },
     { text = "Roll",   name = "winning_roll", width = 25 },
-    { text = "Type",   name = "roll_type",    width = 30 }
+    { text = "Type",   name = "roll_type",    width = 25 }
   }
 
   for _, v in pairs( headers ) do
     local header = M.create_text_in_container( "Button", frame, v.width, nil, v.text )
+    header.inner:SetFont( font_file, font_size )
     header.sort = v.name
     header:SetHeight( 14 )
     header.inner:SetPoint( v.name == "winning_roll" and "RIGHT" or "LEFT", v.name == "winning_roll" and -5 or 2, 0 )
@@ -576,20 +581,27 @@ function M.winner( parent )
     blue_hover( 0 )
   end )
 
+  ---@diagnostic disable-next-line: undefined-global
+  local font_file = pfUI and pfUI.version and pfUI.font_default or "FONTS\\ARIALN.TTF"
+  local font_size = 11
+
   local player_name = M.create_text_in_container( "Frame", frame, 74, "LEFT", "dummy" )
+  player_name.inner:SetFont( font_file, font_size )
   player_name.inner:SetJustifyH( "LEFT" )
   player_name:SetPoint( "LEFT", frame, "LEFT", 2, 0 )
   player_name:SetHeight( 14 )
   frame.player_name = player_name.inner
 
-  local roll_type = M.create_text_in_container( "Frame", frame, 30, nil, "dummy" )
+  local roll_type = M.create_text_in_container( "Frame", frame, 25, nil, "dummy" )
+  roll_type.inner:SetFont( font_file, font_size )
   roll_type.inner:SetJustifyH( "LEFT" )
-  roll_type.inner:SetPoint( "LEFT", 7, 0 )
+  roll_type.inner:SetPoint( "LEFT", 5, 0 )
   roll_type:SetPoint( "RIGHT", 0, 0 )
   roll_type:SetHeight( 14 )
   frame.roll_type = roll_type.inner
 
   local winning_roll = M.create_text_in_container( "Frame", frame, 25, nil, "dummy" )
+  winning_roll.inner:SetFont( font_file, font_size )
   winning_roll.inner:SetJustifyH( "RIGHT" )
   winning_roll.inner:SetPoint( "RIGHT", -5, 0 )
   winning_roll:SetPoint( "RIGHT", roll_type, "LEFT", -1, 0 )
@@ -598,6 +610,7 @@ function M.winner( parent )
 
   local tooltip_link
   local item_link = M.create_text_in_container( "Button", frame, 1, "LEFT", "dummy" )
+  item_link.inner:SetFont( font_file, font_size )
   item_link.inner:SetJustifyH( "LEFT" )
   item_link:SetPoint( "LEFT", player_name, "RIGHT", 1, 0 )
   item_link:SetPoint( "RIGHT", winning_roll, "LEFT", -1, 0 )
