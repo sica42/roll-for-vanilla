@@ -302,7 +302,7 @@ end
 ---@param font_size number?
 function M.tiny_button( parent, text, tooltip, color, font_size )
   local button = m.api.CreateFrame( "Button", nil, parent )
-  if not text then text = 'x' end
+  if not text then text = "x" end
 
   if m.classic then
     if not color then color = { r = .9, g = .8, b = .25 } end
@@ -315,7 +315,7 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
     highlight_texture:SetBlendMode( "ADD" )
     highlight_texture:SetAllPoints( button )
 
-    if text == 'x' then
+    if text == "x" then
       button:SetNormalTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Up" )
       button:SetPushedTexture( "Interface\\Buttons\\UI-Panel-MinimizeButton-Down" )
     else
@@ -325,7 +325,7 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
     button:GetNormalTexture():SetTexCoord( .1875, .78125, .21875, .78125 )
     button:GetPushedTexture():SetTexCoord( .1875, .78125, .21875, .78125 )
 
-    if text ~= 'x' then
+    if text ~= "x" then
       button:SetText( text )
       button:SetPushedTextOffset( -1.5, -1.5 )
 
@@ -394,16 +394,14 @@ function M.resize_grip( parent, on_start, on_end )
   local button = m.api.CreateFrame( "Button", nil, parent )
   button:SetWidth( 16 )
   button:SetHeight( 16 )
-  button.texture = button:CreateTexture()
-  button.texture:SetTexture( "Interface\\AddOns\\RollFor\\assets\\resize-grip.tga", "ARTWORK" )
-  button.texture:ClearAllPoints()
-  button.texture:SetAllPoints( button )
+  button:SetNormalTexture( "Interface\\AddOns\\RollFor\\assets\\resize-grip.tga", "ARTWORK" )
+  button:GetNormalTexture():SetAllPoints( button )
 
   button:SetScript( "OnEnter", function()
-    this.texture:SetBlendMode( "ADD" )
+    this:GetNormalTexture():SetBlendMode( "ADD" )
   end )
   button:SetScript( "OnLeave", function()
-    this.texture:SetBlendMode( "BLEND" )
+    this:GetNormalTexture():SetBlendMode( "BLEND" )
   end )
   button:SetScript( "OnMouseDown", function()
     this:GetParent():StartSizing( "BOTTOMRIGHT" )
@@ -426,14 +424,12 @@ function M.checkbox( parent, text, on_change )
   cb:SetWidth( 14 )
   cb:SetHeight( 14 )
   cb:SetPoint( "LEFT", 2, 0 )
-  cb:SetNormalTexture( "" )
-  cb:SetPushedTexture( "" )
-  cb:SetHighlightTexture( "" )
+  cb:SetNormalTexture( nil )
+  cb:SetPushedTexture( nil )
+  cb:SetHighlightTexture( nil )
   cb:SetBackdrop( {
     bgFile = "Interface/Buttons/WHITE8x8",
     edgeFile = "Interface/Buttons/WHITE8x8",
-    tile = false,
-    tileSize = 0,
     edgeSize = 0.5,
     insets = { left = 0, right = 0, top = 0, bottom = 0 }
   } )
@@ -520,7 +516,7 @@ function M.winners_header( parent, on_click )
 
   ---@diagnostic disable-next-line: undefined-global
   local font_file = pfUI and pfUI.version and pfUI.font_default or "FONTS\\ARIALN.TTF"
-  local font_size =  11
+  local font_size = 11
 
   local headers = {
     { text = "Player", name = "player_name",  width = 74 },
@@ -572,14 +568,26 @@ function M.winner( parent )
     frame:SetBackdropColor( 0.125, 0.624, 0.976, a )
   end
 
-  blue_hover( 0 )
-  frame:SetScript( "OnEnter", function()
-    blue_hover( 0.2 )
-  end )
+  local function truncate_item_text( font_string, max_width )
+    local item = font_string:GetText()
+    local original_text = string.gsub( m.ItemUtils.get_item_name( font_string:GetText() ), "([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1" )
+    local truncated_text = original_text
 
-  frame:SetScript( "OnLeave", function()
-    blue_hover( 0 )
-  end )
+    while font_string:GetStringWidth() > max_width and string.len(truncated_text) > 4 do
+      truncated_text = string.sub( truncated_text, 1, -2 )
+      font_string:SetText( "[" .. truncated_text .. "...]" )
+    end
+
+    if original_text == truncated_text then
+      font_string:SetText( string.gsub( item, original_text, truncated_text ) )
+    else
+      font_string:SetText( string.gsub( item, original_text, truncated_text .. "..." ) )
+    end
+  end
+
+  blue_hover( 0 )
+  frame:SetScript( "OnEnter", function() blue_hover( .2 ) end )
+  frame:SetScript( "OnLeave", function() blue_hover( 0 ) end )
 
   ---@diagnostic disable-next-line: undefined-global
   local font_file = pfUI and pfUI.version and pfUI.font_default or "FONTS\\ARIALN.TTF"
@@ -608,7 +616,6 @@ function M.winner( parent )
   winning_roll:SetHeight( 14 )
   frame.winning_roll = winning_roll.inner
 
-  local tooltip_link
   local item_link = M.create_text_in_container( "Button", frame, 1, "LEFT", "dummy" )
   item_link.inner:SetFont( font_file, font_size )
   item_link.inner:SetJustifyH( "LEFT" )
@@ -617,29 +624,11 @@ function M.winner( parent )
   item_link:SetHeight( item_link.inner:GetHeight() )
   frame.item_link = item_link
 
-  frame.SetItem = function( _, itemLink )
-    local function truncate_text( font_string, max )
-      local item = font_string:GetText()
-      local originalText = string.gsub( m.ItemUtils.get_item_name( font_string:GetText() ), "([%(%)%.%%%+%-%*%?%[%]%^%$])", "%%%1" )
-      local truncatedText = originalText
+  frame.SetItem = function( _, item_link_text )
+    item_link.inner:SetText( item_link_text )
+    truncate_item_text( item_link.inner, frame:GetParent():GetParent():GetParent():GetWidth() - 145 - winning_roll:GetWidth() )
 
-      while font_string:GetStringWidth() > max do
-        truncatedText = string.sub( truncatedText, 1, -2 )
-        font_string:SetText( "[" .. truncatedText .. "...]" )
-        if string.len( truncatedText ) < 4 then break end
-      end
-
-      if originalText == truncatedText then
-        font_string:SetText( string.gsub( item, originalText, truncatedText ) )
-      else
-        font_string:SetText( string.gsub( item, originalText, truncatedText .. "..." ) )
-      end
-    end
-
-    item_link.inner:SetText( itemLink )
-    truncate_text( item_link.inner, frame:GetParent():GetParent():GetParent():GetWidth() - 145 - winning_roll:GetWidth() )
-
-    tooltip_link = m.ItemUtils.get_tooltip_link( itemLink )
+    local tooltip_link = m.ItemUtils.get_tooltip_link( item_link_text )
 
     item_link:SetScript( "OnEnter", function()
       blue_hover( 0.2 )
@@ -653,16 +642,12 @@ function M.winner( parent )
       if not tooltip_link then return end
 
       if m.is_ctrl_key_down() then
-        m.api.DressUpItemLink( itemLink )
-        return
+        m.api.DressUpItemLink( item_link_text )
+      elseif m.is_shift_key_down() then
+        m.link_item_in_chat( item_link_text )
+      else
+        m.api.SetItemRef( tooltip_link, tooltip_link, "LeftButton" )
       end
-
-      if m.is_shift_key_down() then
-        m.link_item_in_chat( itemLink )
-        return
-      end
-
-      m.api.SetItemRef( tooltip_link, tooltip_link, "LeftButton" )
     end )
   end
 
@@ -673,7 +658,7 @@ function M.create_scroll_frame( parent, name )
   local f = m.api.CreateFrame( "ScrollFrame", name, parent )
 
   f.slider = m.api.CreateFrame( "Slider", nil, f )
-  f.slider:SetOrientation( 'VERTICAL' )
+  f.slider:SetOrientation( "VERTICAL" )
   f.slider:SetPoint( "TOPLEFT", f, "TOPRIGHT", m.classic and -13 or -7, 0 )
   f.slider:SetPoint( "BOTTOMRIGHT", 0, 0 )
   f.slider:SetThumbTexture( "Interface\\AddOns\\RollFor\\assets\\col.tga" )
