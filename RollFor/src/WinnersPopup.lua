@@ -23,7 +23,6 @@ M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 ---@param db table
 ---@param awarded_loot AwardedLoot
 ---@param roll_controller RollController
-----@param options_popup_fn function
 ---@param config Config
 function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller, config )
   ---@type Popup?
@@ -38,17 +37,17 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
   db.point = db.point or M.center_point
   --[[
-  awarded_loot.award( 'Zombiehunter', 16939, { roll_type = 'SoftRes', roll = 112, player_name = "", player_class = "" }, 'SoftResRoll', nil, 'Hunter', 30 )
-  awarded_loot.award( 'Kevieboipro', 16939, { roll_type = 'SoftRes', roll = 98, player_name = "", player_class = "" }, 'SoftResRoll', nil, 'Warrior', 20 )
-  awarded_loot.award( 'Kevieboipro', 19019, { roll_type = 'Transmog', roll = 89, player_name = "", player_class = "" }, "NormalRoll", nil, 'Warrior' )
-  awarded_loot.award( 'Dayknight', 5504, { roll_type = 'MainSpec', roll = 53, player_name = "", player_class = "" }, "NormalRoll", nil, 'Paladin' )
-  awarded_loot.award( 'Celilae', 5504, { roll_type = 'MainSpec', roll = 78, player_name = "", player_class = "" }, "NormalRoll", nil, 'Paladin' )
-  awarded_loot.award( 'Borazor', 16939, { roll_type = 'SoftRes', roll = 112, player_name = "", player_class = "" }, "SoftResRoll", nil, 'Hunter', 30 )
-  awarded_loot.award( 'Ryiana', 16939, { roll_type = 'SoftRes', roll = 98, player_name = "", player_class = "" }, "SoftResRoll", nil, 'Warrior', 20 )
-  awarded_loot.award( 'Tornapart', 19019, { roll_type = 'Transmog', roll = 89, player_name = "", player_class = "" }, "NormalRoll", nil, 'Warrior' )
-  awarded_loot.award( 'Dayknight', 5504, { roll_type = 'MainSpec', roll = 53, player_name = "", player_class = "" }, "NormalRoll", nil, 'Paladin' )
-  awarded_loot.award( 'Celilae', 5504, { roll_type = 'MainSpec', roll = 78, player_name = "", player_class = "" }, "NormalRoll", nil, 'Paladin' )
-  awarded_loot.award( 'Borazor', 16936, { roll_type = 'SoftRes', roll = 112, player_name = "", player_class = "" }, "SoftResRoll", nil, 'Hunter', 30 )
+  awarded_loot.award( "Zombiehunter", 16939, { roll_type = "SoftRes", roll = 112, player_name = "", player_class = "" }, "SoftResRoll", nil, "Hunter", 30 )
+  awarded_loot.award( "Kevieboipro", 16939, { roll_type = "SoftRes", roll = 98, player_name = "", player_class = "" }, "SoftResRoll", nil, "Warrior", 20 )
+  awarded_loot.award( "Kevieboipro", 19019, { roll_type = "Transmog", roll = 89, player_name = "", player_class = "" }, "NormalRoll", nil, "Warrior" )
+  awarded_loot.award( "Dayknight", 5504, { roll_type = "MainSpec", roll = 53, player_name = "", player_class = "" }, "NormalRoll", nil, "Paladin" )
+  awarded_loot.award( "Celilae", 5504, { roll_type = "MainSpec", roll = 78, player_name = "", player_class = "" }, "NormalRoll", nil, "Paladin" )
+  awarded_loot.award( "Borazor", 16939, { roll_type = "SoftRes", roll = 112, player_name = "", player_class = "" }, "SoftResRoll", nil, "Hunter", 30 )
+  awarded_loot.award( "Ryiana", 16939, { roll_type = "SoftRes", roll = 98, player_name = "", player_class = "" }, "SoftResRoll", nil, "Warrior", 20 )
+  awarded_loot.award( "Tornapart", 19019, { roll_type = "Transmog", roll = 89, player_name = "", player_class = "" }, "NormalRoll", nil, "Warrior" )
+  awarded_loot.award( "Dayknight", 5504, { roll_type = "MainSpec", roll = 53, player_name = "", player_class = "" }, "NormalRoll", nil, "Paladin" )
+  awarded_loot.award( "Celilae", 5504, { roll_type = "MainSpec", roll = 78, player_name = "", player_class = "" }, "NormalRoll", nil, "Paladin" )
+  awarded_loot.award( "Borazor", 16936, { roll_type = "SoftRes", roll = 112, player_name = "", player_class = "" }, "SoftResRoll", nil, "Hunter", 30 )
   ]]
 
   local function create_popup()
@@ -83,6 +82,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         old_width = this:GetWidth()
         refresh()
       end
+      scroll_frame:update_scroll_state()
     end
 
     local function get_point()
@@ -96,7 +96,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     local frame = popup_builder
-        :name( "rfWinnersFrame" )
+        :name( "RollForWinnersFrame" )
         :width( db.width or 290 )
         :height( db.height or 200 )
         :point( get_point() )
@@ -199,14 +199,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     local main_frame = popup
     m.GuiElements.titlebar( main_frame, "Winners" )
 
-    --[[
-    local btn_options = m.GuiElements.tiny_button( main_frame, "o", "Open Settings", { r = .125, g = .624, b = .976 } )
-    btn_options:SetPoint( "RIGHT", btn_close, "LEFT", m.classic and -2 or -5, 0 )
-    btn_options:SetScript( "OnMouseUp", function()
-      --options_popup_fn( "Awards popup" )
-    end )
-    ]]
-
     local btn_reset = m.GuiElements.tiny_button( main_frame, "R", "Reset Sorting", { r = .125, g = .976, b = .624 } )
     btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -19, m.classic and -5 or -5 )
     btn_reset:SetScript( "OnClick", function()
@@ -260,23 +252,19 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     local inner_builder = frame_builder.new()
         :parent( scroll_frame )
-        :name( "rfWinnersFrameInner" )
+        :name( "RollForWinnersFrameInner" )
         :width( 250 )
         :height( 100 )
-        :point( { point = "TOPLEFT", relative_point = "TOPLEFT", relative_frame = "rfWinnersFrame", x = 0, y = 0 } )
+        :point( { point = "TOPLEFT", relative_point = "TOPLEFT", relative_frame = "RollForWinnersFrame", x = 0, y = 0 } )
         :bg_file( "Interface/Buttons/WHITE8x8" )
         :gui_elements( m.GuiElements )
         :frame_style( "None" )
 
-    ---@class Frame
     scroll_frame.content = inner_builder:build()
     scroll_frame:SetScrollChild( scroll_frame.content )
     scroll_frame.content:SetAllPoints( scroll_frame )
-    scroll_frame.content:SetScript( "OnUpdate", function()
-      this:GetParent():update_scroll_state()
-    end )
-
     scroll_frame.content:Show()
+
     return main_frame
   end
 
@@ -416,7 +404,9 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         end
       end, 0 )
     end
+
     scroll_frame:UpdateScrollChildRect()
+    scroll_frame:update_scroll_state()
   end
 
   local function show()
