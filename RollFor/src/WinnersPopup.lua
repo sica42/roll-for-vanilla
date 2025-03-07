@@ -14,7 +14,7 @@ local filter = m.filter
 ---@field toggle fun()
 
 local M = m.Module.new( "WinnersPopup" )
---M.debug.enable()
+M.debug.enable()
 
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
@@ -34,6 +34,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   local scroll_frame
   local is_resizing
   local award_filters = config.award_filter()
+  local winners_data
 
   db.point = db.point or M.center_point
   --[[
@@ -51,35 +52,36 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   ]]
 
   local function create_popup()
-    local function on_drag_stop()
-      if not popup then return end
-      if m.is_frame_out_of_bounds( popup ) then
-        popup:position( db.point or M.center_point )
+    M.debug.add( "create popup" )
+    local function on_drag_stop( self )
+      if not self then return end
+      if m.is_frame_out_of_bounds( self ) then
+        self:position( db.point or M.center_point )
         return
       end
 
-      local anchor = popup:get_anchor_point()
+      local anchor = self:get_anchor_point()
       db.point = { point = anchor.point, relative_point = anchor.relative_point, x = anchor.x, y = anchor.y }
     end
 
     local old_width
-    local function on_resize()
-      if not is_resizing then return end
+    local function on_resize( self )
+      if not self or not is_resizing then return end
       local min_width, max_width, min_height, max_height = 225, 500, 173, 600
 
-      local width = math.max( min_width, math.min( max_width, this:GetWidth() ) )
-      if width ~= this:GetWidth() then
-        this:SetWidth( width )
+      local width = math.max( min_width, math.min( max_width, self:GetWidth() ) )
+      if width ~= self:GetWidth() then
+        self:SetWidth( width )
       end
 
-      local height = math.max( min_height, math.min( max_height, this:GetHeight() ) )
-      if height ~= this:GetHeight() then
-        this:SetHeight( height )
+      local height = math.max( min_height, math.min( max_height, self:GetHeight() ) )
+      if height ~= self:GetHeight() then
+        self:SetHeight( height )
       end
 
-      if not old_width then old_width = this:GetWidth() end
+      if not old_width then old_width = self:GetWidth() end
       if (math.abs( (width) - old_width ) > 7) or (width <= min_width) then
-        old_width = this:GetWidth()
+        old_width = self:GetWidth()
         refresh()
       end
       scroll_frame:update_scroll_state()
@@ -112,141 +114,79 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       frame:backdrop_color( 0, 0, 0, .8 )
       frame:border_color( .2, .2, .2, 1 )
     end
+    frame:Hide()
 
     return frame
   end
 
   local function make_content()
-    local function set_sort()
-      if sort == this.sort then
+    M.debug.add( "make content" )
+    local function set_sort( self )
+      if sort == self.sort then
         sort_order = (sort_order == "asc") and "desc" or "asc"
       else
-        sort = this.sort
+        sort = self.sort
       end
-      refresh()
+      refresh( true )
     end
 
-    local function create_dropdown( parent, populate )
-      if not parent:GetParent().dropdowns then parent:GetParent().dropdowns = {} end
-      local dropdown = m.api.CreateFrame( "Frame", nil, parent )
-      dropdown:SetFrameStrata( "TOOLTIP" )
-      dropdown:SetPoint( "TOPLEFT", parent, "BOTTOMLEFT", 0, 0 )
-      dropdown:SetBackdrop( {
-        bgFile = "Interface/Buttons/WHITE8x8",
-        edgeFile = "Interface/Buttons/WHITE8x8",
-        tile = false,
-        tileSize = 0,
-        edgeSize = 0.5,
-        insets = { left = 0, right = 0, top = 0, bottom = 0 }
-      } )
-      dropdown:SetBackdropColor( 0, 0, 0, 1 )
-      dropdown:SetBackdropBorderColor( .2, .2, .2, 1 )
-      dropdown:EnableMouse( true )
-      dropdown:Hide()
-      table.insert( parent:GetParent().dropdowns, dropdown )
-
-      dropdown:SetScript( "OnLeave", function()
-        if m.api.MouseIsOver( dropdown ) then
-          return
-        end
-        dropdown:Hide()
-      end )
-
-      parent:SetScript( "OnMouseDown", function()
-        if arg1 == "RightButton" then
-          local visible = dropdown:IsVisible()
-          for v in ipairs( parent:GetParent().dropdowns ) do
-            parent:GetParent().dropdowns[ v ]:Hide()
-          end
-          if not visible then dropdown:Show() end
-        end
-      end )
-
-      if populate then
-        dropdown:SetScript( "OnShow", function()
-          if not this.setup then
-            this.setup = true
-            populate()
-          end
-          for _, v in ipairs( this.checkboxes ) do
-            v.checkbox:SetChecked( award_filters[ v.filter ][ v.setting ] )
-          end
-        end )
-      end
-    end
-
-    local function create_checkbox_entry( text, setting )
-      if not this.checkboxes then this.checkboxes = {} end
-      local p = string.find( setting, ".", 1, true ) or 0
-      local cb_filter = string.sub( setting, 1, p - 1 )
-      local cb_setting = string.sub( setting, p + 1 )
-
-      local cb = m.GuiElements.checkbox( this, text, function( value )
+    local function cb_on_change( cb_filter, cb_setting, value )
+      if cb_filter and cb_setting then
         award_filters[ cb_filter ][ cb_setting ] = value
-        refresh()
-      end )
-      table.insert( this.checkboxes, cb )
-      cb:SetPoint( "TOP", 0, -((getn( this.checkboxes ) - 1) * 17) - 7 )
-      cb.filter = cb_filter
-      cb.setting = cb_setting or setting
-
-      if cb:GetWidth() > this:GetWidth() - 15 then
-        this:SetWidth( cb:GetWidth() + 15 )
+        refresh( true )
       end
-      this:SetHeight( getn( this.checkboxes ) * 17 + 11 )
     end
 
-    local main_frame = popup
-    m.GuiElements.titlebar( main_frame, "Winners" )
+    m.GuiElements.titlebar( popup, "Winners" )
 
-    local btn_reset = m.GuiElements.tiny_button( main_frame, "R", "Reset Sorting", { r = .125, g = .976, b = .624 } )
+    local btn_reset = m.GuiElements.tiny_button( popup, "R", "Reset Sorting", { r = .125, g = .976, b = .624 } )
     btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -19, m.classic and -5 or -5 )
     btn_reset:SetScript( "OnClick", function()
       sort = nil
-      refresh()
+      refresh( true )
     end )
 
-    local btn_resize = m.GuiElements.resize_grip( main_frame,
+    local btn_resize = m.GuiElements.resize_grip( popup,
       function()
         is_resizing = true
       end,
-      function()
+      function( frame )
         is_resizing = false
-        db.width = this:GetParent():GetWidth()
-        db.height = this:GetParent():GetHeight()
+        db.width = frame:GetWidth()
+        db.height = frame:GetHeight()
       end
     )
     btn_resize:SetPoint( "BOTTOMRIGHT", m.classic and -4 or 0, m.classic and 4 or 0 )
 
     local padding_top = m.classic and -20 or -10
 
-    headers = m.GuiElements.winners_header( main_frame, set_sort )
+    headers = m.WinnersPopupGui.headers( popup, set_sort )
     headers:SetPoint( "TOPLEFT", 20, padding_top - 20 )
     headers:SetPoint( "RIGHT", -20, 0 )
 
-    create_dropdown( headers.item_id_header, function()
-      create_checkbox_entry( "Poor", "item_quality.Poor" )
-      create_checkbox_entry( "Common", "item_quality.Common" )
-      create_checkbox_entry( "Uncommon", "item_quality.Uncommon" )
-      create_checkbox_entry( "Rare", "item_quality.Rare" )
-      create_checkbox_entry( "Epic", "item_quality.Epic" )
-      create_checkbox_entry( "Legendary", "item_quality.Legendary" )
+    m.WinnersPopupGui.create_dropdown( headers.item_id_header, award_filters, function( self )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Poor", "item_quality.Poor", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Common", "item_quality.Common", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Uncommon", "item_quality.Uncommon", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Rare", "item_quality.Rare", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Epic", "item_quality.Epic", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Legendary", "item_quality.Legendary", cb_on_change )
     end )
 
-    create_dropdown( headers.winning_roll_header, function()
-      create_checkbox_entry( "Show SR+", "winning_roll.show_sr_plus" )
+    m.WinnersPopupGui.create_dropdown( headers.winning_roll_header, award_filters, function( self )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Show SR+", "winning_roll.show_sr_plus", cb_on_change )
     end )
 
-    create_dropdown( headers.roll_type_header, function()
-      create_checkbox_entry( "MainSpec", "roll_type.MainSpec" )
-      create_checkbox_entry( "OffSpec", "roll_type.OffSpec" )
-      create_checkbox_entry( "Transmog", "roll_type.Transmog" )
-      create_checkbox_entry( "Soft reserve", "roll_type.SoftRes" )
-      create_checkbox_entry( "Raid roll", "roll_type.RR" )
-      create_checkbox_entry( "Other", "roll_type.NA" )
+    m.WinnersPopupGui.create_dropdown( headers.roll_type_header, award_filters, function( self )
+      m.WinnersPopupGui.create_checkbox_entry( self, "MainSpec", "roll_type.MainSpec", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "OffSpec", "roll_type.OffSpec", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Transmog", "roll_type.Transmog", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Soft reserve", "roll_type.SoftRes", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Raid roll", "roll_type.RR", cb_on_change )
+      m.WinnersPopupGui.create_checkbox_entry( self, "Other", "roll_type.NA", cb_on_change )
     end )
 
-    scroll_frame = m.GuiElements.create_scroll_frame( main_frame )
+    scroll_frame = m.WinnersPopupGui.create_scroll_frame( popup )
     scroll_frame:SetPoint( "TOPLEFT", 20, padding_top - 35 )
     scroll_frame:SetPoint( "BOTTOMRIGHT", -6, m.classic and 20 or 15 )
 
@@ -257,7 +197,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         :height( 100 )
         :point( { point = "TOPLEFT", relative_point = "TOPLEFT", relative_frame = "RollForWinnersFrame", x = 0, y = 0 } )
         :bg_file( "Interface/Buttons/WHITE8x8" )
-        :gui_elements( m.GuiElements )
+        :gui_elements( m.WinnersPopupGui )
         :frame_style( "None" )
 
     scroll_frame.content = inner_builder:build()
@@ -265,11 +205,11 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     scroll_frame.content:SetAllPoints( scroll_frame )
     scroll_frame.content:Show()
 
-    return main_frame
+    return popup
   end
 
-  function refresh()
-    local function filter_winners( data )
+  local function get_data()
+    local function filter_winners()
       local quality_filter = {}
       for q, v in pairs( award_filters.item_quality ) do
         if v then
@@ -284,12 +224,10 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
         end
       end
 
-      data = filter( data, function( item )
+      winners_data = filter( winners_data, function( item )
         local quality = item.quality or 0
         return m.table_contains_value( quality_filter, quality ) and m.table_contains_value( rolltype_filter, item.roll_type )
       end )
-
-      return data
     end
 
     local function sort_winners( a, b )
@@ -328,15 +266,14 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       end
     end
 
-    if not popup then popup = create_popup() end
-    scroll_frame.content:clear()
-    local db_data = awarded_loot.get_winners()
-    local data = {}
+    M.debug.add( "Get data" )
+    --data_refresh = false
 
-    local winners_count = 0
+    local db_data = awarded_loot.get_winners()
+    winners_data = {}
     for _, v in ipairs( db_data ) do
       if v.item_link then
-        table.insert( data, {
+        table.insert( winners_data, {
           player_name = v.player_name,
           player_class = v.player_class,
           item_id = v.item_id,
@@ -348,22 +285,41 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
           sr_plus = v.sr_plus,
           quality = v.quality
         } )
-        winners_count = winners_count + 1
       end
     end
 
-    if winners_count == 0 then
+    if getn( winners_data ) == 0 then
       scroll_frame:UpdateScrollChildRect()
       return
     end
 
-    data = filter_winners( data )
-    if (sort) then table.sort( data, sort_winners ) end
+    filter_winners()
+    if (sort) then table.sort( winners_data, sort_winners ) end
+  end
+
+  function refresh( refresh_data )
+    if not popup then
+      popup = create_popup()
+      make_content()
+    end
+
+    -- Temp error checking...
+    local err
+    if not scroll_frame then err = "no scroll_frame!" end
+    if not scroll_frame.content then err = "no scroll_frame.content!" end
+    if not headers then err = "no headers!" end
+
+    if err then
+      M.debug.add( "ERROR: " .. err )
+      return
+    end
+
+    if not winners_data or refresh_data then get_data() end
 
     local show_sr_plus = award_filters[ "winning_roll" ][ "show_sr_plus" ]
     local got_sr_plus = false
     local content = {}
-    for _, item in pairs( data ) do
+    for _, item in pairs( winners_data ) do
       table.insert( content, {
         type = "winner",
         player_name = item.player_name,
@@ -380,6 +336,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     headers.winning_roll_header:SetWidth( (show_sr_plus and got_sr_plus) and 50 or 25 )
 
+    scroll_frame.content:clear()
     for _, v in ipairs( content ) do
       scroll_frame.content.add_line( v.type, function( type, frame, lines )
         if type == "winner" then
@@ -438,7 +395,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   local function loot_awarded()
     M.debug.add( "loot_awarded" )
     if popup and popup:IsVisible() then
-      refresh()
+      refresh( true )
       if not sort then
         local max = scroll_frame:GetVerticalScrollRange()
         local tick = 0
@@ -456,7 +413,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
   local function award_data_updated()
     if popup and popup:IsVisible() then
-      refresh()
+      refresh( true )
     end
   end
 

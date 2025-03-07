@@ -47,6 +47,8 @@ function M.new()
         Hide = function( self ) self.visible = false end,
         SetWidth = function() end,
         SetHeight = function() end,
+        StartSizing = function() end,
+        StopMovingOrSizing = function() end,
         SetPoint = function() end,
         GetScale = function() return 1 end,
         GetWidth = function() return 1 end,

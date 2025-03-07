@@ -755,4 +755,17 @@ function M.is_frame_out_of_bounds( frame )
       frame:GetRight() > screen_width or false
 end
 
+--- @param hex string
+--- @return number r
+--- @return number g
+--- @return number b
+--- @return number a
+function M.hex_to_rgba( hex )
+  local r, g, b, a = string.match( hex, "^#?(%x%x)(%x%x)(%x%x)(%x?%x?)$" )
+
+  r, g, b = tonumber( r, 16 ) / 255, tonumber( g, 16 ) / 255, tonumber( b, 16 ) / 255
+  a = a ~= "" and tonumber( a, 16 ) / 255 or 1
+  return r, g, b, a
+end
+
 return M

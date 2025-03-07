@@ -57,6 +57,8 @@ M.interface = {
 ---@field GetScale fun(): number
 ---@field GetWidth fun(): number
 ---@field GetHeight fun(): number
+---@field StartSizing fun( self: Frame, resizePoint: string?, alwaysStartFromMouse: boolean? )
+---@field StopMovingOrSizing fun()
 ---@field ClearAllPoints fun()
 ---@field SetAllPoints fun( frame: Frame, relativeTo?: Frame|string, doResize?: boolean )
 ---@field SetScript fun( frame: Frame, scriptTypeName: string, script: function|nil )
@@ -300,7 +302,9 @@ function M.new()
         frame:SetResizable( true )
 
         if options.on_resize and frame:IsResizable() then
-          frame:SetScript( "OnSizeChanged", options.on_resize )
+          frame:SetScript( "OnSizeChanged", function()
+            options.on_resize( frame )
+          end )
         end
       else
         frame:SetResizable( false )

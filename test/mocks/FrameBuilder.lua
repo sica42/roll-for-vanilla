@@ -56,6 +56,8 @@ function M.new()
         GetScale = function() return 1 end,
         GetWidth = function() return 1 end,
         GetHeight = function() return 1 end,
+        StartSizing = function() end,
+        StopMovingOrSizing = function() end,
         ClearAllPoints = function() end,
         SetAllPoints = function() end,
         IsVisible = function( self ) return self.visible end,
