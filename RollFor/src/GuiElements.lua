@@ -356,14 +356,14 @@ function M.tiny_button( parent, text, tooltip, color, font_size )
     } )
     button:SetBackdropColor( 0, 0, 0, 1 )
     button:SetBackdropBorderColor( .2, .2, .2, 1 )
-    button:SetHeight( 10 )
-    button:SetWidth( 10 )
+    button:SetHeight( 13 )
+    button:SetWidth( 13 )
     button:SetText( text )
     button:SetPushedTextOffset( 0, 0 )
 
     if string.upper( text ) == text then
       font_x = text == "?" and -.5 or 0
-      font_y = 0
+      font_y = 0.5
       font_size = font_size or 10
     else
       font_x, font_y = -.5, 1.5

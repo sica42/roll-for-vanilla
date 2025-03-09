@@ -14,7 +14,7 @@ local filter = m.filter
 ---@field toggle fun()
 
 local M = m.Module.new( "WinnersPopup" )
-M.debug.enable()
+--M.debug.enable()
 
 M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 
@@ -23,8 +23,9 @@ M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 ---@param db table
 ---@param awarded_loot AwardedLoot
 ---@param roll_controller RollController
+---@param confirm_popup ConfirmPopup
 ---@param config Config
-function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller, config )
+function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller, confirm_popup, config )
   ---@type Popup?
   local popup
   local refresh
@@ -140,10 +141,25 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     m.GuiElements.titlebar( popup, "Winners" )
 
     local btn_reset = m.GuiElements.tiny_button( popup, "R", "Reset Sorting", { r = .125, g = .976, b = .624 } )
-    btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -19, m.classic and -5 or -5 )
+    btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -23, m.classic and -5 or -5 )
     btn_reset:SetScript( "OnClick", function()
       sort = nil
       refresh( true )
+    end )
+
+    local btn_clear = m.GuiElements.tiny_button( popup, "C", "Clear data", "#209ff9" )
+    btn_clear:SetPoint( "TOPRIGHT", btn_reset, "TOPLEFT", m.classic and 0 or -5, 0 )
+    btn_clear:SetScript( "OnClick", function()
+      if confirm_popup.is_visible() then
+        confirm_popup.hide()
+        return
+      end
+
+      confirm_popup.show( { "This will clear the current winners data.", "Are you sure?" }, function( value )
+        if value then
+          awarded_loot.clear( true )
+        end
+      end )
     end )
 
     local btn_resize = m.GuiElements.resize_grip( popup,
@@ -231,44 +247,43 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     local function sort_winners( a, b )
-      local val_a, val_b
       if sort == "winning_roll" then
-        val_a, val_b = a[ sort ] or 0, b[ sort ] or 0
+        local roll_a = tonumber( a[ sort ] ) or 0
+        local roll_b = tonumber( b[ sort ] ) or 0
 
         if sort_order == "asc" then
-          return val_a > val_b
+          return roll_a > roll_b
         else
-          return val_a < val_b
+          return roll_a < roll_b
         end
-      else
-        val_a, val_b = a[ sort ] or "", b[ sort ] or ""
+      end
 
-        if sort == "player_name" then
-          local class_a, class_b = a[ "player_class" ] or "", b[ "player_class" ] or ""
-          if class_a ~= class_b then
-            return (sort_order == "asc") == (class_a < class_b)
-          end
-          return a.player_name < b.player_name
-        elseif sort == "item_id" then
-          local quality_a, quality_b = a[ "quality" ] or 0, b[ "quality" ] or 0
-          if quality_a ~= quality_b then
-            return (sort_order == "asc") == (quality_a > quality_b)
-          end
-          return m.ItemUtils.get_item_name( a.item_link ) < m.ItemUtils.get_item_name( b.item_link )
-        elseif sort == "roll_type" then
-          local roll_order = { SoftRes = 1, MainSpec = 2, OffSpec = 3, Transmog = 4, RR = 5, NA = 6 }
-          val_a, val_b = a[ sort ] or "NA", b[ sort ] or "NA"
-          if val_a ~= val_b then
-            return (sort_order == "asc") == (roll_order[ val_a ] < roll_order[ val_b ])
-          end
-          return a.item_id < b.item_id
+      local val_a = a[ sort ] or ""
+      local val_b = b[ sort ] or ""
+
+      if sort == "player_name" then
+        local class_a, class_b = a[ "player_class" ] or "", b[ "player_class" ] or ""
+        if class_a ~= class_b then
+          return (sort_order == "asc") == (class_a < class_b)
         end
+        return a.player_name < b.player_name
+      elseif sort == "item_id" then
+        local quality_a, quality_b = a[ "quality" ] or 0, b[ "quality" ] or 0
+        if quality_a ~= quality_b then
+          return (sort_order == "asc") == (quality_a > quality_b)
+        end
+        return m.ItemUtils.get_item_name( a.item_link ) < m.ItemUtils.get_item_name( b.item_link )
+      elseif sort == "roll_type" then
+        local roll_order = { SoftRes = 1, MainSpec = 2, OffSpec = 3, Transmog = 4, RR = 5, NA = 6 }
+        val_a, val_b = a[ sort ] or "NA", b[ sort ] or "NA"
+        if val_a ~= val_b then
+          return (sort_order == "asc") == (roll_order[ val_a ] < roll_order[ val_b ])
+        end
+        return a.item_id < b.item_id
       end
     end
 
     M.debug.add( "Get data" )
-    --data_refresh = false
-
     local db_data = awarded_loot.get_winners()
     winners_data = {}
     for _, v in ipairs( db_data ) do
@@ -301,17 +316,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     if not popup then
       popup = create_popup()
       make_content()
-    end
-
-    -- Temp error checking...
-    local err
-    if not scroll_frame then err = "no scroll_frame!" end
-    if not scroll_frame.content then err = "no scroll_frame.content!" end
-    if not headers then err = "no headers!" end
-
-    if err then
-      M.debug.add( "ERROR: " .. err )
-      return
     end
 
     if not winners_data or refresh_data then get_data() end
@@ -363,7 +367,14 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
     end
 
     scroll_frame:UpdateScrollChildRect()
-    scroll_frame:update_scroll_state()
+    local tick = 0
+    scroll_frame:SetScript( "OnUpdate", function()
+      scroll_frame:update_scroll_state()
+      tick = tick + 1
+      if tick > 1 then
+        scroll_frame:SetScript( "OnUpdate", nil )
+      end
+    end )
   end
 
   local function show()

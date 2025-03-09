@@ -106,6 +106,9 @@ local function create_components()
   ---@type UiReloadPopup
   M.ui_reload_popup = m.UiReloadPopup.new( popup_builder( classic and 37 or 27 ), M.config )
 
+  ---@type ConfirmPopup
+  M.confirm_popup = m.ConfirmPopup.new( popup_builder( classic and 37 or 27 ), M.config )
+
   M.api = function() return m.api end
 
   ---@type PlayerInfo
@@ -297,6 +300,7 @@ local function create_components()
     db( "winners_popup" ),
     M.awarded_loot,
     M.roll_controller,
+    M.confirm_popup,
     M.config
   )
 

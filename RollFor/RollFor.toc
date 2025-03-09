@@ -67,6 +67,7 @@ src\RollController.lua
 src\RollingPopup.lua
 src\WinnersPopup.lua
 src\WinnersPopupGui.lua
+src\ConfirmPopup.lua
 src\SoftResRollGuiData.lua
 src\TieRollGuiData.lua
 src\RollingPopupContentTransformer.lua
