@@ -26,7 +26,7 @@ M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 ---@param confirm_popup ConfirmPopup
 ---@param config Config
 function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller, confirm_popup, config )
-  ---@type Popup?
+  ---@type Popup
   local popup
   local refresh
   local headers
@@ -115,7 +115,6 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       frame:backdrop_color( 0, 0, 0, .8 )
       frame:border_color( .2, .2, .2, 1 )
     end
-    frame:Hide()
 
     return frame
   end
@@ -384,7 +383,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
       make_content()
     end
     popup:Show()
-    refresh()
+    refresh( true )
   end
 
   local function hide()
