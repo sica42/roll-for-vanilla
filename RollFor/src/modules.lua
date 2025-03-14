@@ -746,8 +746,9 @@ end
 
 ---@param frame Frame
 function M.is_frame_out_of_bounds( frame )
-  local screen_width, screen_height = M.api.GetScreenWidth(), M.api.GetScreenHeight()
-
+  local scale = M.api.UIParent:GetEffectiveScale()
+  local screen_width = M.api.GetScreenWidth() * scale
+  local screen_height = M.api.GetScreenHeight() * scale
   local bottom = frame:GetBottom()
   local top = frame:GetTop()
   local left = frame:GetLeft()

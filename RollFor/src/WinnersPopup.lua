@@ -139,14 +139,14 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     m.GuiElements.titlebar( popup, "Winners" )
 
-    local btn_reset = m.GuiElements.tiny_button( popup, "R", "Reset Sorting", { r = .125, g = .976, b = .624 } )
+    local btn_reset = m.GuiElements.tiny_button( popup, "R", "Reset Sorting", "#20F99F" )
     btn_reset:SetPoint( "TOPRIGHT", m.classic and -29 or -23, m.classic and -5 or -5 )
     btn_reset:SetScript( "OnClick", function()
       sort = nil
       refresh( true )
     end )
 
-    local btn_clear = m.GuiElements.tiny_button( popup, "C", "Clear data", "#209ff9" )
+    local btn_clear = m.GuiElements.tiny_button( popup, "C", "Clear data", "#209FF9" )
     btn_clear:SetPoint( "TOPRIGHT", btn_reset, "TOPLEFT", m.classic and 0 or -5, 0 )
     btn_clear:SetScript( "OnClick", function()
       if confirm_popup.is_visible() then
@@ -203,7 +203,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
 
     scroll_frame = m.WinnersPopupGui.create_scroll_frame( popup )
     scroll_frame:SetPoint( "TOPLEFT", 20, padding_top - 35 )
-    scroll_frame:SetPoint( "BOTTOMRIGHT", -6, m.classic and 20 or 15 )
+    scroll_frame:SetPoint( "BOTTOMRIGHT", -20, m.classic and 20 or 15 )
 
     local inner_builder = frame_builder.new()
         :parent( scroll_frame )
@@ -422,6 +422,7 @@ function M.new( popup_builder, frame_builder, db, awarded_loot, roll_controller,
   end
 
   local function award_data_updated()
+    M.debug.add( "award_data_updated" )
     if popup and popup:IsVisible() then
       refresh( true )
     end

@@ -502,14 +502,15 @@ function M.titlebar( parent, title, on_close )
   end
 
   local label = frame:CreateFontString( nil, "ARTWORK", "GameFontNormalSmall" )
-  label:SetPoint( "TOPLEFT", 0, -12 )
-  label:SetPoint( "RIGHT", m.classic and -19 or 0, 0 )
+  label:SetPoint( "TOPLEFT", 10, -12 )
+  label:SetPoint( "RIGHT", m.classic and -29 or 0, 0 )
   label:SetJustifyH( "CENTER" )
   label:SetTextColor( 1, 1, 1 )
   label:SetText( title )
+  frame.title = label
 
   local btn_close = M.tiny_button( parent, "X", "Close Window" )
-  btn_close:SetPoint( "TOPRIGHT", m.classic and -7 or -5, m.classic and -5 or -5 )
+  btn_close:SetPoint( "TOPRIGHT", m.classic and -7 or -5, -5 )
   btn_close:SetScript( "OnClick", function()
     if on_close then
       on_close()
