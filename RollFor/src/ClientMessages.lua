@@ -54,7 +54,8 @@ function M.new( roll_controller, softres, config )
         id = data.item.id,
         n = string.gsub(  data.item.name , "%s", "_" ),
         tx = string.gsub( data.item.texture, "Interface\\Icons\\", "" ),
-        q = data.item.quality
+        q = data.item.quality,
+        cl = data.item.classes
       },
       ic = data.item_count,
       s = data.seconds,
@@ -89,7 +90,6 @@ function M.new( roll_controller, softres, config )
 
   ---@param data { players: RollingPlayer[], item: Item, item_count: number, roll_type: RollType, roll: number, rerolling: boolean?, top_roll: boolean? }
   local function on_tie( data )
-    print("on_tie")
     local players = {}
     for _, player in ipairs( data.players ) do
       table.insert( players, {
@@ -109,7 +109,6 @@ function M.new( roll_controller, softres, config )
 
   ---@param event_data TieStartData
   local function on_tie_start( event_data )
-    print("on_tie_start")
     broadcast( "TIESTART" )
   end
 

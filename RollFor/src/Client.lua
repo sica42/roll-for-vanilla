@@ -48,7 +48,8 @@ function M.new( ace_timer, player_info, rolling_popup, config )
     sr = "softressing_players",
     ro = "rolls",
     srp = "sr_plus",
-    p = "players"
+    p = "players",
+    cl = "classes"
   }
   setmetatable( var_names, { __index = function( _, key ) return key end } );
 
@@ -220,6 +221,11 @@ function M.new( ace_timer, player_info, rolling_popup, config )
         return
       end
 
+      if data.item.classes and next( data.item.classes ) and not m.find( player_info.get_class(), data.item.classes ) then
+        show_rolling = false
+        return
+      end
+
       player_have_rolled = false
       show_rolling = true
 
@@ -329,7 +335,7 @@ function M.new( ace_timer, player_info, rolling_popup, config )
 
         local tracker_data = roll_tracker.get()
         local last_iteration = tracker_data.iterations[ getn( tracker_data.iterations ) ]
-        print("iterations: " .. getn( tracker_data.iterations ) )
+
         if m.find( player_info.get_name(), last_iteration.rolls, 'player_name' ) then
           player_have_rolled = false
         end
