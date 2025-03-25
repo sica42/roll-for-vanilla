@@ -66,7 +66,8 @@ function M.mock_config( configuration )
         str = "/roll"
       }
     end,
-    classic_look = function() return false end
+    classic_look = function() return false end,
+    auto_class_announce = function() return true end
   }
 end
 
@@ -96,11 +97,12 @@ end
 ---@param hard_ressed boolean?
 ---@param quality number?
 ---@param bind_type BindType?
+---@param classes table<number, PlayerClass>?
 ---@return MasterLootDistributableItem
-function M.i( name, id, sr_players, hard_ressed, quality, bind_type )
+function M.i( name, id, sr_players, hard_ressed, quality, bind_type, classes )
   local l = u.item_link( name, id )
   local tooltip_link = IU.get_tooltip_link( l )
-  local item = IU.make_dropped_item( id or 123, name, l, tooltip_link, quality or 4, nil, nil, bind_type or BindType.None )
+  local item = IU.make_dropped_item( id or 123, name, l, tooltip_link, quality or 4, nil, nil, bind_type or BindType.None, classes )
 
   if hard_ressed then
     return IU.make_hardres_dropped_item( item )
@@ -196,7 +198,7 @@ function M.new_roll_for()
     local loot_facade = deps[ "LootFacade" ] or M.mock_loot_facade()
     deps[ "LootFacade" ] = loot_facade
 
-    local awarded_loot = require( "src/AwardedLoot" ).new( db( "awarded_loot" ) )
+    local awarded_loot = require( "src/AwardedLoot" ).new( db( "awarded_loot" ), group_roster, config )
     local softres = deps[ "SoftResData" ] and group_aware_softres( group_roster, awarded_loot, deps[ "SoftResData" ] ) or
         group_aware_softres( group_roster, awarded_loot )
     deps[ "SoftRes" ] = softres
@@ -238,7 +240,7 @@ function M.new_roll_for()
       player_selection_frame
     )
 
-    local loot_award_callback = require( "src/LootAwardCallback" ).new( awarded_loot, roll_controller, winner_tracker, group_roster )
+    local loot_award_callback = require( "src/LootAwardCallback" ).new( awarded_loot, roll_controller, winner_tracker, group_roster, softres )
     local master_loot = require( "src/MasterLoot" ).new( ml_candidates, loot_award_callback, loot_list, roll_controller )
     deps[ "MasterLoot" ] = master_loot
 

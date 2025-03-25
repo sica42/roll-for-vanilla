@@ -27,6 +27,7 @@ function M.new( db, event_bus )
     [ "superwow_auto_loot_coins" ] = { cmd = "superwow-auto-loot-coins", display = "Auto-loot coins with SuperWoW", help = "toggle auto-loot coins with SuperWoW" },
     [ "auto_loot_messages" ] = { cmd = "auto-loot-messages", display = "Auto-loot messages", help = "toggle auto-loot messages" },
     [ "auto_loot_announce" ] = { cmd = "auto-loot-announce", display = "Announce auto-looted items", help = "toggle announcements of auto-loot items" },
+    [ "auto_class_announce" ] = { cmd = "auto-class-announce", display = "Announce class restriction on items", help = "toggle announcing of class restriction on items" },
     [ "show_ml_warning" ] = { cmd = "ml", display = "Master loot warning", help = "toggle master loot warning" },
     [ "auto_raid_roll" ] = { cmd = "auto-rr", display = "Auto raid-roll", help = "toggle auto raid-roll" },
     [ "auto_group_loot" ] = { cmd = "auto-group-loot", display = "Auto group loot", help = "toggle auto group loot" },
@@ -57,6 +58,14 @@ function M.new( db, event_bus )
     if db.auto_master_loot == nil then db.auto_master_loot = true end
     if db.auto_loot == nil then db.auto_loot = true end
     if db.auto_loot_announce == nil then db.auto_loot_announce = true end
+    if not db.award_filter then
+      db.award_filter = {
+        item_quality = { Uncommon = 1, Rare = 1, Epic = 1, Legendary = 1 },
+        winning_roll = {},
+        roll_type = { MainSpec = 1, OffSpec = 1, Transmog = 1, SoftRes = 1, RR = 1 }
+      }
+    end
+    m.classic = db.classic_look
   end
 
   local function print( toggle_key )
@@ -411,6 +420,9 @@ function M.new( db, event_bus )
     master_loot_frame_rows = get( "master_loot_frame_rows" ),
     configure_master_loot_frame_rows = configure_master_loot_frame_rows,
     client_show_roll_popup = get( "client_show_roll_popup" ),
+    auto_class_announce = get( "auto_class_announce" ),
+    award_filter = get( "award_filter" ),
+    keep_award_data = get( "keep_award_data" )
   }
 
   for toggle_key, _ in pairs( toggles ) do

@@ -746,14 +746,28 @@ end
 
 ---@param frame Frame
 function M.is_frame_out_of_bounds( frame )
-  local screen_width, screen_height = M.api.GetScreenWidth(), M.api.GetScreenHeight()
-
+  local scale = M.api.UIParent:GetEffectiveScale()
+  local screen_width = M.api.GetScreenWidth() * scale
+  local screen_height = M.api.GetScreenHeight() * scale
   local bottom = frame:GetBottom()
   local top = frame:GetTop()
   local left = frame:GetLeft()
   local right = frame:GetRight()
 
   return top > screen_height or bottom < 0 or left < 0 or right > screen_width or false
+end
+
+--- @param hex string
+--- @return number r
+--- @return number g
+--- @return number b
+--- @return number a
+function M.hex_to_rgba( hex )
+  local r, g, b, a = string.match( hex, "^#?(%x%x)(%x%x)(%x%x)(%x?%x?)$" )
+
+  r, g, b = tonumber( r, 16 ) / 255, tonumber( g, 16 ) / 255, tonumber( b, 16 ) / 255
+  a = a ~= "" and tonumber( a, 16 ) / 255 or 1
+  return r, g, b, a
 end
 
 return M
