@@ -836,6 +836,15 @@ function M.new(
     local data, current_iteration = roll_tracker.get()
     local strategy_type = current_iteration and current_iteration.rolling_strategy
 
+    if strategy_type == "NormalRoll" or strategy_type == "SoftResRoll" or strategy_type == "TieRoll" then
+      notify_subscribers( "roll", {
+        player_name = player_name,
+        player_class = player_class,
+        roll_type = roll_type,
+        roll = roll
+      } )
+    end
+
     if strategy_type == "NormalRoll" or strategy_type == "SoftResRoll" then
       local waiting_for_rolls = data.status.type == "Waiting" or false
 

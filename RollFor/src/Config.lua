@@ -35,6 +35,7 @@ function M.new( db, event_bus )
     [ "rolling_popup_lock" ] = { cmd = "rolling-popup-lock", display = "Rolling popup lock", help = "toggle rolling popup lock" },
     [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },
     [ "classic_look" ] = { cmd = "classic-look", display = "Classic look", help = "toggle classic look", requires_reload = true },
+    [ "client_show_roll_popup"] = { cmd = "show-roll-popup", display = "Show roll popup when not master looter", help= "toggle roll popup when not master looter" },
   }
 
   local function notify_subscribers( event, value )
@@ -418,6 +419,7 @@ function M.new( db, event_bus )
     default_rolling_time_seconds = get( "default_rolling_time_seconds" ),
     master_loot_frame_rows = get( "master_loot_frame_rows" ),
     configure_master_loot_frame_rows = configure_master_loot_frame_rows,
+    client_show_roll_popup = get( "client_show_roll_popup" ),
     auto_class_announce = get( "auto_class_announce" ),
     award_filter = get( "award_filter" ),
     keep_award_data = get( "keep_award_data" )

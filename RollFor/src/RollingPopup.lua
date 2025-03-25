@@ -13,7 +13,7 @@ local button_defaults = {
   scale = 0.76
 }
 
----@alias RollingPopupData RollingPopupPreviewData|RollingPopupRaidRollData|RollingPopupRollData|RollingPopupRollingCanceledData|RollingPopupRaidRollingData|RollingPopupTieData
+---@alias RollingPopupData RollingPopupPreviewData|RollingPopupRaidRollData|RollingPopupRollData|RollingPopupRollingCanceledData|RollingPopupRaidRollingData|RollingPopupTieData|RollingPopupAwardedData
 
 ---@class RollingPopup
 ---@field show fun()

@@ -391,6 +391,21 @@ local function create_components()
     M.player_info
   )
 
+  ---@type ClientMessages
+  M.client_messages = m.ClientMessages.new(
+    M.roll_controller,
+    M.softres,
+    M.config
+  )
+
+  ---@type Client
+  M.client = m.Client.new(
+    M.ace_timer,
+    M.player_info,
+    M.rolling_popup,
+    M.config
+  )
+
   M.sandbox = m.Sandbox.new()
 end
 
@@ -761,6 +776,11 @@ function M.on_chat_msg_addon( name, message )
 
   for requesting_player_name, channel, their_name, their_class, their_version in string.gmatch( message, "VERSION_RESPONSE::(.-)::(.-)::(.-)::(.-)::(.*)" ) do
     M.version_broadcast.on_version_response( requesting_player_name, channel, their_name, their_class, their_version )
+    return
+  end
+
+  for data in string.gmatch( message, "ROLL::(.*)" ) do
+    M.client.on_message ( data )
     return
   end
 end
