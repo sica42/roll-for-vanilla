@@ -213,9 +213,6 @@ function M.new( ace_timer, player_info, rolling_popup, config )
 
   local function on_command( command, data )
     if command == "START_ROLL" then
-      data.softressing_players[1].dummy = string.gsub( data.softressing_players[1].dummy, "_", " " )
-      data.softressing_players[2].dummy = string.gsub( data.softressing_players[2].dummy, "_", " " )
-
       if next( data.softressing_players ) == nil then
         data.strategy_type = RS.NormalRoll
       elseif not m.find( player_info.get_name(), data.softressing_players, 'name' ) then
