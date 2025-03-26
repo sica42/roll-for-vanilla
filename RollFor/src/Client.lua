@@ -4,7 +4,7 @@ local m = RollFor
 if m.Client then return end
 
 ---@class Client
----@field on_message fun( data: string )
+---@field on_message fun( data: string, sender: string )
 
 local M = m.Module.new( "Client" )
 
@@ -16,8 +16,6 @@ local S = m.Types.RollingStatus
 local getn = m.getn
 local next = next
 
-M.debug.enable()
-
 ---@param ace_timer AceTimer
 ---@param player_info PlayerInfo
 ---@param rolling_popup RollingPopup
@@ -26,8 +24,9 @@ function M.new( ace_timer, player_info, rolling_popup, config )
   local rolling_popup_data = {} ---@type RollingPopupData[]
   local roll_tracker ---@type RollTracker
   local roll_threshold = {}
-  local show_rolling
+  local show_rolling = false
   local player_have_rolled
+  local chunked_messages = {}
   local var_names = {
     i = "item",
     t = "type",
@@ -357,15 +356,35 @@ function M.new( ace_timer, player_info, rolling_popup, config )
     end
   end
 
-  local function on_message( data_str )
-    if player_info.is_master_looter() or not config.client_show_roll_popup() then return end
-
+  local function on_message( data_str, sender )
+    if sender == player_info.get_name() or not config.client_show_roll_popup() then return end
 
     local command = string.match( data_str, "^(.-)::" )
     data_str = string.gsub( data_str, "^.-::", "" )
 
+    if command == "CHUNK" then
+      local chunk_num, total_chunks, chunk_content = string.match( data_str, "^(%d+)::(%d+)::(.+)$" )
+      chunked_messages[ sender ] = chunked_messages[ sender ] or {}
+
+      local sender_chunks = chunked_messages[ sender ]
+      sender_chunks[ tonumber( chunk_num ) ] = chunk_content
+
+      M.debug.add( (string.format( "Got chunk %d of %d", tonumber( chunk_num ), tonumber( total_chunks ) )) )
+
+      if getn( sender_chunks ) == tonumber( total_chunks ) then
+        data_str = table.concat( sender_chunks )
+        command = string.match( data_str, "^(.-)::" )
+        data_str = string.gsub( data_str, "^.-::", "" )
+
+        chunked_messages[ sender ] = nil
+      else
+        return
+      end
+    end
+
     local data = data_str ~= "" and parse_table( data_str ) or {}
 
+    M.debug.add( string.format("Received command %s", command ) )
     on_command( command, data )
   end
 

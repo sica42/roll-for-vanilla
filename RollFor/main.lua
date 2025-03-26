@@ -391,8 +391,8 @@ local function create_components()
     M.player_info
   )
 
-  ---@type ClientMessages
-  M.client_messages = m.ClientMessages.new(
+  ---@type ClientBroadcast
+  M.client_broadcast = m.ClientBroadcast.new(
     M.roll_controller,
     M.softres,
     M.config
@@ -761,7 +761,7 @@ function M.on_group_changed()
   update_minimap_icon()
 end
 
-function M.on_chat_msg_addon( name, message )
+function M.on_chat_msg_addon( name, message, _, sender )
   if name ~= "RollFor" or not message then return end
 
   for ver in string.gmatch( message, "VERSION::(.*)" ) do
@@ -780,7 +780,7 @@ function M.on_chat_msg_addon( name, message )
   end
 
   for data in string.gmatch( message, "ROLL::(.*)" ) do
-    M.client.on_message ( data )
+    M.client.on_message ( data, sender )
     return
   end
 end

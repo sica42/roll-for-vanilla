@@ -1,33 +1,50 @@
 RollFor = RollFor or {}
 local m = RollFor
 
-if m.ClientMessages then return end
+if m.ClientBroadcast then return end
 
----@class ClientMessages
+---@class ClientBroadcast
 
-local M = m.Module.new( "ClientMessages" )
-
-local RS = m.Types.RollingStrategy
-
-M.debug.enable()
+local M = m.Module.new( "ClientBroadcast" )
 
 local ADDON_NAME = "RollFor"
+local RS = m.Types.RollingStrategy
+local getn = m.getn
 
 ---@param roll_controller RollController
 ---@param softres GroupAwareSoftRes
 ---@param config Config
 function M.new( roll_controller, softres, config )
-  ---@param message string
+  ---@param command string
   ---@param data table?
-  local function broadcast( message, data )
+  local function broadcast( command, data )
     local channel = m.api.IsInRaid() and "RAID" or "PARTY"
     local data_str = data and string.gsub( m.dump( data ), "%s+", "" ) or ""
+    local chunk_size = 220
 
-    m.api.SendAddonMessage( ADDON_NAME, string.format( "ROLL::%s::%s", message, data_str ), channel )
-  end
+    local function split_message( message )
+      local chunks = {}
+      local message_length = string.len( message )
 
-  local function cancel_rolling()
-    broadcast( "CANCEL_ROLL" )
+      for i = 1, message_length, chunk_size do
+        local chunk = string.sub( message, i, i + chunk_size - 1 )
+        table.insert( chunks, chunk )
+      end
+
+      return chunks
+    end
+
+    if string.len( data_str ) > chunk_size then
+      data_str = command .. "::" .. data_str
+      local chunks = split_message( data_str )
+      for i, chunk in ipairs( chunks ) do
+        M.debug.add( string.format( "Broadcasting %s, chunk %d of %d", command, i, getn( chunks ) ) )
+        m.api.SendAddonMessage( ADDON_NAME, string.format( "ROLL::CHUNK::%d::%d::%s", i, getn( chunks ), chunk ), channel )
+      end
+    else
+      M.debug.add( string.format( "Broadcasting %s", command ) )
+      m.api.SendAddonMessage( ADDON_NAME, string.format( "ROLL::%s::%s", command, data_str ), channel )
+    end
   end
 
   ---@param data RollControllerStartData
@@ -52,7 +69,7 @@ function M.new( roll_controller, softres, config )
       i = {
         t = data.item.type,
         id = data.item.id,
-        n = string.gsub(  data.item.name , "%s", "_" ),
+        n = string.gsub( data.item.name, "%s", "_" ),
         tx = string.gsub( data.item.texture, "Interface\\Icons\\", "" ),
         q = data.item.quality,
         cl = data.item.classes
@@ -71,7 +88,7 @@ function M.new( roll_controller, softres, config )
 
   ---@param event_data RollingFinishedData
   local function on_finish( event_data )
-    if event_data.roll_tracker_data.iterations[1].rolling_strategy ~= RS.NormalRoll and event_data.roll_tracker_data.iterations[1].rolling_strategy ~= RS.SoftResRoll then
+    if event_data.roll_tracker_data.iterations[ 1 ].rolling_strategy ~= RS.NormalRoll and event_data.roll_tracker_data.iterations[ 1 ].rolling_strategy ~= RS.SoftResRoll then
       return
     end
 
@@ -104,7 +121,7 @@ function M.new( roll_controller, softres, config )
       rt = data.roll_type,
       r = data.roll,
       p = players
-     } )
+    } )
   end
 
   ---@param event_data TieStartData
@@ -112,10 +129,15 @@ function M.new( roll_controller, softres, config )
     broadcast( "TIESTART" )
   end
 
+  ---@param data { seconds_left: number }
   local function on_tick( data )
     broadcast( "TICK", {
       sl = data.seconds_left
     } )
+  end
+
+  local function cancel_rolling()
+    broadcast( "CANCEL_ROLL" )
   end
 
   ---@param data LootAwardedData
@@ -146,9 +168,9 @@ function M.new( roll_controller, softres, config )
   roll_controller.subscribe( "loot_awarded", on_loot_awarded )
   roll_controller.subscribe( "roll", on_roll )
 
-  ---@type ClientMessages
+  ---@type ClientBroadcast
   return {}
 end
 
-m.ClientMessages = M
+m.ClientBroadcast = M
 return M
