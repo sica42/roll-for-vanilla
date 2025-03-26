@@ -14,18 +14,17 @@ local RS = m.Types.RollingStrategy
 local S = m.Types.RollingStatus
 
 local getn = m.getn
-local next = next
 
 ---@param ace_timer AceTimer
 ---@param player_info PlayerInfo
 ---@param rolling_popup RollingPopup
 ---@param config Config
 function M.new( ace_timer, player_info, rolling_popup, config )
-  local rolling_popup_data = {} ---@type RollingPopupData[]
   local roll_tracker ---@type RollTracker
   local roll_threshold = {}
   local show_rolling = false
-  local player_have_rolled
+  local player_can_roll = false
+  local winners
   local chunked_messages = {}
   local var_names = {
     i = "item",
@@ -123,11 +122,10 @@ function M.new( ace_timer, player_info, rolling_popup, config )
   end
 
   ---@param strategy_type RollingStrategyType
-  ---@param finished boolean?
-  local function roll_buttons( strategy_type, finished )
+  local function roll_buttons( strategy_type )
     local buttons = {}
 
-    if not player_have_rolled and not finished then
+    if player_can_roll then
       if strategy_type == RS.NormalRoll then
         table.insert( buttons, { type = "MSRoll", callback = function() m.api.RandomRoll( 1, roll_threshold[ RT.MainSpec ] ) end } )
         table.insert( buttons, { type = "OSRoll", callback = function() m.api.RandomRoll( 1, roll_threshold[ RT.OffSpec ] ) end } )
@@ -140,34 +138,6 @@ function M.new( ace_timer, player_info, rolling_popup, config )
     table.insert( buttons, { type = "Close", callback = function() close_rolling() end } )
 
     return buttons
-  end
-
-  ---@param item Item
-  ---@param item_count number
-  ---@param seconds number?
-  ---@param buttons RollingPopupButtonWithCallback[]
-  ---@param rolls RollData[]
-  ---@param winners WinnerWithAwardCallback[]
-  ---@param strategy_type RollingStrategyType
-  ---@param waiting_for_rolls boolean?
-  local function roll_content( item, item_count, seconds, buttons, rolls, winners, strategy_type, waiting_for_rolls )
-    ---@type RollingPopupRollData
-    rolling_popup_data[ item.id ] = {
-      item_link = item.link,
-      item_tooltip_link = IU.get_tooltip_link( item.link ),
-      item_texture = item.texture,
-      item_count = item_count,
-      seconds_left = seconds,
-      rolls = rolls,
-      winners = winners,
-      buttons = buttons,
-      strategy_type = strategy_type,
-      waiting_for_rolls = waiting_for_rolls,
-      type = "Roll"
-    }
-
-    rolling_popup:show()
-    rolling_popup:refresh( rolling_popup_data[ item.id ] )
   end
 
   local function tie_content()
@@ -189,7 +159,7 @@ function M.new( ace_timer, player_info, rolling_popup, config )
     end
 
     ---@type RollingPopupTieData
-    rolling_popup_data[ tracker_data.item.id ] = {
+    local rolling_popup_data = {
       ---@type RollingPopupRollData
       roll_data = {
         item_link = tracker_data.item.link,
@@ -208,79 +178,103 @@ function M.new( ace_timer, player_info, rolling_popup, config )
     }
 
     rolling_popup:show()
-    rolling_popup:refresh( rolling_popup_data[ tracker_data.item.id ] )
+    rolling_popup:refresh( rolling_popup_data )
+  end
+
+  ---@param type string?
+  ---@param awarded string?
+  local function roll_content( type, awarded )
+    local tracker_data, current_iteration = roll_tracker.get()
+    local strategy_type = current_iteration and current_iteration.rolling_strategy
+    local waiting_for_rolls = tracker_data.status.type == "Waiting" or false
+    local seconds = not waiting_for_rolls and tracker_data.status.seconds_left or nil
+
+    if strategy_type == "TieRoll" then
+      tie_content()
+      return
+    end
+
+    ---@type RollingPopupRollData
+    local rolling_popup_data = {
+      item_link = tracker_data.item.link,
+      item_tooltip_link = IU.get_tooltip_link( tracker_data.item.link ),
+      item_texture = tracker_data.item.texture,
+      item_count = tracker_data.item_count,
+      seconds_left = seconds,
+      rolls = current_iteration.rolls,
+      winners = winners or {},
+      awarded = awarded or nil,
+      buttons = roll_buttons( strategy_type ),
+      strategy_type = strategy_type,
+      waiting_for_rolls = waiting_for_rolls,
+      type = type and type or "Roll"
+    }
+
+    rolling_popup:show()
+    rolling_popup:refresh( rolling_popup_data )
+
+    local color = m.get_popup_border_color( tracker_data.item.quality )
+    rolling_popup:border_color( color )
   end
 
   local function on_command( command, data )
     if command == "START_ROLL" then
-      if next( data.softressing_players ) == nil then
+      if getn( data.softressing_players ) == 0 then
         data.strategy_type = RS.NormalRoll
-      elseif not m.find( player_info.get_name(), data.softressing_players, 'name' ) then
-        show_rolling = false
-        return
+        player_can_roll = true
+      elseif m.find( player_info.get_name(), data.softressing_players, 'name' ) then
+        player_can_roll = true
+      else
+        player_can_roll = false
+        if config.client_show_roll_popup() ~= "Always" then
+          show_rolling = false
+          return
+        end
       end
 
-      if data.item.classes and next( data.item.classes ) and not m.find( player_info.get_class(), data.item.classes ) then
-        show_rolling = false
-        return
+      if data.item.classes and getn( data.item.classes ) > 0 then
+        if m.find( player_info.get_class(), data.item.classes ) then
+          player_can_roll = true
+        else
+          player_can_roll = false
+          if not config.client_show_roll_popup() ~= "Always" then
+            show_rolling = false
+            return
+          end
+        end
       end
 
-      player_have_rolled = false
       show_rolling = true
-
-      data.item.texture = "Interface\\Icons\\" .. data.item.texture
-      data.item.name = string.gsub( data.item.name, "_", " " )
-      data.item.link = item_link( data.item.id, data.item.name, data.item.quality )
+      winners = {}
 
       roll_threshold.MainSpec = data.roll_threshold.ms
       roll_threshold.OffSpec = data.roll_threshold.os
       roll_threshold.Transmog = data.roll_threshold.tmog
 
-      roll_tracker = m.RollTracker.new( data.item )
+      data.item.texture = "Interface\\Icons\\" .. data.item.texture
+      data.item.name = string.gsub( data.item.name, "_", " " )
+      data.item.link = item_link( data.item.id, data.item.name, data.item.quality )
 
+      roll_tracker = m.RollTracker.new( data.item )
       roll_tracker.start( data.strategy_type, data.item_count, data.seconds, nil, data.softressing_players )
 
-      local tracker_data, current_iteration = roll_tracker.get()
-      local strategy_type = current_iteration and current_iteration.rolling_strategy
-      local waiting_for_rolls = tracker_data.status.type == "Waiting" or false
+      if getn( data.softressing_players ) == 1 then
+        roll_tracker.finish( {} )
+        table.insert( winners, data.softressing_players[ 1 ] )
+      end
 
-      roll_content(
-        tracker_data.item,
-        tracker_data.item_count,
-        not waiting_for_rolls and tracker_data.status.seconds_left or nil,
-        roll_buttons( strategy_type ),
-        current_iteration.rolls,
-        {},
-        strategy_type,
-        waiting_for_rolls
-      )
-
-      local color = m.get_popup_border_color( data.item.quality )
-      rolling_popup:border_color( color )
+      roll_content()
     end
 
     if show_rolling then
       if command == "ROLL" then
         roll_tracker.add( data.player_name, data.player_class, data.roll_type, data.roll )
-        player_have_rolled = data.player_name == player_info.get_name()
+        player_can_roll = not data.player_name == player_info.get_name()
 
-        local tracker_data, current_iteration = roll_tracker.get()
-        local strategy_type = current_iteration and current_iteration.rolling_strategy
-
-        if strategy_type == "TieRoll" then
-          tie_content()
-          return
-        end
-
-        rolling_popup_data[ tracker_data.item.id ].rolls = current_iteration.rolls
-        rolling_popup_data[ tracker_data.item.id ].buttons = roll_buttons( strategy_type )
-
-        rolling_popup:show()
-        rolling_popup:refresh( rolling_popup_data[ tracker_data.item.id ] )
+        roll_content()
       elseif command == "TICK" then
         roll_tracker.tick( data.seconds_left )
         local tracker_data = roll_tracker.get()
-        local waiting_for_rolls = tracker_data.status.type == "Waiting" or false
 
         if tracker_data.status.type == S.Finished or tracker_data.status.type == S.Canceled then
           return
@@ -293,39 +287,23 @@ function M.new( ace_timer, player_info, rolling_popup, config )
           end, 2 )
         end
 
-        rolling_popup_data[ tracker_data.item.id ].seconds_left = not waiting_for_rolls and data.seconds_left or nil
-        rolling_popup_data[ tracker_data.item.id ].waiting_for_rolls = waiting_for_rolls
-
-        rolling_popup:show()
-        rolling_popup:refresh( rolling_popup_data[ tracker_data.item.id ] )
+        roll_content()
       elseif command == "FINISH" then
         roll_tracker.finish( {} )
+        player_can_roll = false
+        winners = data
 
-        local tracker_data, current_iteration = roll_tracker.get()
-        local strategy_type = current_iteration and current_iteration.rolling_strategy
-
-        if strategy_type == "TieRoll" then
-          tie_content()
-          return
-        end
-
-        rolling_popup_data[ tracker_data.item.id ].winners = data
-        rolling_popup_data[ tracker_data.item.id ].seconds_left = nil
-        rolling_popup_data[ tracker_data.item.id ].buttons = roll_buttons( strategy_type, true )
-
-        rolling_popup:show()
-        rolling_popup:refresh( rolling_popup_data[ tracker_data.item.id ] )
+        roll_content()
       elseif command == "CANCEL_ROLL" then
         roll_tracker.rolling_canceled()
+        player_can_roll = false
 
-        local tracker_data, current_iteration = roll_tracker.get()
-        local strategy_type = current_iteration and current_iteration.rolling_strategy
-
-        rolling_popup_data[ tracker_data.item.id ].type = "RollingCanceled"
-        rolling_popup_data[ tracker_data.item.id ].buttons = roll_buttons( strategy_type, true )
-
-        rolling_popup:show()
-        rolling_popup:refresh( rolling_popup_data[ tracker_data.item.id ] )
+        if config.client_auto_hide_popup() then
+          show_rolling = false
+          rolling_popup.hide()
+        else
+          roll_content( "RollingCanceled" )
+        end
       elseif command == "TIE" then
         roll_tracker.tie( data.players, data.roll_type, data.roll )
         tie_content()
@@ -336,28 +314,27 @@ function M.new( ace_timer, player_info, rolling_popup, config )
         local last_iteration = tracker_data.iterations[ getn( tracker_data.iterations ) ]
 
         if m.find( player_info.get_name(), last_iteration.rolls, 'player_name' ) then
-          player_have_rolled = false
+          player_can_roll = true
         end
 
         tie_content()
       elseif command == "AWARDED" then
-        local tracker_data = roll_tracker.get()
-
-        rolling_popup_data[ tracker_data.item.id ].type = "Awarded"
-        rolling_popup_data[ tracker_data.item.id ].awarded = data
-
         if data.player_name == player_info.get_name() then
           m.api.PlaySound( "QUESTCOMPLETED" )
         end
 
-        rolling_popup:show()
-        rolling_popup:refresh( rolling_popup_data[ tracker_data.item.id ] )
+        if config.client_auto_hide_popup() then
+          show_rolling = false
+          rolling_popup.hide()
+        else
+          roll_content( "Awarded", data )
+        end
       end
     end
   end
 
   local function on_message( data_str, sender )
-    if sender == player_info.get_name() or not config.client_show_roll_popup() then return end
+    if sender == player_info.get_name() or config.client_show_roll_popup() == "Off" then return end
 
     local command = string.match( data_str, "^(.-)::" )
     data_str = string.gsub( data_str, "^.-::", "" )
@@ -384,7 +361,7 @@ function M.new( ace_timer, player_info, rolling_popup, config )
 
     local data = data_str ~= "" and parse_table( data_str ) or {}
 
-    M.debug.add( string.format("Received command %s", command ) )
+    M.debug.add( string.format( "Received command %s", command ) )
     on_command( command, data )
   end
 

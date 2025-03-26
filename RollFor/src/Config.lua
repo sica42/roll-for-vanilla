@@ -35,7 +35,7 @@ function M.new( db, event_bus )
     [ "rolling_popup_lock" ] = { cmd = "rolling-popup-lock", display = "Rolling popup lock", help = "toggle rolling popup lock" },
     [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },
     [ "classic_look" ] = { cmd = "classic-look", display = "Classic look", help = "toggle classic look", requires_reload = true },
-    [ "client_show_roll_popup"] = { cmd = "show-roll-popup", display = "Show roll popup when not master looter", help= "toggle roll popup when not master looter" },
+    [ "client_auto_hide_popup" ] = { cmd = "auto-hide", display = "Hide popup when rolling is complete", help= "toggle hiding of roll popup", client = true },
   }
 
   local function notify_subscribers( event, value )
@@ -58,6 +58,8 @@ function M.new( db, event_bus )
     if db.auto_master_loot == nil then db.auto_master_loot = true end
     if db.auto_loot == nil then db.auto_loot = true end
     if db.auto_loot_announce == nil then db.auto_loot_announce = true end
+    if db.client_show_roll_popup == nil then db.client_show_roll_popup = "Off" end
+    if db.client_auto_hide_popup == nil then db.client_auto_hide_popup = false end
     if not db.award_filter then
       db.award_filter = {
         item_quality = { Uncommon = 1, Rare = 1, Epic = 1, Legendary = 1 },
@@ -135,12 +137,44 @@ function M.new( db, event_bus )
     print_transmog_rolling_setting()
 
     for toggle_key, setting in pairs( toggles ) do
-      if not setting.hidden then
+      if not setting.hidden and not setting.client then
         print( toggle_key )
       end
     end
 
     m.print( string.format( "For more info, type: %s", hl( "/rf config help" ) ) )
+  end
+
+  local function print_client_roll()
+    info( string.format( "Show roll popup: %s", hl( db.client_show_roll_popup ) ) )
+  end
+
+  local function print_client_settings()
+    print_header( "RollFor Client Configuration" )
+    print_client_roll()
+
+    for toggle_key, setting in pairs( toggles ) do
+      if not setting.hidden and setting.client then
+        print( toggle_key )
+      end
+    end
+
+    m.print( string.format( "For more info, type: %s", hl( "/rf config client help" ) ) )
+  end
+
+  local function print_client_help()
+    local v = function( name ) return string.format( "%s%s%s", hl( "<" ), grey( name ), hl( ">" ) ) end
+    local function rfc( cmd ) return string.format( "%s%s", blue( "/rf config client" ), cmd and string.format( " %s", hl( cmd ) ) or "" ) end
+
+    print_header( "RollFor Client Configuration Help" )
+    m.print( string.format( "%s - show configuration", rfc() ) )
+    m.print( string.format( "%s %s - set when to show roll popup", rfc( "show-roll" ), v( "Off|Always|Eligible" ) ) )
+
+    for _, setting in pairs( toggles ) do
+      if not setting.hidden and setting.client then
+        m.print( string.format( "%s - %s", rfc( setting.cmd ), setting.help ) )
+      end
+    end
   end
 
   local function configure_default_rolling_time( args )
@@ -229,6 +263,18 @@ function M.new( db, event_bus )
     info( string.format( "Usage: %s <threshold>", hl( "/rf config tmog" ) ) )
   end
 
+  local function configure_client_roll( args )
+    for value in string.gmatch( args, "config client show%-roll (%a+)" ) do
+      if ({ off = true, always = true, eligible = true })[ string.lower( value ) ] then
+        db.client_show_roll_popup = string.upper( string.sub( value, 1, 1 ) ) .. string.lower( string.sub( value, 2 ) )
+        print_client_roll()
+        return
+      end
+    end
+
+    info( string.format( "Usage: %s <Off|Always|Eligible>", hl( "/rf config client show-roll" ) ) )
+  end
+
   local function print_help()
     local v = function( name ) return string.format( "%s%s%s", hl( "<" ), grey( name ), hl( ">" ) ) end
     local function rfc( cmd ) return string.format( "%s%s", blue( "/rf config" ), cmd and string.format( " %s", hl( cmd ) ) or "" ) end
@@ -251,7 +297,7 @@ function M.new( db, event_bus )
     end
 
     for _, setting in pairs( toggles ) do
-      if not setting.hidden then
+      if not setting.hidden and not setting.client then
         m.print( string.format( "%s - %s", rfc( setting.cmd ), setting.help ) )
       end
     end
@@ -293,8 +339,26 @@ function M.new( db, event_bus )
       return
     end
 
+    if args == "config client" then
+      print_client_settings()
+      return
+    end
+
+    if args == "config client help" then
+      print_client_help()
+      return
+    end
+
+    if string.find( args, "^config client show%-roll" ) then
+      configure_client_roll( args )
+      return
+    end
+
     for toggle_key, setting in pairs( toggles ) do
-      if args == string.format( "config %s", setting.cmd ) then
+      if args == string.format( "config client %s", setting.cmd ) and setting.client then
+        toggle( toggle_key )()
+        return
+      elseif args == string.format( "config %s", setting.cmd ) and not setting.client then
         toggle( toggle_key )()
         return
       end
@@ -420,6 +484,7 @@ function M.new( db, event_bus )
     master_loot_frame_rows = get( "master_loot_frame_rows" ),
     configure_master_loot_frame_rows = configure_master_loot_frame_rows,
     client_show_roll_popup = get( "client_show_roll_popup" ),
+    client_auto_hide_popup = get( "client_auto_hide_popup" ),
     auto_class_announce = get( "auto_class_announce" ),
     award_filter = get( "award_filter" ),
     keep_award_data = get( "keep_award_data" )
