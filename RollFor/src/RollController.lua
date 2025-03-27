@@ -671,6 +671,7 @@ function M.new(
     local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
     local data = roll_tracker.get()
     local item = data.item
+    local winners = data.winners
     local first_iteration = data.iterations[ 1 ]
     local waiting = data.status.type == "Waiting" or false
 
@@ -682,7 +683,7 @@ function M.new(
       local candidates = slot and ml_candidates.get( slot ) or {}
 
       ---@type WinnerWithAwardCallback[]
-      local winners = m.map( data.winners,
+      winners = m.map( data.winners,
         ---@param player Winner
         function( player )
           if type( player ) ~= "table" then return end -- Fucking lua50 and its n.
@@ -733,7 +734,7 @@ function M.new(
         item_texture = item.texture,
         item_count = data.item_count,
         rolls = first_iteration.rolls,
-        winners = data.winners,
+        winners = winners,
         strategy_type = first_iteration.rolling_strategy,
         buttons = buttons,
         waiting_for_rolls = waiting or false,
