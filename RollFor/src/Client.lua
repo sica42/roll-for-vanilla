@@ -24,7 +24,6 @@ function M.new( ace_timer, player_info, rolling_popup, config )
   local roll_threshold = {}
   local show_rolling = false
   local player_can_roll = false
-  local winners
   local chunked_messages = {}
   local var_names = {
     i = "item",
@@ -45,9 +44,9 @@ function M.new( ace_timer, player_info, rolling_popup, config )
     th = "roll_threshold",
     sr = "softressing_players",
     ro = "rolls",
-    srp = "sr_plus",
     p = "players",
-    cl = "classes"
+    cl = "classes",
+    tm = "tmog"
   }
   setmetatable( var_names, { __index = function( _, key ) return key end } );
 
@@ -202,7 +201,7 @@ function M.new( ace_timer, player_info, rolling_popup, config )
       item_count = tracker_data.item_count,
       seconds_left = seconds,
       rolls = current_iteration.rolls,
-      winners = winners or {},
+      winners = tracker_data.winners,
       awarded = awarded or nil,
       buttons = roll_buttons( strategy_type ),
       strategy_type = strategy_type,
@@ -237,7 +236,7 @@ function M.new( ace_timer, player_info, rolling_popup, config )
           player_can_roll = true
         else
           player_can_roll = false
-          if not config.client_show_roll_popup() ~= "Always" then
+          if config.client_show_roll_popup() ~= "Always" then
             show_rolling = false
             return
           end
@@ -245,7 +244,6 @@ function M.new( ace_timer, player_info, rolling_popup, config )
       end
 
       show_rolling = true
-      winners = {}
 
       roll_threshold.MainSpec = data.roll_threshold.ms
       roll_threshold.OffSpec = data.roll_threshold.os
@@ -260,25 +258,41 @@ function M.new( ace_timer, player_info, rolling_popup, config )
 
       if getn( data.softressing_players ) == 1 then
         roll_tracker.finish( {} )
-        table.insert( winners, data.softressing_players[ 1 ] )
+        roll_tracker.add_winners( data.softressing_players )
       end
 
       roll_content()
+    elseif command == "ENABLE_ROLL_POPUP" then
+      config.enable_client_roll_popup()
+
+      if data.msg then
+        data.msg = string.gsub( data.msg, "_", " " )
+        local player, msg = string.match( data.msg, "^P:(%a+)%s(.+)$")
+        if player then
+          if player == player_info.get_name() then
+            m.api.SendChatMessage( "me only " .. msg, "YELL" )
+          end
+        else
+          m.api.SendChatMessage( data.msg, "YELL" )
+        end
+      end
     end
 
     if show_rolling then
       if command == "ROLL" then
         roll_tracker.add( data.player_name, data.player_class, data.roll_type, data.roll )
-        player_can_roll = not data.player_name == player_info.get_name()
+        if data.player_name == player_info.get_name() then
+          player_can_roll = false
+        end
 
         roll_content()
       elseif command == "TICK" then
-        roll_tracker.tick( data.seconds_left )
         local tracker_data = roll_tracker.get()
-
         if tracker_data.status.type == S.Finished or tracker_data.status.type == S.Canceled then
           return
         end
+
+        roll_tracker.tick( data.seconds_left )
 
         if data.seconds_left == 1 then
           roll_tracker.waiting_for_rolls()
@@ -290,8 +304,9 @@ function M.new( ace_timer, player_info, rolling_popup, config )
         roll_content()
       elseif command == "FINISH" then
         roll_tracker.finish( {} )
+        roll_tracker.add_winners( data )
+
         player_can_roll = false
-        winners = data
 
         roll_content()
       elseif command == "CANCEL_ROLL" then
@@ -334,9 +349,10 @@ function M.new( ace_timer, player_info, rolling_popup, config )
   end
 
   local function on_message( data_str, sender )
-    if sender == player_info.get_name() or config.client_show_roll_popup() == "Off" then return end
-
     local command = string.match( data_str, "^(.-)::" )
+    if sender == player_info.get_name() then return end
+    if config.client_show_roll_popup() == "Off" and command ~= "ENABLE_ROLL_POPUP" then return end
+
     data_str = string.gsub( data_str, "^.-::", "" )
 
     if command == "CHUNK" then

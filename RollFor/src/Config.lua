@@ -35,7 +35,7 @@ function M.new( db, event_bus )
     [ "rolling_popup_lock" ] = { cmd = "rolling-popup-lock", display = "Rolling popup lock", help = "toggle rolling popup lock" },
     [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },
     [ "classic_look" ] = { cmd = "classic-look", display = "Classic look", help = "toggle classic look", requires_reload = true },
-    [ "client_auto_hide_popup" ] = { cmd = "auto-hide", display = "Hide popup when rolling is complete", help= "toggle hiding of roll popup", client = true },
+    [ "client_auto_hide_popup" ] = { cmd = "auto-hide", display = "Hide popup when rolling is complete", help = "toggle hiding of roll popup", client = true },
   }
 
   local function notify_subscribers( event, value )
@@ -439,6 +439,13 @@ function M.new( db, event_bus )
     }
   end
 
+  local function enable_client_roll_popup()
+    if db.client_show_roll_popup == "Off" then
+      db.client_show_roll_popup = "Eligible"
+      info( string.format( "Show roll popup has been set to %s by lootmaster.", hl( db.client_show_roll_popup ) ) )
+    end
+  end
+
   init()
 
   ---@param setting_key string
@@ -485,6 +492,7 @@ function M.new( db, event_bus )
     configure_master_loot_frame_rows = configure_master_loot_frame_rows,
     client_show_roll_popup = get( "client_show_roll_popup" ),
     client_auto_hide_popup = get( "client_auto_hide_popup" ),
+    enable_client_roll_popup = enable_client_roll_popup,
     auto_class_announce = get( "auto_class_announce" ),
     award_filter = get( "award_filter" ),
     keep_award_data = get( "keep_award_data" )

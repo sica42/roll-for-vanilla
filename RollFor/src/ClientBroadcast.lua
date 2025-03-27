@@ -4,6 +4,7 @@ local m = RollFor
 if m.ClientBroadcast then return end
 
 ---@class ClientBroadcast
+---@field enable_roll_popup fun( msg: string )
 
 local M = m.Module.new( "ClientBroadcast" )
 
@@ -60,8 +61,7 @@ function M.new( roll_controller, softres, config )
         t = player.type,
         n = player.name,
         c = player.class,
-        ro = player.rolls,
-        srp = player.sr_plus
+        ro = player.rolls
       } )
     end
 
@@ -81,7 +81,7 @@ function M.new( roll_controller, softres, config )
       th = {
         ms = config.ms_roll_threshold(),
         os = config.os_roll_threshold(),
-        tmog = config.tmog_roll_threshold()
+        tm = config.tmog_roll_threshold()
       }
     } )
   end
@@ -159,6 +159,12 @@ function M.new( roll_controller, softres, config )
     } )
   end
 
+  local function enable_roll_popup( msg )
+    broadcast( "ENABLE_ROLL_POPUP", {
+      msg = string.gsub( msg, "%s", "_" ),
+    } )
+  end
+
   roll_controller.subscribe( "cancel_rolling", cancel_rolling )
   roll_controller.subscribe( "start", on_start )
   roll_controller.subscribe( "finish", on_finish )
@@ -169,7 +175,9 @@ function M.new( roll_controller, softres, config )
   roll_controller.subscribe( "roll", on_roll )
 
   ---@type ClientBroadcast
-  return {}
+  return {
+    enable_roll_popup = enable_roll_popup
+  }
 end
 
 m.ClientBroadcast = M
