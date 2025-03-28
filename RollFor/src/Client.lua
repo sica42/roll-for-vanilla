@@ -235,10 +235,6 @@ function M.new( ace_timer, player_info, rolling_popup, config )
         player_can_roll = true
       else
         player_can_roll = false
-        if config.client_show_roll_popup() ~= "Always" then
-          show_rolling = false
-          return
-        end
       end
 
       if data.item.classes and getn( data.item.classes ) > 0 then
@@ -246,11 +242,13 @@ function M.new( ace_timer, player_info, rolling_popup, config )
           player_can_roll = true
         else
           player_can_roll = false
-          if config.client_show_roll_popup() ~= "Always" then
-            show_rolling = false
-            return
-          end
         end
+      end
+
+      if not player_can_roll and config.client_show_roll_popup() ~= "Always" then
+        show_rolling = false
+        rolling_popup.hide()
+        return
       end
 
       show_rolling = true

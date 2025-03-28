@@ -161,6 +161,7 @@ function M.new( roll_controller, softres, config )
   end
 
   local function enable_roll_popup( msg )
+    m.pretty_print( "Broadcasting ENABLE_ROLL_POPUP" )
     broadcast( "ENABLE_ROLL_POPUP", {
       msg = string.gsub( msg, "%s", "_" ),
     } )
