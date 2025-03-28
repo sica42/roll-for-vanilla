@@ -201,7 +201,7 @@ local function create_components()
       end
 
       local link = item_link( name, item_id, quality )
-      local item = make_dropped_item( item_id, name, link, tooltip_link, quality, 1, texture, boe )
+      local item = make_dropped_item( item_id, name, link, tooltip_link, quality, 1, texture, boe, nil, true )
 
       table.insert( result, item )
     end
@@ -215,7 +215,7 @@ local function create_components()
   local mock_items = false
 
   ---@type LootList
-  M.raw_loot_list = m.LootList.new( M.loot_facade, M.item_utils, M.tooltip_reader, mock_items and get_dummy_items or nil )
+  M.raw_loot_list = m.LootList.new( M.loot_facade, M.item_utils, M.tooltip_reader, m.BossList.zones, mock_items and get_dummy_items or nil )
 
   ---@type SoftResLootList
   M.loot_list = m.SoftResLootListDecorator.new( M.raw_loot_list, M.softres )

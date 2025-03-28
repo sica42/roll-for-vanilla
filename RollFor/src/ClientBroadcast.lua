@@ -54,6 +54,7 @@ function M.new( roll_controller, softres, config )
       return
     end
 
+    local tmog_rolling_enabled = config.tmog_rolling_enabled() and (data.item.is_boss_loot or not config.auto_tmog_disable() )
     local softressing_players = softres.get( data.item.id )
     local sr_players = {}
     for _, player in ipairs( softressing_players ) do
@@ -81,7 +82,7 @@ function M.new( roll_controller, softres, config )
       th = {
         ms = config.ms_roll_threshold(),
         os = config.os_roll_threshold(),
-        tm = config.tmog_roll_threshold()
+        tm = tmog_rolling_enabled and config.tmog_roll_threshold() or 0
       }
     } )
   end

@@ -128,7 +128,9 @@ function M.new( ace_timer, player_info, rolling_popup, config )
       if strategy_type == RS.NormalRoll then
         table.insert( buttons, { type = "MSRoll", callback = function() m.api.RandomRoll( 1, roll_threshold[ RT.MainSpec ] ) end } )
         table.insert( buttons, { type = "OSRoll", callback = function() m.api.RandomRoll( 1, roll_threshold[ RT.OffSpec ] ) end } )
-        table.insert( buttons, { type = "TMOGRoll", callback = function() m.api.RandomRoll( 1, roll_threshold[ RT.Transmog ] ) end } )
+        if roll_threshold[ RT.Transmog ] > 0 then
+          table.insert( buttons, { type = "TMOGRoll", callback = function() m.api.RandomRoll( 1, roll_threshold[ RT.Transmog ] ) end } )
+        end
       elseif strategy_type == RS.SoftResRoll or strategy_type == RS.TieRoll then
         table.insert( buttons, { type = "Roll", callback = function() m.api.RandomRoll( 1, 100 ) end } )
       end
@@ -140,6 +142,10 @@ function M.new( ace_timer, player_info, rolling_popup, config )
   end
 
   local function tie_content()
+    if not roll_tracker then
+      M.debug.add( "roll_tracker not initialized" )
+      return
+    end
     local tracker_data = roll_tracker.get()
     local first_iteration = tracker_data.iterations[ 1 ]
     local waiting = tracker_data.status.type == "Waiting" or false
@@ -183,6 +189,10 @@ function M.new( ace_timer, player_info, rolling_popup, config )
   ---@param type string?
   ---@param awarded string?
   local function roll_content( type, awarded )
+    if not roll_tracker then
+      M.debug.add( "roll_tracker not initialized" )
+      return
+    end
     local tracker_data, current_iteration = roll_tracker.get()
     local strategy_type = current_iteration and current_iteration.rolling_strategy
     local waiting_for_rolls = tracker_data.status.type == "Waiting" or false
@@ -267,7 +277,7 @@ function M.new( ace_timer, player_info, rolling_popup, config )
 
       if data.msg then
         data.msg = string.gsub( data.msg, "_", " " )
-        local player, msg = string.match( data.msg, "^P:(%a+)%s(.+)$")
+        local player, msg = string.match( data.msg, "^P:(%a+)%s(.+)$" )
         if player then
           if player == player_info.get_name() then
             m.api.SendChatMessage( "me only " .. msg, "YELL" )
@@ -287,6 +297,10 @@ function M.new( ace_timer, player_info, rolling_popup, config )
 
         roll_content()
       elseif command == "TICK" then
+        if not roll_tracker then
+          M.debug.add( "roll_tracker not initialized" )
+          return
+        end
         local tracker_data = roll_tracker.get()
         if tracker_data.status.type == S.Finished or tracker_data.status.type == S.Canceled then
           return

@@ -91,6 +91,7 @@ M.BindType = BindType
 ---@field quality ItemQuality?
 ---@field texture string?
 ---@field classes table<number, PlayerClass>?
+---@field is_boss_loot boolean?
 ---@field type "Item"
 
 ---@class DroppedItem : Item
@@ -129,7 +130,8 @@ M.BindType = BindType
 ---  quantity: number,
 ---  texture: string,
 ---  bind: BindType,
----  classes: table<number, PlayerClass>|nil ): DroppedItem
+---  classes: table<number, PlayerClass>|nil,
+---  is_boss_loot: boolean ): DroppedItem
 
 ---@alias MakeSoftRessedDroppedItemFn fun(
 ---  item: DroppedItem,
@@ -231,8 +233,9 @@ end
 ---@param texture string?
 ---@param bind BindType?
 ---@param classes table<number, PlayerClass>?
+---@param is_boss_loot boolean?
 ---@return DroppedItem
-function M.make_dropped_item( id, name, link, tooltip_link, quality, quantity, texture, bind, classes )
+function M.make_dropped_item( id, name, link, tooltip_link, quality, quantity, texture, bind, classes, is_boss_loot )
   return {
     id = id,
     name = name,
@@ -243,6 +246,7 @@ function M.make_dropped_item( id, name, link, tooltip_link, quality, quantity, t
     texture = texture,
     bind = bind or BindType.None,
     classes = classes,
+    is_boss_loot = is_boss_loot,
     type = LootType.DroppedItem
   }
 end
