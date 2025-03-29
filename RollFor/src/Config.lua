@@ -35,6 +35,7 @@ function M.new( db, event_bus )
     [ "auto_master_loot" ] = { cmd = "auto-master-loot", display = "Auto master loot", help = "toggle auto master loot" },
     [ "rolling_popup_lock" ] = { cmd = "rolling-popup-lock", display = "Rolling popup lock", help = "toggle rolling popup lock" },
     [ "raid_roll_again" ] = { cmd = "raid-roll-again", display = string.format( "%s button", hl( "Raid roll again" ) ), help = string.format( "toggle %s button", hl( "Raid roll again" ) ) },
+    [ "loot_frame_cursor" ] = { cmd = "loot-frame-cursor", display = "Display loot frame at cursor position", help = "toggle displaying loot frame at cursor position"},
     [ "classic_look" ] = { cmd = "classic-look", display = "Classic look", help = "toggle classic look", requires_reload = true },
     [ "client_auto_hide_popup" ] = { cmd = "auto-hide", display = "Hide popup when rolling is complete", help = "toggle hiding of roll popup", client = true },
   }
@@ -60,6 +61,7 @@ function M.new( db, event_bus )
     if db.auto_master_loot == nil then db.auto_master_loot = true end
     if db.auto_loot == nil then db.auto_loot = true end
     if db.auto_loot_announce == nil then db.auto_loot_announce = true end
+    if db.loot_frame_cursor == nil then db.loot_frame_cursor = false end
     if db.client_show_roll_popup == nil then db.client_show_roll_popup = "Off" end
     if db.client_auto_hide_popup == nil then db.client_auto_hide_popup = false end
     if not db.award_filter then
@@ -500,7 +502,8 @@ function M.new( db, event_bus )
     auto_tmog_disable = get( "auto_tmog_disable" ),
     auto_class_announce = get( "auto_class_announce" ),
     award_filter = get( "award_filter" ),
-    keep_award_data = get( "keep_award_data" )
+    keep_award_data = get( "keep_award_data" ),
+    loot_frame_cursor = get( "loot_frame_cursor" )
   }
 
   for toggle_key, _ in pairs( toggles ) do

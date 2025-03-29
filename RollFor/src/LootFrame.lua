@@ -32,6 +32,7 @@ function M.new( loot_frame_skin, db, config )
 
   local boss_name_width = 0
   local max_frame_width
+  local max_item_count
 
   local function on_drag_stop( frame )
     local point, _, relative_point, x, y = frame:GetPoint()
@@ -97,6 +98,7 @@ function M.new( loot_frame_skin, db, config )
     M.debug.add( "show" )
     update_boss_name_frame()
     max_frame_width = nil
+    max_item_count = nil
     header_frame:Show()
   end
 
@@ -173,6 +175,7 @@ function M.new( loot_frame_skin, db, config )
     end
 
     max_frame_width = m.lua.math.max( boss_name_width, max_width )
+    max_item_count = max_item_count or item_count
 
     header_frame:SetWidth( max_frame_width )
     body_frame:SetWidth( max_frame_width )
@@ -186,6 +189,11 @@ function M.new( loot_frame_skin, db, config )
 
     for _, frame in ipairs( frames ) do
       frame:SetWidth( max_frame_width - 2 )
+    end
+
+    if config.loot_frame_cursor() and item_count == max_item_count then
+      local uiScale, x, y = m.api.UIParent:GetEffectiveScale(), m.api.GetCursorPosition()
+      header_frame:SetPoint( "TOPLEFT", m.api.UIParent, "BOTTOMLEFT", (x / uiScale) -10, (y / uiScale) + 30 )
     end
   end
 
