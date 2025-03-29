@@ -486,8 +486,7 @@ local function on_roll_command( roll_slash_command )
     end
 
     if string.find( args, "^client enable" ) and M.player_info.is_master_looter() then
-      local msg = string.gsub( args, "client enable%s?", "")
-      M.client_broadcast.enable_roll_popup( msg )
+      M.client_broadcast.enable_roll_popup()
       return
     end
 

@@ -272,18 +272,6 @@ function M.new( ace_timer, player_info, rolling_popup, config )
       roll_content()
     elseif command == "ENABLE_ROLL_POPUP" then
       config.enable_client_roll_popup()
-
-      if data.msg then
-        data.msg = string.gsub( data.msg, "_", " " )
-        local player, msg = string.match( data.msg, "^P:(%a+)%s(.+)$" )
-        if player then
-          if player == player_info.get_name() then
-            m.api.SendChatMessage( "me only " .. msg, "YELL" )
-          end
-        else
-          m.api.SendChatMessage( data.msg, "YELL" )
-        end
-      end
     end
 
     if show_rolling then

@@ -4,7 +4,7 @@ local m = RollFor
 if m.ClientBroadcast then return end
 
 ---@class ClientBroadcast
----@field enable_roll_popup fun( msg: string )
+---@field enable_roll_popup fun()
 
 local M = m.Module.new( "ClientBroadcast" )
 
@@ -160,11 +160,8 @@ function M.new( roll_controller, softres, config )
     } )
   end
 
-  local function enable_roll_popup( msg )
+  local function enable_roll_popup()
     m.pretty_print( "Broadcasting ENABLE_ROLL_POPUP" )
-    broadcast( "ENABLE_ROLL_POPUP", {
-      msg = string.gsub( msg, "%s", "_" ),
-    } )
   end
 
   roll_controller.subscribe( "cancel_rolling", cancel_rolling )

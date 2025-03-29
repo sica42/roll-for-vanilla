@@ -28,7 +28,7 @@ function M.new( db, event_bus )
     [ "auto_loot_messages" ] = { cmd = "auto-loot-messages", display = "Auto-loot messages", help = "toggle auto-loot messages" },
     [ "auto_loot_announce" ] = { cmd = "auto-loot-announce", display = "Announce auto-looted items", help = "toggle announcements of auto-loot items" },
     [ "auto_class_announce" ] = { cmd = "auto-class-announce", display = "Announce class restriction on items", help = "toggle announcing of class restriction on items" },
-    [ "auto_tmog_disable" ] = { cmd = "auto-tmog-disable", display = "Disable tmog on non-boss loot", help ="toggle tmog on non-boss loot" },
+    [ "auto_tmog_disable" ] = { cmd = "auto-tmog-disable", display = "Disable tmog on trash loot", help ="toggle tmog on trash loot" },
     [ "show_ml_warning" ] = { cmd = "ml", display = "Master loot warning", help = "toggle master loot warning" },
     [ "auto_raid_roll" ] = { cmd = "auto-rr", display = "Auto raid-roll", help = "toggle auto raid-roll" },
     [ "auto_group_loot" ] = { cmd = "auto-group-loot", display = "Auto group loot", help = "toggle auto group loot" },
@@ -274,6 +274,7 @@ function M.new( db, event_bus )
       end
     end
 
+    print_client_roll()
     info( string.format( "Usage: %s <Off|Always|Eligible>", hl( "/rf config client show-roll" ) ) )
   end
 
@@ -306,6 +307,7 @@ function M.new( db, event_bus )
 
     m.print( string.format( "%s - reset rolling popup position", rfc( "reset-rolling-popup" ) ) )
     m.print( string.format( "%s - reset loot frame position", rfc( "reset-loot-frame" ) ) )
+    m.print( string.format( "%s - show client configuration", rfc( "client" ) ) )
   end
 
   local function lock_minimap_button()
