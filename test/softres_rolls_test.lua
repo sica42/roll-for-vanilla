@@ -55,7 +55,9 @@ local mock_config = function( config )
         superwow_auto_loot_coins = function() return true end,
         classic_look = function() return false end,
         award_filter = function() return {} end,
-        keep_award_data = function() return false end
+        keep_award_data = function() return false end,
+        auto_tmog_disable = function() return false end,
+        loot_frame_cursor = function() return false end,
       }
     end
   }

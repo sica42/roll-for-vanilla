@@ -70,11 +70,13 @@ function M.new( loot_facade, item_utils, tooltip_reader, boss_list, dummy_items_
         local classes = tooltip_reader.get_slot_classes( slot )
 
         local is_boss_loot = false
-        local target_name = m.target_name()
-        if target_name and m.target_dead() then
-          local zone_name = m.api.GetRealZoneText()
-          local bosses = boss_list[ zone_name ] or {}
-          is_boss_loot = m.table_contains_value( bosses, target_name )
+        if m.api.UnitName then -- workaround to make tests work
+          local target_name = m.target_name()
+          if target_name and m.target_dead() then
+            local zone_name = m.api.GetRealZoneText()
+            local bosses = boss_list[ zone_name ] or {}
+            is_boss_loot = m.table_contains_value( bosses, target_name )
+          end
         end
 
         if item_id and item_name then

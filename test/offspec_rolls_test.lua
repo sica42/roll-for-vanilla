@@ -35,7 +35,9 @@ local function mock_config()
         default_rolling_time_seconds = function() return 8 end,
         classic_look = function() return false end,
         award_filter = function() return {} end,
-        keep_award_data = function() return false end
+        keep_award_data = function() return false end,
+        auto_tmog_disable = function() return false end,
+        loot_frame_cursor = function() return false end,
       }
     end
   }

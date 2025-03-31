@@ -67,7 +67,9 @@ function M.mock_config( configuration )
       }
     end,
     classic_look = function() return false end,
-    auto_class_announce = function() return true end
+    auto_class_announce = function() return true end,
+    loot_frame_cursor = function() return false end,
+    auto_tmog_disable = function() return false end,
   }
 end
 
