@@ -14,7 +14,9 @@ This version includes the following new features:
    * Enable with `/rf config client show-roll Eligible` or `Always`
    * `/rf config client` to view additional client options
 
-## Demo
+
+## Turtle WoW easy install
+This repository does not work with the Turtle WoW launcher. If you want to install the addon via the launcher, use https://github.com/sica42/RollFor instead.
 
 ### NEW
 
