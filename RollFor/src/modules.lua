@@ -462,7 +462,8 @@ function M.colorize_player_by_class( name, class )
   if not class then return name end
   local color = M.api.RAID_CLASS_COLORS[ string.upper( class ) ].colorStr
   if not color then
-    color = string.format("ff%02x%02x%02x", color.r * 255, color.g * 255, color.b * 255)
+    local c = M.api.RAID_CLASS_COLORS[ string.upper( class ) ]
+    color = string.format( "ff%02x%02x%02x", c.r * 255, c.g * 255, c.b * 255 )
   end
   return "|c" .. color .. name .. M.api.FONT_COLOR_CODE_CLOSE
 end
