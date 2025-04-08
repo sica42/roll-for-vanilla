@@ -9,6 +9,7 @@ This version includes the following new features:
 * New popup to keep track of winners. Shift-click map icon or type `/rfw` to access.
    * Right click headers to customize filters
    * Click headers to sort the list
+   * Right click roll type to change it.
 * Tracks raid trades
 * Show roll popup for all group/raid members who have the addon installed when loot master starts a roll.
    * Enable with `/rf config client show-roll Eligible` or `Always`
