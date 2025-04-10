@@ -11,6 +11,7 @@ This version includes the following new features:
    * Click headers to sort the list
    * Right click roll type to change it.
 * Tracks raid trades
+* New options GUI. Ctrl-click map icon or type `/rfo` to access.
 * Show roll popup for all group/raid members who have the addon installed when loot master starts a roll.
    * Enable with `/rf config client show-roll Eligible` or `Always`
    * `/rf config client` to view additional client options
