@@ -37,7 +37,7 @@ local function mock_config()
         classic_look = function() return true end,
         award_filter = function() return {} end,
         keep_award_data = function() return false end,
-        auto_tmog_disable = function() return false end,
+        auto_tmog = function() return false end,
       }
     end
   }
