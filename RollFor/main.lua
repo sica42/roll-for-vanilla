@@ -12,6 +12,9 @@ local info = m.pretty_print
 local hl = m.colors.highlight
 local RollSlashCommand = m.Types.RollSlashCommand
 
+_RollFor = M
+BINDING_HEADER_ROLLFOR = "RollFor"
+
 local function clear_data()
   M.softres_gui.clear()
   M.name_matcher.clear( true )
