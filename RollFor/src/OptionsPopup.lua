@@ -27,9 +27,9 @@ M.center_point = { point = "CENTER", relative_point = "CENTER", x = 0, y = 150 }
 ---@param config_db table
 ---@param config Config
 function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confirm_popup, db, config_db, config )
-  ---@class Frame
+  ---@type Frame
   local popup
-  local frames
+  local frames = {}
 
   local function on_drag_stop()
     if not popup then return end
@@ -88,7 +88,6 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
       this:GetParent().show_help = this.active
     end )
 
-    frames = {}
     frames.tab_area = m.api.CreateFrame( "Frame", "area", frame )
     frames.tab_area:SetPoint( "TOPLEFT", title_bar, "BOTTOMLEFT", 7, m.classic and 4 or 0 )
     frames.tab_area:SetPoint( "BOTTOMRIGHT", -7, m.classic and 9 or 7 )
@@ -137,16 +136,16 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
         event_bus.notify( "config_change_requires_ui_reload", { key = "classic_look" } )
       end )
       e.create_config( "Master loot warning", "show_ml_warning", "checkbox", "Show a warning if no master looter is set when targeting a boss.", notify )
-      e.create_config( "Auto raid-roll", "auto_raid_roll", "checkbox", "Automatically do a raid-roll if noone rolls for an item", notify )
-      e.create_config( "Auto group loot", "auto_group_loot", "checkbox", "Automatically sets loot mode back to group loot after boss is looted", notify )
-      e.create_config( "Auto master loot", "auto_master_loot", "checkbox", "Automatically sets loot mode to master looter when a boss is targeted", notify )
+      e.create_config( "Auto raid-roll", "auto_raid_roll", "checkbox", "Automatically do a raid-roll if noone rolls for an item.", notify )
+      e.create_config( "Auto group loot", "auto_group_loot", "checkbox", "Automatically sets loot mode back to group loot after boss is looted.", notify )
+      e.create_config( "Auto master loot", "auto_master_loot", "checkbox", "Automatically sets loot mode to master looter when a boss is targeted.", notify )
 
       e.create_config( "Minimap", "", "header" )
       e.create_config( "Hide minimap icon", "minimap_button_hidden", "checkbox", nil, notify )
       e.create_config( "Lock minimap icon", "minimap_button_locked", "checkbox", nil, notify )
 
       e.create_config( "Awards data", nil, "header" )
-      e.create_config( "Always keep awards data", "keep_award_data", "checkbox", "Prevents the addon from clearing award data on disconnects" )
+      e.create_config( "Always keep awards data", "keep_award_data", "checkbox", "Stops the addon from clearing award data when you join a new group/raid and on disconnect." )
       e.create_config( "Reset awards data", nil, "button", "Clears all the award data", function()
         if confirm_popup.is_visible() then
           confirm_popup.hide()
@@ -163,9 +162,9 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
 
     e.create_gui_entry( "Looting", frames, function()
       e.create_config( "Loot settings", nil, "header" )
-      e.create_config( "Master loot frame rows", "master_loot_frame_rows", "number|min=5|max=20", "Value must be between 5 and 20 rows", notify )
+      e.create_config( "Master loot frame rows", "master_loot_frame_rows", "number|min=5|max=20", "Value must be between 5 and 20 rows.", notify )
       e.create_config( "Auto-loot", "auto_loot", "checkbox", "Auto-loot items below loot thresold. BoP items will not be auto looted." )
-      e.create_config( "Auto-loot coins with SuperWow", "superwow_auto_loot_coins", "checkbox", "Automatically loot coins (requires SuperWow mod)" )
+      e.create_config( "Auto-loot coins with SuperWow", "superwow_auto_loot_coins", "checkbox", "Automatically loot coins (requires SuperWow mod)." )
       e.create_config( "Auto-loot messages", "auto_loot_messages", "checkbox", "Display auto-looted items in your private chat." )
       e.create_config( "Announce auto-looted items", "auto_loot_announce", "checkbox", "Announce auto-looted items above loot quality threshold to party/raid." )
       e.create_config( "Display loot frame at cursor", "loot_frame_cursor", "checkbox", "Display loot fram at cursor when looting.", function()
@@ -184,14 +183,38 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
       e.create_config( "Show Raid roll again button", "raid_roll_again", "checkbox", nil, notify )
       e.create_config( "MainSpec rolling threshold", "ms_roll_threshold", "number" )
       e.create_config( "OffSpec rolling threshold", "os_roll_threshold", "number" )
-      e.create_config( "Enable transmog rolling", "tmog_rolling_enabled", "checkbox" )
-      e.create_config( "Transmog rolling threshold", "tmog_roll_threshold", "number" )
-      e.create_config( "Disable transmog roll on trash loot", "auto_tmog", "checkbox", "Automatically disable tmog roll on trash loot." )
+      this.tmog_rolling_enabled = e.create_config( "Enable transmog rolling", "tmog_rolling_enabled", "checkbox", nil, function( value )
+        if value then
+          this:GetParent():GetParent().tmog_roll_threshold.input.enable()
+          this:GetParent():GetParent().auto_tmog.input.enable()
+        else
+          this:GetParent():GetParent().tmog_roll_threshold.input.disable()
+          this:GetParent():GetParent().auto_tmog.input.disable()
+        end
+      end )
+      this.tmog_roll_threshold = e.create_config( "Transmog rolling threshold", "tmog_roll_threshold", "number" )
+      this.auto_tmog = e.create_config( "Disable transmog roll on trash loot", "auto_tmog", "checkbox", "Automatically disable tmog roll on trash loot." )
+      if not this.tmog_rolling_enabled.input:GetChecked() then
+        this.tmog_roll_threshold.input.disable()
+        this.auto_tmog.input.disable()
+      end
+
       e.create_config( "Announce class restriction on items", "auto_class_announce", "checkbox", "Roll message will display classes that can roll on items with class restrictions." )
       e.create_config( "Reset rolling popup position", "", "button", nil, function()
         info( "Rolling popup position has been reset." )
         config.notify_subscribers( "reset_rolling_popup" )
       end )
+    end )
+
+    e.create_gui_entry( "Client", frames, function()
+      e.create_config( "Client settings", nil, "header" )
+      e.create_config( "Show roll popup", "client_show_roll_popup", "dropdown", "Select when to show the roll popup.", nil, {
+        { text = "Off", value = "Off" },
+        { text = "Always", value = "Always" },
+        { text = "Eligible", value = "Eligible" }
+      } )
+      e.create_config( "Hide popup when rolling is complete", "client_auto_hide_popup", "checkbox", "Automatically hide roll popup when rolling is completed." )
+--      e.create_config( "Track awarded items", "client_track_awards", "checkbox", "Will track all awarded items so you can view them in winners popup." )
     end )
 
     return frame
@@ -209,6 +232,8 @@ function M.new( popup_builder, awarded_loot, version_broadcast, event_bus, confi
                 child.input:SetChecked( config_db[ child.config ] )
               elseif child.input:GetFrameType() == "EditBox" then
                 child.input:SetText( config_db[ child.config ] )
+              elseif child.input:GetFrameType() == "Button" and child.input.dropdown  then
+                child.input.label:SetText( config_db[ child.config ] )
               end
             end
           end
