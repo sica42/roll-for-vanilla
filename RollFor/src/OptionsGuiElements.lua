@@ -9,7 +9,6 @@ if m.OptionsGuiElements then return end
 
 ---@class ChildFrame: Frame
 
-
 ---@class InputFrame
 ---@field GetChecked fun(): boolean
 ---@field disable fun()
@@ -249,6 +248,7 @@ function M.create_area( parent, title, func )
   f.bg:SetAllPoints()
 
   f:SetScript( "OnShow", function()
+    parent.active_area = title
     this.indexed = true
     this.button.text:SetTextColor( 0.1254, 0.6235, 0.9764, 1 )
     this.button.bg:SetTexture( 1, 1, 1, 1 )
@@ -335,13 +335,13 @@ function M.create_config( caption, setting, widget, tooltip, ufunc, options )
   end
 
   if setting then
-    if not widget or widget == "number" then
+    if not widget or widget == "number" or widget == "text" then
       frame.input = m.api.CreateFrame( "EditBox", nil, frame )
       M.create_backdrop( frame.input, nil, true )
       frame.input:SetTextInsets( 5, 5, 5, 5 )
       frame.input:SetTextColor( 0.1254, 0.6235, 0.9764, 1 )
       frame.input:SetJustifyH( "RIGHT" )
-      frame.input:SetWidth( 50 )
+      frame.input:SetWidth( options.width and options.width or 50 )
       frame.input:SetHeight( 18 )
       frame.input:SetPoint( "RIGHT", -3, 0 )
       frame.input:SetFontObject( "GameFontNormal" )
@@ -352,16 +352,36 @@ function M.create_config( caption, setting, widget, tooltip, ufunc, options )
       end )
 
       frame.input.disable = function()
+        frame.input.disabled = true
         frame.input:EnableKeyboard( false )
         frame.input:EnableMouse( false )
-        frame.input:SetTextColor( 0.5, 0.5, 0.5, 1 )
+        frame.input:SetTextColor( .5, .5, .5, 1 )
+        frame.caption:SetTextColor( .5, .5, .5, 1 )
       end
       frame.input.enable = function()
+        frame.input.disabled = false
         frame.input:EnableKeyboard( true )
         frame.input:EnableMouse( true )
         frame.input:SetTextColor( 0.1254, 0.6235, 0.9764, 1 )
+        frame.caption:SetTextColor( 1, 1, 1, 1 )
       end
+    end
 
+    if widget == "text" then
+      frame.input:SetScript( "OnEditFocusGained", function()
+        frame.input:HighlightText()
+      end )
+      frame.input:SetScript( "OnTextChanged", function()
+        local v = this:GetText()
+        if ufunc then
+          ufunc( v )
+        else
+          config_db[ setting ] = v
+        end
+      end )
+    end
+
+    if not widget or widget == "number" then
       frame.input:SetScript( "OnTextChanged", function()
         local v = tonumber( this:GetText() )
         local valid = v and ((not options.min or v >= options.min) and (not options.max or v <= options.max))
@@ -389,14 +409,18 @@ function M.create_config( caption, setting, widget, tooltip, ufunc, options )
       frame.input:SetPoint( "RIGHT", -3, 1 )
 
       frame.input.disable = function()
+        frame.input.disabled = true
         frame.input:EnableMouse( false )
         local tex = frame.input:GetCheckedTexture()
         tex:SetVertexColor( .5, .5, .5, 1 )
+        frame.caption:SetTextColor( .5, .5, .5, 1 )
       end
       frame.input.enable = function()
+        frame.input.disabled = false
         frame.input:EnableMouse( true )
         local tex = frame.input:GetCheckedTexture()
         tex:SetVertexColor( 1, 1, 1, 1 )
+        frame.caption:SetTextColor( 1, 1, 1, 1 )
       end
 
       frame.input:SetScript( "OnClick", function()

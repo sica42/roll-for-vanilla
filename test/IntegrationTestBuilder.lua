@@ -239,7 +239,8 @@ function M.new_roll_for()
       config,
       rolling_popup,
       confirmation_popup, ---@diagnostic disable-line: param-type-mismatch
-      player_selection_frame
+      player_selection_frame,
+      player_info
     )
 
     local loot_award_callback = require( "src/LootAwardCallback" ).new( awarded_loot, roll_controller, winner_tracker, group_roster, softres )
