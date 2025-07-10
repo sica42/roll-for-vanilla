@@ -306,7 +306,7 @@ function NoOneRollsSpec:should_display_finish_early_button_that_finishes_early()
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    offspec_roll( p2, 96, 11 ),
+    offspec_roll( p2, 96, 11, 0 ),
     text( "Rolling ends in 2 seconds.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -321,7 +321,7 @@ function NoOneRollsSpec:should_display_finish_early_button_that_finishes_early()
   chat.console( "RollFor: Rolling for [Bag] finished." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    offspec_roll( p2, 96, 11 ),
+    offspec_roll( p2, 96, 11, 0 ),
     text( "Obszczymucha wins the off-spec roll with 96.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
@@ -842,7 +842,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls()
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    offspec_roll( p2, 96, 11 ),
+    offspec_roll( p2, 96, 11, 0 ),
     text( "Rolling ends in 7 seconds.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -858,8 +858,8 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls()
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p1, 69, 11 ),
-    offspec_roll( p2, 96 ),
+    mainspec_roll( p1, 69, 11, 0 ),
+    offspec_roll( p2, 96, nil, 0 ),
     text( "Rolling ends in 3 seconds.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -870,8 +870,8 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls()
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p1, 69, 11 ),
-    offspec_roll( p2, 96 ),
+    mainspec_roll( p1, 69, 11, 0 ),
+    offspec_roll( p2, 96, nil, 0 ),
     text( "Rolling ends in 2 seconds.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -883,8 +883,8 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls()
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p1, 69, 11 ),
-    offspec_roll( p2, 96 ),
+    mainspec_roll( p1, 69, 11, 0 ),
+    offspec_roll( p2, 96, nil, 0 ),
     text( "Rolling ends in 1 second.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -899,8 +899,8 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls()
   chat.console( "RollFor: Rolling for [Bag] finished." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p1, 69, 11 ),
-    offspec_roll( p2, 96 ),
+    mainspec_roll( p1, 69, 11, 0 ),
+    offspec_roll( p2, 96, nil, 0 ),
     text( "Psikutas wins the main-spec roll with 69.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
@@ -1006,7 +1006,7 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 2 ),
-    offspec_roll( p2, 96, 11 ),
+    offspec_roll( p2, 96, 11, 0 ),
     text( "Rolling ends in 7 seconds.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -1022,8 +1022,8 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 2 ),
-    mainspec_roll( p1, 69, 11 ),
-    offspec_roll( p2, 96 ),
+    mainspec_roll( p1, 69, 11, 0 ),
+    offspec_roll( p2, 96, nil, 0 ),
     text( "Rolling ends in 3 seconds.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -1034,8 +1034,8 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 2 ),
-    mainspec_roll( p1, 69, 11 ),
-    offspec_roll( p2, 96 ),
+    mainspec_roll( p1, 69, 11, 0 ),
+    offspec_roll( p2, 96, nil, 0 ),
     text( "Rolling ends in 2 seconds.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -1047,8 +1047,8 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 2 ),
-    mainspec_roll( p1, 69, 11 ),
-    offspec_roll( p2, 96 ),
+    mainspec_roll( p1, 69, 11, 0 ),
+    offspec_roll( p2, 96, nil, 0 ),
     text( "Rolling ends in 1 second.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -1065,8 +1065,8 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   chat.console( "RollFor: Rolling for [Bag] finished." )
   rf.rolling_popup.should_display(
     item_link( item2, 2 ),
-    mainspec_roll( p1, 69, 11 ),
-    offspec_roll( p2, 96 ),
+    mainspec_roll( p1, 69, 11, 0 ),
+    offspec_roll( p2, 96, nil, 0 ),
     text( "Psikutas wins the main-spec roll with 69.", 11 ),
     individual_award_button,
     text( "Obszczymucha wins the off-spec roll with 96.", 8 ),
@@ -1094,8 +1094,8 @@ function SomeoneRolledSpec:should_display_roll_button_that_rolls_for_multiple_it
   )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p1, 69, 11 ),
-    offspec_roll( p2, 96 ),
+    mainspec_roll( p1, 69, 11, 0 ),
+    offspec_roll( p2, 96, nil, 0 ),
     text( "Psikutas wins the main-spec roll with 69.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
@@ -1188,7 +1188,7 @@ function SomeoneRolledSpec:should_display_close_button_that_closes_the_popup_and
   chat.console( "RollFor: Rolling for [Bag] finished." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    offspec_roll( p1, 69, 11 ),
+    offspec_roll( p1, 69, 11, 0 ),
     text( "Psikutas wins the off-spec roll with 69.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
@@ -1223,7 +1223,7 @@ function SomeoneRolledSpec:should_display_close_button_that_closes_the_popup_and
   )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    offspec_roll( p1, 69, 11 ),
+    offspec_roll( p1, 69, 11, 0),
     text( "Psikutas wins the off-spec roll with 69.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
@@ -1291,11 +1291,11 @@ function NormalTieRollSpec:should_display_tie_rolls()
   chat.raid( "Obszczymucha and Psikutas rolled the highest (69) for [Bag]." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p2, 69, 11 ),
-    mainspec_roll( p1, 69 ),
+    mainspec_roll( p2, 69, 11, 0 ),
+    mainspec_roll( p1, 69, nil, 0 ),
     text( "There was a tie (69):", 11 ),
-    roll_placeholder( p2, "MainSpec", 11 ),
-    roll_placeholder( p1, "MainSpec" ),
+    roll_placeholder( p2, "MainSpec", 11, 0 ),
+    roll_placeholder( p1, "MainSpec", nil, 0 ),
     empty_line( 5 )
   )
 
@@ -1306,11 +1306,11 @@ function NormalTieRollSpec:should_display_tie_rolls()
   chat.raid( "Obszczymucha and Psikutas /roll for [Bag] now." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p2, 69, 11 ),
-    mainspec_roll( p1, 69 ),
+    mainspec_roll( p2, 69, 11, 0 ),
+    mainspec_roll( p1, 69, nil, 0 ),
     text( "There was a tie (69):", 11 ),
-    roll_placeholder( p2, "MainSpec", 11 ),
-    roll_placeholder( p1, "MainSpec" ),
+    roll_placeholder( p2, "MainSpec", 11, 0 ),
+    roll_placeholder( p1, "MainSpec", nil, 0 ),
     text( "Waiting for remaining rolls...", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -1324,14 +1324,14 @@ function NormalTieRollSpec:should_display_tie_rolls()
   chat.raid( "Obszczymucha and Psikutas re-rolled the highest (42) for [Bag]." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p2, 69, 11 ),
-    mainspec_roll( p1, 69 ),
+    mainspec_roll( p2, 69, 11, 0 ),
+    mainspec_roll( p1, 69, nil, 0 ),
     text( "There was a tie (69):", 11 ),
-    mainspec_roll( p2, 42, 11 ),
-    mainspec_roll( p1, 42 ),
+    mainspec_roll( p2, 42, 11, 0 ),
+    mainspec_roll( p1, 42, nil, 0 ),
     text( "There was a tie (42):", 11 ),
-    roll_placeholder( p2, "MainSpec", 11 ),
-    roll_placeholder( p1, "MainSpec" ),
+    roll_placeholder( p2, "MainSpec", 11, 0 ),
+    roll_placeholder( p1, "MainSpec", nil, 0 ),
     empty_line( 5 )
   )
 
@@ -1342,14 +1342,14 @@ function NormalTieRollSpec:should_display_tie_rolls()
   chat.raid( "Obszczymucha and Psikutas /roll for [Bag] now." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p2, 69, 11 ),
-    mainspec_roll( p1, 69 ),
+    mainspec_roll( p2, 69, 11, 0 ),
+    mainspec_roll( p1, 69, nil, 0 ),
     text( "There was a tie (69):", 11 ),
-    mainspec_roll( p2, 42, 11 ),
-    mainspec_roll( p1, 42 ),
+    mainspec_roll( p2, 42, 11, 0 ),
+    mainspec_roll( p1, 42, nil, 0 ),
     text( "There was a tie (42):", 11 ),
-    roll_placeholder( p2, "MainSpec", 11 ),
-    roll_placeholder( p1, "MainSpec" ),
+    roll_placeholder( p2, "MainSpec", 11, 0 ),
+    roll_placeholder( p1, "MainSpec", nil, 0 ),
     text( "Waiting for remaining rolls...", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -1360,14 +1360,14 @@ function NormalTieRollSpec:should_display_tie_rolls()
   -- Then
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p2, 69, 11 ),
-    mainspec_roll( p1, 69 ),
+    mainspec_roll( p2, 69, 11, 0 ),
+    mainspec_roll( p1, 69, nil, 0 ),
     text( "There was a tie (69):", 11 ),
-    mainspec_roll( p2, 42, 11 ),
-    mainspec_roll( p1, 42 ),
+    mainspec_roll( p2, 42, 11, 0 ),
+    mainspec_roll( p1, 42, nil, 0 ),
     text( "There was a tie (42):", 11 ),
-    mainspec_roll( p2, 1, 11 ),
-    roll_placeholder( p1, "MainSpec" ),
+    mainspec_roll( p2, 1, 11, 0 ),
+    roll_placeholder( p1, "MainSpec", nil, 0 ),
     text( "Waiting for remaining rolls...", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -1380,14 +1380,14 @@ function NormalTieRollSpec:should_display_tie_rolls()
   chat.console( "RollFor: Rolling for [Bag] finished." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p2, 69, 11 ),
-    mainspec_roll( p1, 69 ),
+    mainspec_roll( p2, 69, 11, 0 ),
+    mainspec_roll( p1, 69, nil, 0 ),
     text( "There was a tie (69):", 11 ),
-    mainspec_roll( p2, 42, 11 ),
-    mainspec_roll( p1, 42 ),
+    mainspec_roll( p2, 42, 11, 0 ),
+    mainspec_roll( p1, 42, nil, 0 ),
     text( "There was a tie (42):", 11 ),
-    mainspec_roll( p1, 2, 11 ),
-    mainspec_roll( p2, 1 ),
+    mainspec_roll( p1, 2, 11, 0 ),
+    mainspec_roll( p2, 1, nil, 0 ),
     text( "Psikutas wins the main-spec roll with 2.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
@@ -1407,14 +1407,14 @@ function NormalTieRollSpec:should_display_tie_rolls()
   rf.confirmation_popup.should_be_hidden()
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p2, 69, 11 ),
-    mainspec_roll( p1, 69 ),
+    mainspec_roll( p2, 69, 11, 0 ),
+    mainspec_roll( p1, 69, nil, 0 ),
     text( "There was a tie (69):", 11 ),
-    mainspec_roll( p2, 42, 11 ),
-    mainspec_roll( p1, 42 ),
+    mainspec_roll( p2, 42, 11, 0 ),
+    mainspec_roll( p1, 42, nil, 0 ),
     text( "There was a tie (42):", 11 ),
-    mainspec_roll( p1, 2, 11 ),
-    mainspec_roll( p2, 1 ),
+    mainspec_roll( p1, 2, 11, 0 ),
+    mainspec_roll( p2, 1, nil, 0 ),
     text( "Psikutas wins the main-spec roll with 2.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
@@ -1507,8 +1507,8 @@ function NormalTieRollSpec:should_not_consider_ms_and_tm_rolls_tie()
   chat.console( "RollFor: Rolling for [Bag] finished." )
   rf.rolling_popup.should_display(
     item_link( item2, 1 ),
-    mainspec_roll( p1, 42, 11 ),
-    offspec_roll( p2, 42 ),
+    mainspec_roll( p1, 42, 11, 0 ),
+    offspec_roll( p2, 42, nil, 0 ),
     text( "Psikutas wins the main-spec roll with 42.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )
@@ -1599,7 +1599,7 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
   chat.raid( "Stopping rolls in 3" )
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
-    mainspec_roll( p1, 24, 11 ),
+    mainspec_roll( p1, 24, 11, 0 ),
     text( "Rolling ends in 2 seconds.", 11 ),
     buttons( "FinishEarly", "Cancel" )
   )
@@ -1615,7 +1615,7 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
   chat.console( "RollFor: Rolling for [Essence Gatherer] finished." )
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
-    mainspec_roll( p1, 24, 11 ),
+    mainspec_roll( p1, 24, 11, 0 ),
     text( "Cosmicshadow wins the main-spec roll with 24.", 11 ),
     buttons( "RaidRoll", "Close" )
   )
@@ -1629,7 +1629,7 @@ function NoOneRollsSpec:should_show_award_button_when_looting_the_corpse_again_i
   )
   rf.rolling_popup.should_display(
     item_link( item, 1 ),
-    mainspec_roll( p1, 24, 11 ),
+    mainspec_roll( p1, 24, 11, 0 ),
     text( "Cosmicshadow wins the main-spec roll with 24.", 11 ),
     buttons( "AwardWinner", "RaidRoll", "AwardOther", "Close" )
   )

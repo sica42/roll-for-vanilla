@@ -105,10 +105,11 @@ function M.new( config )
       table.insert( result, {
         type = "roll",
         roll_type = roll.roll_type,
-        player_name = roll.player_name,
+        plus_ones = roll.plus_ones,
+        player_name =  roll.player_name,
         player_class = roll.player_class,
         roll = roll.roll,
-        padding = i == 1 and top_padding or nil
+        padding = i == 1 and top_padding or nil,
       } )
     end
   end
