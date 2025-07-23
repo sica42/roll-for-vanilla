@@ -77,7 +77,7 @@ M.zones    = {
   [ "Onyxia's Lair" ] = {
     "Onyxia"
   },
-  [ "Temple of Ahn'Qiraj" ] = {
+  [ "Ahn'Qiraj" ] = {
     "The Prophet Skeram",
     "Vem",
     "Lord Kri",
