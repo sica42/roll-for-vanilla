@@ -39,6 +39,7 @@ local function mock_config()
         award_filter = function() return {} end,
         keep_award_data = function() return false end,
         auto_tmog = function() return false end,
+        handle_plus_ones = function() return false end,
       }
     end
   }

@@ -70,6 +70,7 @@ function M.mock_config( configuration )
     auto_class_announce = function() return true end,
     loot_frame_cursor = function() return false end,
     auto_tmog = function() return false end,
+    handle_plus_ones = function() return false end,
   }
 end
 
@@ -225,6 +226,7 @@ function M.new_roll_for()
     local loot_frame = require( "mocks/LootFrame" ).new( loot_frame_skin, db( "loot_frame" ), config )
     local popup_builder = require( "mocks/PopupBuilder" )
     local rolling_popup = require( "mocks/RollingPopup" ).new( popup_builder.new(), db( "dummy" ), config )
+    local confirm_popup = require( "src/ConfirmPopup" ).new( popup_builder, config )
 
     local confirmation_popup = require( "mocks/LootAwardPopup" ).new( nil )
     deps[ "LootAwardPopup" ] = confirmation_popup
@@ -243,7 +245,7 @@ function M.new_roll_for()
       player_info
     )
 
-    local loot_award_callback = require( "src/LootAwardCallback" ).new( awarded_loot, roll_controller, winner_tracker, group_roster, softres )
+    local loot_award_callback = require( "src/LootAwardCallback" ).new( awarded_loot, roll_controller, winner_tracker, group_roster, softres, confirm_popup, config )
     local master_loot = require( "src/MasterLoot" ).new( ml_candidates, loot_award_callback, loot_list, roll_controller )
     deps[ "MasterLoot" ] = master_loot
 
@@ -256,7 +258,8 @@ function M.new_roll_for()
       winner_tracker,
       config,
       softres,
-      player_info
+      player_info,
+      awarded_loot
     )
     deps[ "RollingStrategyFactory" ] = strategy_factory
 

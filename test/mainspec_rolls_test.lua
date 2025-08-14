@@ -42,6 +42,7 @@ local function mock_config()
         award_filter = function() return {} end,
         keep_award_data = function() return false end,
         auto_tmog = function() return false end,
+        handle_plus_ones = function() return false end,
         loot_frame_cursor = function() return false end,
         show_player_roles = function() return false end,
       }
