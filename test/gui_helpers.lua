@@ -17,7 +17,7 @@ end
 ---@param roll_type RollType
 ---@param padding number?
 function M.roll_placeholder( player, roll_type, padding )
-  return { type = "roll", player_name = player.name, player_class = player.class, roll_type = roll_type, padding = padding }
+  return { type = "roll", player_name = player.name, player_class = player.class, player_role = nil, roll_type = roll_type, padding = padding }
 end
 
 ---@param player Player
@@ -29,25 +29,25 @@ end
 ---@param player Player
 ---@param padding number?
 function M.mainspec_roll( player, roll, padding )
-  return { type = "roll", player_name = player.name, player_class = player.class, roll_type = RT.MainSpec, roll = roll, padding = padding }
+  return { type = "roll", player_name = player.name, player_class = player.class, player_role = nil, roll_type = RT.MainSpec, roll = roll, padding = padding }
 end
 
 ---@param player Player
 ---@param padding number?
 function M.offspec_roll( player, roll, padding )
-  return { type = "roll", player_name = player.name, player_class = player.class, roll_type = RT.OffSpec, roll = roll, padding = padding }
+  return { type = "roll", player_name = player.name, player_class = player.class, player_role = nil, roll_type = RT.OffSpec, roll = roll, padding = padding }
 end
 
 ---@param player Player
 ---@param padding number?
 function M.tmog_roll( player, roll, padding )
-  return { type = "roll", player_name = player.name, player_class = player.class, roll_type = RT.Transmog, roll = roll, padding = padding }
+  return { type = "roll", player_name = player.name, player_class = player.class, player_role = nil, roll_type = RT.Transmog, roll = roll, padding = padding }
 end
 
 ---@param player Player
 ---@param padding number?
 function M.softres_roll( player, roll, padding )
-  return { type = "roll", player_name = player.name, player_class = player.class, roll_type = RT.SoftRes, roll = roll, padding = padding }
+  return { type = "roll", player_name = player.name, player_class = player.class, player_role = nil, roll_type = RT.SoftRes, roll = roll, padding = padding }
 end
 
 ---@param message string

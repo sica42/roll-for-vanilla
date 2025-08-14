@@ -860,7 +860,8 @@ function M.new(
   local function on_roll( player_name, player_class, roll_type, roll )
     M.debug.add( string.format( "on_roll( %s, %s, %s, %s )", player_name, player_class, roll_type, roll ) )
     local roll_tracker = get_roll_tracker( currently_displayed_item and currently_displayed_item.id )
-    roll_tracker.add( player_name, player_class, roll_type, roll )
+    local roller = m.find( player_name, softres.get_all_rollers(), "name")
+    roll_tracker.add( player_name, player_class, roller and roller.role, roll_type, roll )
 
     local data, current_iteration = roll_tracker.get()
     local strategy_type = current_iteration and current_iteration.rolling_strategy
@@ -869,6 +870,7 @@ function M.new(
       notify_subscribers( "roll", {
         player_name = player_name,
         player_class = player_class,
+        player_role = roller and roller.role,
         roll_type = roll_type,
         roll = roll
       } )

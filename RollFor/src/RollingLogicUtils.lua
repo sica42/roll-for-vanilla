@@ -21,7 +21,7 @@ end
 
 ---@param roller RollingPlayer
 function M.copy_roller( roller )
-  return make_rolling_player( roller.name, roller.class, roller.online, roller.rolls )
+  return make_rolling_player( roller.name, roller.class, roller.role, roller.online, roller.rolls )
 end
 
 ---@param rollers RollingPlayer[]

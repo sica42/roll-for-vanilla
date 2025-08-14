@@ -54,7 +54,7 @@ function M.new(
   local function normal_roll( item, item_count, message, seconds, on_rolling_finished, roll_controller_facade )
     local players = group_roster.get_all_players_in_my_group()
     local rollers = m.map( players, function( player )
-      return make_rolling_player( player.name, player.class, player.online, 1 )
+      return make_rolling_player( player.name, player.class, player.role, player.online, 1 )
     end )
 
     return m.NonSoftResRollingLogic.new(
@@ -133,7 +133,7 @@ function M.new(
     local rollers = m.map( players,
       ---@param player RollingPlayer
       function( player )
-        return make_rolling_player( player.name, player.class, player.online, 1 )
+        return make_rolling_player( player.name, player.class, player.role, player.online, 1 )
       end
     )
 
