@@ -53,6 +53,9 @@ M.zones    = {
     "Ossirian the Unscarred"
   },
   [ "Molten Core" ] = {
+    "Incindis",
+    "Basalthar",
+    "Sorcerer-Thane Thaurissan",
     "Lucifron",
     "Magmadar",
     "Gehennas",
