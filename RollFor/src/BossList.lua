@@ -85,7 +85,7 @@ M.zones    = {
     "Vem",
     "Lord Kri",
     "Princess Yauj",
-    "Battle Guard Sartura",
+    "Battleguard Sartura",
     "Fankriss the Unyielding",
     "Viscidus",
     "Princess Huhuran",
