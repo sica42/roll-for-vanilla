@@ -55,6 +55,7 @@ M.zones    = {
   [ "Molten Core" ] = {
     "Incindis",
     "Basalthar",
+    "Smoldaris",
     "Sorcerer-Thane Thaurissan",
     "Lucifron",
     "Magmadar",
