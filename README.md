@@ -1,5 +1,7 @@
 # RollFor
-A World of Warcraft (1.12.1 and 2.5.2) addon that manages rolling for items.  
+A World of Warcraft (1.12.1) addon that manages rolling for items.  
+The [original version of RollFor](https://github.com/obszczymucha/roll-for-vanilla) supports both 1.12.1 and 2.5.2 clients, but this version has only been tested on 1.12.1.
+
 
 ## New in this fork
 This version includes the following new features:
@@ -16,9 +18,6 @@ This version includes the following new features:
    * Enable with `/rf config client show-roll Eligible` or `Always`
    * `/rf config client` to view additional client options
 
-
-## Turtle WoW easy install
-This repository does not work with the Turtle WoW launcher. If you want to install the addon via the launcher, use https://github.com/sica42/RollFor instead.
 
 ### NEW
 
@@ -259,6 +258,7 @@ Click on the minimap icon and click **Clear** or type:
 ## Shoutouts
 
 Thank you to:
+  * **<a href="https://github.com/obszczymucha/">obszczymucha</a>** the original creator of this addon.
   * **Turtle WoW devs** for amazing content. You cunts should switch to a better client.  
   * **Itamedruids** for *Raidres* and adding the export function. Love your work.  
   * My fellow raiders (there's too many to mention).  
@@ -268,10 +268,6 @@ Thank you to:
 ## Need more help?
 
 The best way to contact me is to message me on Discord.  
-Username: **Obszczymucha**  
+Username: **ccsica**  
 
-My character **Jogobobek** will no longer be available on Turtle WoW.  
-I'm switching to Netherwing 3.0, perhaps under a different name :P  
-
-Thanks Turtle for fun.
-
+You can also find me on my character **Sica** on Nordanaar Turtle WoW server.
